@@ -1,6 +1,13 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+  import { activePage } from "../../store";
+  import { onDestroy } from "svelte";
+
+  $activePage = "home.index";
+  onDestroy(() => {
+    $activePage = "";
+  });
 </script>
 
 <Aside />
@@ -10,7 +17,7 @@
   <section class="admin-content">
     <div class="container mt-3">
       <div class="row" />
-      <h1>Páina principal</h1>
+      <h1>Página principal</h1>
       Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis, ipsa. Ab
       recusandae consectetur vel eum unde voluptate quis consequuntur
       reprehenderit omnis, facilis accusamus? Numquam quaerat nihil id amet

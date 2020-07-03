@@ -1,15 +1,18 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+
+  
 </script>
 
 <Aside />
+
 <main class="admin-main">
   <Header />
   <section class="admin-content">
     <div class="container mt-3">
       <div class="row" />
-      <h1>Editar Usuario</h1>
+      <h1>Especio de trabajo del medico</h1>
       Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis, ipsa. Ab
       recusandae consectetur vel eum unde voluptate quis consequuntur
       reprehenderit omnis, facilis accusamus? Numquam quaerat nihil id amet

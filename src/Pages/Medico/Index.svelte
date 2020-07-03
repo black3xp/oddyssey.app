@@ -1,8 +1,6 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-    import { activePage } from "../../store";
-    $activePage ="mantenimiento.usuarios.index"
 </script>
 
 <style>
@@ -34,7 +32,7 @@
                       </div>
                   </div>
                   <a href="/Expediente/Nuevo" type="button" class="btn  m-b-30 ml-2 mr-2 ml-3 btn-primary" data-toggle="modal" data-target="#modalUsuario">
-                      <i class="mdi mdi-account-plus"></i> Nuevo usuario
+                      <i class="mdi mdi-account-plus"></i> Nuevo medico
                   </a>
               </div>
           </div>
@@ -43,7 +41,7 @@
             <div class="card m-b-30">
               <div class="card-header">
                   <h5 class="m-b-0">
-                      Usuarios
+                      Medicos
                   </h5>
     
               </div>
@@ -54,8 +52,8 @@
                           <thead>
                               <tr>
                                   <th>Nombres</th>
-                                  <!-- <th>Usuario</th> -->
-                                  <th>Correo</th>
+                                  <th>Especialidad</th>
+                                  <th>Telefono</th>
                                   <th></th>
                               </tr>
                           </thead>
@@ -69,19 +67,39 @@
       
                                       </div> <span data-bind="text: name">Alfredo Joel Mena</span>
                                   </td>
-                                  <!-- <td data-bind="text: userName"></td> -->
-                                  <td data-bind="text: userName">joel.mena@nxt-pro.com</td>
+                                  <td>Ginecologia</td>
+                                  <td data-bind="text: userName">809-588-1717</td>
       
                                   <td>
                                       <div style="width: 150px; text-align: right;" class="ml-auto">
-                                          <!-- <a data-toggle="tooltip" data-placement="top"
-                                              data-original-title="Resetear contraseña" class="icon-table"><i
-                                                  class="mdi-24px mdi mdi-lock-reset"></i></a> -->
-                                          <a data-bind="click: $parent.editar" data-toggle="tooltip" style="cursor: pointer;" data-placement="top" data-original-title="Modificar usuario" class="icon-table hover-cursor"><i class=" mdi-24px mdi mdi-circle-edit-outline"></i></a>
-                                          <a href="#" data-toggle="modal" data-bind="click: $parent.seleccionarUsuario" data-target="#modalRoles" data-placement="bottom" title="Asignar Roles" class="icon-rol"><i class=" mdi-24px mdi mdi-security"></i></a>
+                                        <div class="row">
+                                          <a href="#/Medico/Perfil" class="btn btn-outline-primary btn-sm mr-2"><i class="mdi mdi-circle-edit-outline"></i> Editar</a>
+                                          <a href="#/Medico/Perfil" class="btn btn-outline-success btn-sm"><i class="mdi mdi-account-outline"></i> Ver perfil</a>
+                                        </div>
                                       </div>
                                   </td>
                               </tr>
+                              <tr>
+                                <td>
+                                    <div class="avatar avatar-sm mr-2 d-block-sm">
+                                        <div class="avatar avatar-sm">
+                                            <span class="avatar-title rounded-circle " data-bind="text: name[0]">A</span>
+                                        </div>
+    
+                                    </div> <span data-bind="text: name">Alfredo Joel Mena</span>
+                                </td>
+                                <td>Ginecologia</td>
+                                <td data-bind="text: userName">809-588-1717</td>
+    
+                                <td>
+                                  <div style="width: 150px; text-align: right;" class="ml-auto">
+                                    <div class="row">
+                                      <a href="#/Medico/Perfil" class="btn btn-outline-primary btn-sm mr-2"><i class="mdi mdi-circle-edit-outline"></i> Editar</a>
+                                      <a href="#/Medico/Perfil" class="btn btn-outline-success btn-sm"><i class="mdi mdi-account-outline"></i> Ver perfil</a>
+                                    </div>
+                                  </div>
+                              </td>
+                            </tr>
 
                           </tbody>
                       </table>
@@ -106,7 +124,7 @@
   <div class="modal-dialog" role="document">
       <div class="modal-content">
           <div class="modal-header">
-              <h5 class="modal-title" id="modalUsuarioLabel">Usuario</h5>
+              <h5 class="modal-title" id="modalUsuarioLabel">Nuevo medico</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">×</span>
               </button>
@@ -118,7 +136,7 @@
                   <div class="form-row">
                       <div class="form-group col-md-12">
                           <label for="">Nombre Completo</label>
-                          <input type="name" class="form-control" placeholder="Ing. John Doe" name="Name" maxlength="200" required="">
+                          <input type="name" class="form-control" placeholder="Dr. John Doe" name="Name" maxlength="200" required="">
                       </div>
                   </div>
                   <div class="form-row">
@@ -131,26 +149,13 @@
                           <input type="email" required="" class="form-control" placeholder="usuario@correo.com" autocomplete="off" name="Email" id="txtCorreo" maxlength="100">
                       </div>
                   </div>
-                  <div class="form-row">
-                      <div class="form-group col-md-12">
-                          <label for="">Contraseña</label>
-                          <input type="password" class="form-control" required="true" name="PasswordHash" maxlength="50">
-                      </div>
-
-                  </div>
 
                   <div class="form-row">
                       <div class="form-group col-md-12">
                           <label for="">Telefono</label>
                           <input type="text" class="form-control" data-mask="(000) 000-0000" data-mask-clearifnotmatch="true" autocomplete="off" maxlength="14" placeholder="(809) 000-0000" name="PhoneNumber" id="txtTelefono">
                       </div>
-                      <div class="form-group col-md-12">
-                          <label class="cstm-switch">
-                              <input type="checkbox" value="true" name="EsMedico" class="cstm-switch-input">
-                              <span class="cstm-switch-indicator "></span>
-                              <span class="cstm-switch-description">Es Medico </span>
-                          </label>
-                      </div>
+
                       <div class="form-group col-md-12" style="display: none;">
                           <label for="">exequatur</label>
                           <input type="text" class="form-control" utocomplete="off" name="Exequatur" id="txtTelefono">
@@ -174,65 +179,6 @@
                           Cerrar
                       </button>
                       <button type="submit" class="btn btn-success">Guardar</button>
-                  </div>
-              </form>
-
-          </div>
-      </div>
-  </div>
-</div>
-
-
-
-<div class="modal fade modal-slide-right" id="modalRoles" tabindex="-1" role="dialog" aria-labelledby="modalRolesLabel" style="display: none; padding-right: 16px;" aria-modal="true">
-  <div class="modal-dialog" role="document">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title" id="modalRolesLabel">Roles</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-              </button>
-          </div>
-          <div class="modal-body">
-
-              <form id="">
-                  <input type="hidden" name="idPaciente" value="">
-                  <p><span class="badge badge-soft-primary" style="font-size: 17px;"></span>
-                  </p>
-                  <div class="form-group floating-label">
-                      <label>Buscar</label>
-                      <input type="text" class="form-control" placeholder="Buscar roles">
-                  </div>
-                  <div class="roles" >
-
-                      <div class="lista-rol m-b-10">
-                          <label class="cstm-switch d-flex bd-highlight">
-                              <span class="cstm-switch-description mr-auto bd-highlight">Administrador</span>
-                              <input type="checkbox" name="option" value="1" class="cstm-switch-input">
-                              <span class="cstm-switch-indicator bg-success bd-highlight"></span>
-                          </label>
-                      </div>
-
-                  
-
-                      <div class="lista-rol m-b-10">
-                          <label class="cstm-switch d-flex bd-highlight">
-                              <span class="cstm-switch-description mr-auto bd-highlight">Especialista</span>
-                              <input type="checkbox" name="option" value="1" class="cstm-switch-input">
-                              <span class="cstm-switch-indicator bg-success bd-highlight"></span>
-                          </label>
-                      </div>
-
-                  
-
-                      <div class="lista-rol m-b-10">
-                          <label class="cstm-switch d-flex bd-highlight">
-                              <span class="cstm-switch-description mr-auto bd-highlight">Medico de planta</span>
-                              <input type="checkbox" name="option" value="1" class="cstm-switch-input">
-                              <span class="cstm-switch-indicator bg-success bd-highlight"></span>
-                          </label>
-                      </div>
-
                   </div>
               </form>
 
