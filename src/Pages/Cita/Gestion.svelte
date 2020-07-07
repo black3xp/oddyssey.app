@@ -72,7 +72,7 @@
               </div>
               <div class="form-group ">
                 <label class="font-secondary">Especialidad</label>
-                <select class="form-control select2" id="sltEspecialidad">
+                <select class="form-control select2" style="width: 100%;" id="sltEspecialidad">
                   <option value="">- Seleccionar -</option>
                 </select>
               </div>
