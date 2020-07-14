@@ -190,12 +190,14 @@
                               <span class="cstm-switch-description">Es Medico </span>
                           </label>
                       </div>
+                      {#if obj.IsDoctor}
                       <div class="form-group col-md-12">
                           <label for="">Perfil</label>
                           <select class="form-control" name="perfil">
                             <option value="1">- Seleccionar -</option>
                           </select>
                       </div>
+                      {/if}
                       
                       <div class="form-group col-md-12" style="display: none;">
                           <label for="">exequatur</label>
