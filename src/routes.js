@@ -11,6 +11,10 @@ import MedicoWorkspace from "./Pages/Medico/Workspace.svelte"
 //Error Page
 import Error404 from './Pages/Home/Error404.svelte'
 
+//External import
+
+//Method
+
 const routes = {
     "/": Index,
     "/Home/Login": Login,

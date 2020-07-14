@@ -1,6 +1,49 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+
+  let diasSemana = [
+    {check: false, value: 1, nombre: 'Lunes', tandas: [
+      {check: false, value: 11, nombre: 'Mañana'},
+      {check: false, value: 12, nombre: 'Tarde'},
+      {check: false, value: 13, nombre: 'Noche'}
+    ]},
+    {check: false, value: 2, nombre: 'Martes', tandas: [
+      {check: false, value: 21, nombre: 'Mañana'},
+      {check: false, value: 22, nombre: 'Tarde'},
+      {check: false, value: 23, nombre: 'Noche'}
+    ]},
+    {check: false, value: 3, nombre: 'Miercoles', tandas: [
+      {check: false, value: 31, nombre: 'Mañana'},
+      {check: false, value: 32, nombre: 'Tarde'},
+      {check: false, value: 33, nombre: 'Noche'}
+    ]},
+    {check: false, value: 4, nombre: 'Jueves', tandas: [
+      {check: false, value: 41, nombre: 'Mañana'},
+      {check: false, value: 42, nombre: 'Tarde'},
+      {check: false, value: 43, nombre: 'Noche'}
+    ]},
+    {check: false, value: 5, nombre: 'Viernes', tandas: [
+      {check: false, value: 51, nombre: 'Mañana'},
+      {check: false, value: 52, nombre: 'Tarde'},
+      {check: false, value: 53, nombre: 'Noche'}
+    ]},
+    {check: false, value: 6, nombre: 'Sabado', tandas: [
+      {check: false, value: 61, nombre: 'Mañana'},
+      {check: false, value: 62, nombre: 'Tarde'},
+      {check: false, value: 63, nombre: 'Noche'}
+    ]},
+    {check: false, value: 7, nombre: 'Domingo', tandas: [
+      {check: false, value: 71, nombre: 'Mañana'},
+      {check: false, value: 72, nombre: 'Tarde'},
+      {check: false, value: 73, nombre: 'Noche'}
+    ]},
+  ];
+
+  $: {
+    let save = diasSemana.filter(x => x.check);
+    console.log(save);
+  }
 </script>
 
 <style>
@@ -358,7 +401,7 @@
               </h5>
             </div>
             <div class="card-body">
-
+              {#each diasSemana as item}
               <div class="card m-b-30 card-vnc">
                 <div class="card-header">
                   <h5 class="m-b-0">
@@ -368,155 +411,71 @@
                       <input
                         type="checkbox"
                         class="custom-control-input"
-                        id="customCheck1" />
-                      <label class="custom-control-label" for="customCheck1">
-                        Lunes
+                        id={item.nombre}
+                        bind:checked={item.check} />
+                      <label class="custom-control-label" for={item.nombre}>
+                        {item.nombre}
                       </label>
                     </div>
                   </h5>
                 </div>
                 <div class="card-body">
-
+                  {#if item.check}
                   <div class="row">
+                    {#each item.tandas as tanda}
                     <label class="cstm-switch ml-3 mr-3 mb-2">
                       <input
                         type="checkbox"
-                        checked=""
                         name="option"
-                        value="1"
+                        value={tanda.value}
+                        bind:checked={tanda.check}
                         class="cstm-switch-input" />
                       <span class="cstm-switch-indicator bg-success " />
-                      <span class="cstm-switch-description">Mañana</span>
+                      <span class="cstm-switch-description">{tanda.nombre}</span>
                     </label>
-                    <label class="cstm-switch ml-3 mr-3 mb-2">
-                      <input
-                        type="checkbox"
-                        checked=""
-                        name="option"
-                        value="1"
-                        class="cstm-switch-input" />
-                      <span class="cstm-switch-indicator bg-success " />
-                      <span class="cstm-switch-description">Tarde</span>
-                    </label>
-                    <label class="cstm-switch ml-3 mr-3 mb-2">
-                      <input
-                        type="checkbox"
-                        checked=""
-                        name="option"
-                        value="1"
-                        class="cstm-switch-input" />
-                      <span class="cstm-switch-indicator bg-success " />
-                      <span class="cstm-switch-description">Noche</span>
-                    </label>
+                    {/each}
                   </div>
+                  {/if}
 
-                  <div class="row">
-                    <div class="col-lg-12 mt-3">
-                      <div class="alert alert-secondary" role="alert">
-                        <h4 class="alert-heading">Mañana</h4>
-                        <hr />
-                        <div class="row">
-                          <div class="col-lg-3">
-                            <div class="form-group ">
-                              <label class="font-secondary">
-                                Hora de inicio
-                              </label>
-                              <input type="time" class="form-control" />
+                  {#each item.tandas as tanda}
+                    {#if tanda.check && item.check}
+                    <div class="row">
+                      <div class="col-lg-12 mt-3">
+                        <div class="alert alert-secondary" role="alert">
+                          <h4 class="alert-heading">{tanda.nombre}</h4>
+                          <hr />
+                          <div class="row">
+                            <div class="col-lg-3">
+                              <div class="form-group ">
+                                <label class="font-secondary">
+                                  Hora de inicio
+                                </label>
+                                <input type="time" class="form-control" />
+                              </div>
                             </div>
-                          </div>
-                          <div class="col-lg-3">
-                            <div class="form-group ">
-                              <label class="font-secondary">Hora fin</label>
-                              <input type="time" class="form-control" />
+                            <div class="col-lg-3">
+                              <div class="form-group ">
+                                <label class="font-secondary">Hora fin</label>
+                                <input type="time" class="form-control" />
+                              </div>
                             </div>
-                          </div>
-                          <div class="col-lg-3">
-                            <div class="form-group">
-                              <label>Intervalo (Minutos)</label>
-                              <input type="text" class="form-control" />
+                            <div class="col-lg-3">
+                              <div class="form-group">
+                                <label>Intervalo (Minutos)</label>
+                                <input type="text" class="form-control" />
+                              </div>
                             </div>
-                          </div>
 
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    {/if}
+                  {/each}
 
                 </div>
               </div>
-
-              <div class="card m-b-30 card-vnc">
-                <div class="card-header">
-                  <h5 class="m-b-0">
-                    <div
-                      class="custom-control custom-checkbox"
-                      style="margin-left: 15px; padding-left: 0;">
-                      <input
-                        type="checkbox"
-                        class="custom-control-input"
-                        id="customCheck2" />
-                      <label class="custom-control-label" for="customCheck2">
-                        Martes
-                      </label>
-                    </div>
-                  </h5>
-                </div>
-                <div class="card-body">
-
-                  <div class="row">
-                    <label class="cstm-switch ml-3 mr-3 mb-2">
-                      <input
-                        type="checkbox"
-                        checked=""
-                        name="option"
-                        value="1"
-                        class="cstm-switch-input" />
-                      <span class="cstm-switch-indicator bg-success " />
-                      <span class="cstm-switch-description">Mañana</span>
-                    </label>
-                    <label class="cstm-switch ml-3 mr-3 mb-2">
-                      <input
-                        type="checkbox"
-                        checked=""
-                        name="option"
-                        value="1"
-                        class="cstm-switch-input" />
-                      <span class="cstm-switch-indicator bg-success " />
-                      <span class="cstm-switch-description">Tarde</span>
-                    </label>
-                    <label class="cstm-switch ml-3 mr-3 mb-2">
-                      <input
-                        type="checkbox"
-                        checked=""
-                        name="option"
-                        value="1"
-                        class="cstm-switch-input" />
-                      <span class="cstm-switch-indicator bg-success " />
-                      <span class="cstm-switch-description">Noche</span>
-                    </label>
-                  </div>
-
-                </div>
-              </div>
-
-              <div class="card m-b-30 card-vnc">
-                <div class="card-header">
-                  <h5 class="m-b-0">
-                    <div
-                      class="custom-control custom-checkbox"
-                      style="margin-left: 15px; padding-left: 0;">
-                      <input
-                        type="checkbox"
-                        class="custom-control-input"
-                        id="customCheck3" />
-                      <label class="custom-control-label" for="customCheck3">
-                        Miercoles
-                      </label>
-                    </div>
-                  </h5>
-                </div>
-                <div class="card-body" />
-              </div>
+              {/each}
 
             </div>
           </div>

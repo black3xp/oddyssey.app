@@ -1,8 +1,33 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-    import { activePage } from "../../store";
-    $activePage ="mantenimiento.usuarios.index"
+    import { activePage, host } from "../../store";
+    import axios from "axios";
+    $activePage ="mantenimiento.usuarios.index";
+
+    let obj = {
+        IdUser : 0,
+        Prefix: "",
+        Name: "",
+        Email: "",
+        PhoneNumber: "",
+        PasswordHash: "",
+        IsDoctor: false,
+        PerfilID: 0
+    }
+
+    function cargarPrefijo() {
+        axios.get($host + "/")
+        .then(res => {
+            console.log(res)
+        }).catch(err => {
+            console.error(err); 
+        })
+    }
+
+    function guardar() {
+        console.log(obj);
+    }
 </script>
 
 <style>
@@ -113,12 +138,23 @@
           </div>
           <div class="modal-body">
 
-              <form id="frmUsuario">
+              <form id="frmUsuario" on:submit|preventDefault={guardar}>
                   <input type="hidden" name="IdUser" value="0">
+                  <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <label for="">Prefijo</label>
+                        <select class="form-control" name="prefijo" bind:value={obj.Prefix}>
+                            <option value="">- Seleccionar -</option>
+                            <option value={'sr'}>Sr.</option>
+                            <option value={'sra'}>Sra.</option>
+                        </select>
+                    </div>
+                  </div>
                   <div class="form-row">
                       <div class="form-group col-md-12">
                           <label for="">Nombre Completo</label>
-                          <input type="name" class="form-control" placeholder="Ing. John Doe" name="Name" maxlength="200" required="">
+                          <input type="name" class="form-control" placeholder="Ing. John Doe" 
+                            bind:value={obj.Name} name="Name" maxlength="200" required>
                       </div>
                   </div>
                   <div class="form-row">
@@ -128,13 +164,15 @@
                       </div>
                       <div class="form-group col-md-12">
                           <label for="">Email</label>
-                          <input type="email" required="" class="form-control" placeholder="usuario@correo.com" autocomplete="off" name="Email" id="txtCorreo" maxlength="100">
+                          <input type="email" required class="form-control" placeholder="usuario@correo.com"
+                            bind:value={obj.Email} autocomplete="off" name="Email" id="txtCorreo" maxlength="100">
                       </div>
                   </div>
                   <div class="form-row">
                       <div class="form-group col-md-12">
                           <label for="">Contraseña</label>
-                          <input type="password" class="form-control" required="true" name="PasswordHash" maxlength="50">
+                          <input type="password" class="form-control" required
+                            bind:value={obj.PasswordHash} name="PasswordHash" maxlength="50">
                       </div>
 
                   </div>
@@ -146,11 +184,19 @@
                       </div>
                       <div class="form-group col-md-12">
                           <label class="cstm-switch">
-                              <input type="checkbox" value="true" name="EsMedico" class="cstm-switch-input">
+                              <input type="checkbox" value="true" name="EsMedico"
+                                bind:checked={obj.IsDoctor} class="cstm-switch-input">
                               <span class="cstm-switch-indicator "></span>
                               <span class="cstm-switch-description">Es Medico </span>
                           </label>
                       </div>
+                      <div class="form-group col-md-12">
+                          <label for="">Perfil</label>
+                          <select class="form-control" name="perfil">
+                            <option value="1">- Seleccionar -</option>
+                          </select>
+                      </div>
+                      
                       <div class="form-group col-md-12" style="display: none;">
                           <label for="">exequatur</label>
                           <input type="text" class="form-control" utocomplete="off" name="Exequatur" id="txtTelefono">
@@ -158,13 +204,9 @@
                       <div class="form-group col-md-12" style="display: none;">
                           <select  name="IdDepartamento" class="js-select2 select2-hidden-accessible" id="sltDepartamentos" style="width: 100%;" aria-hidden="true" tabindex="-1">
                               <option value="" ></option>
-                          <option value="1" >Psiquiatría</option></select><span class="select2 select2-container select2-container--default" dir="ltr" style="width: 100%;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-labelledby="select2-sltDepartamentos-container"><span class="select2-selection__rendered" id="select2-sltDepartamentos-container" role="textbox" aria-readonly="true"><span class="select2-selection__placeholder">- Departamento -</span></span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
-                      </div>
-                  </div>
-                  <div class="form-row">
-                      <div class="form-group col-md-12">
-                          <label for="">Observaciones</label>
-                          <textarea class="form-control" rows="3" name="Observaciones"></textarea>
+                              <option value="1" >Psiquiatría</option>
+                          </select>
+                          <span class="select2 select2-container select2-container--default" dir="ltr" style="width: 100%;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-labelledby="select2-sltDepartamentos-container"><span class="select2-selection__rendered" id="select2-sltDepartamentos-container" role="textbox" aria-readonly="true"><span class="select2-selection__placeholder">- Departamento -</span></span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
                       </div>
                   </div>
 
