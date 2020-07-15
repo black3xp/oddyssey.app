@@ -2,9 +2,11 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
     import { activePage, host } from "../../store";
+    import { onMount } from "svelte";
     import axios from "axios";
     $activePage ="mantenimiento.usuarios.index";
-
+    
+    let perfiles = [];
     let obj = {
         IdUser : 0,
         Prefix: "",
@@ -15,11 +17,17 @@
         IsDoctor: false,
         PerfilID: 0
     }
+    onMount(() => {
+        cargarPerfil();
+    })
 
-    function cargarPrefijo() {
-        axios.get($host + "/")
-        .then(res => {
-            console.log(res)
+    function cargarPerfil() {
+        axios.get($host + "/Perfiles/GetAll", {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }).then(res => {
+            perfiles = res.data;
         }).catch(err => {
             console.error(err); 
         })
@@ -193,8 +201,11 @@
                       {#if obj.IsDoctor}
                       <div class="form-group col-md-12">
                           <label for="">Perfil</label>
-                          <select class="form-control" name="perfil">
-                            <option value="1">- Seleccionar -</option>
+                          <select class="form-control" name="perfil" bind:value={obj.PerfilID}>
+                            <option value={0}>- Seleccionar -</option>
+                            {#each perfiles as item}
+                            <option value={item.id}>{item.nombre}</option>
+                            {/each}
                           </select>
                       </div>
                       {/if}

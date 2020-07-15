@@ -2,7 +2,7 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import axios from "axios";
-  import { activePage } from "../../store";
+  import { activePage, host } from "../../store";
   import { onMount } from "svelte";
 
   $activePage = "citas.index";
@@ -22,12 +22,10 @@
   };
 
   onMount(() => {
-    axios
-      .get("http://localhost:5000/_data/citas.json")
+    axios.get($host + "/_data/citas.json")
       .then(res => {
         citas = res.data;
-      })
-      .catch(err => {
+      }).catch(err => {
         console.error(err);
       });
   });

@@ -1,6 +1,9 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+  import { activePage, host } from "../../store";
+
+  $activePage = "mantenimiento.index";
 </script>
 
 <style>

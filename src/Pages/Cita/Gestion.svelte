@@ -1,7 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { activePage } from "../../store";
+  import { activePage, host } from "../../store";
   import axios from "axios";
   import { onMount } from "svelte";
 
@@ -20,12 +20,10 @@
   };
 
   onMount(() => {
-    axios
-      .get("http://localhost:5000/_data/medicos.json")
+    axios.get($host + "/_data/medicos.json")
       .then(res => {
         listado = res.data;
-      })
-      .catch(err => {
+      }).catch(err => {
         console.error(err);
       });
 

@@ -78,7 +78,7 @@
               Mantenimiento
               <span class="menu-arrow" />
             </span>
-            <span class="menu-info">Usuarios, Catalogos...</span>
+            <span class="menu-info">Medicos, Usuarios...</span>
           </span>
           <span class="menu-icon">
             <i class="icon-placeholder mdi mdi-settings-outline" />
@@ -89,7 +89,7 @@
           <li class="menu-item">
             <a href="/Medico/Index" use:link class=" menu-link">
               <span class="menu-label">
-                <span class="menu-name">Pacientes</span>
+                <span class="menu-name">Medicos</span>
               </span>
               <span class="menu-icon">
                 <i class="icon-placeholder ">M</i>
