@@ -2,13 +2,19 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import DiaSemana from "../../Components/DiaSemana.svelte";
-  import { activePage, host } from "../../store";
+  import { push } from "svelte-spa-router";
+  import { activePage, dataCita, host } from "../../store";
   import { onMount } from "svelte";
   import axios from "axios";
+  
   $activePage = "mantenimiento.peril";
 
+  let fecha = "";
+  let tandaID = 0;
   let horarios = [];
   let tandas = [];
+  let horasDisponibles = [];
+
   let diasSemana = [
     {check: false, dia: 1, nombre: 'Lunes'},
     {check: false, dia: 2, nombre: 'Martes'},
@@ -28,6 +34,14 @@
     }).then(res => {
         horarios = res.data;
         console.log(res.data)
+
+        diasSemana = diasSemana.map(e => {
+          return {
+            check: horarios.some(i => i.dia == e.dia),
+            dia: e.dia,
+            nombre: e.nombre
+          }
+        });
       }).catch(err => {
         console.error(err);
       });
@@ -42,6 +56,39 @@
         console.error(err);
       });
   });
+
+  function buscarDisponibilidadHorario() {
+    if (fecha == "" || tandaID <= 0) {
+      horasDisponibles = [];
+      return;
+    }
+
+    let id = "238902f7-8445-4640-9e69-892cbfc3019e";
+    let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
+    axios.get($host + "/Medicos/HorasDisponibles/" + id + "?" + params, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    })
+    .then(res => {
+      horasDisponibles = res.data;
+    })
+    .catch(err => {
+      horasDisponibles = [];
+      console.error(err); 
+    })
+  }
+  function crearCita(hora) {
+    let data = {
+      fechaCita: fecha,
+      tandaID: tandaID,
+      hora: hora,
+      medicoId: "238902f7-8445-4640-9e69-892cbfc3019e"
+    }
+
+    $dataCita = data;
+    push('/Cita/Crear/');
+  }
 
 </script>
 
@@ -109,24 +156,22 @@
                           block: 'center'
                         });
                     }}>
-                    <h3 class="mdi mdi-timetable" />
+                    <h3 class="mdi mdi-timetable"> </h3>
                     <div class="text-overline">Horario</div>
 
                   </a>
                 </div>
                 <div class="col">
-                  <a href="#">
-                    <h3 class="mdi mdi-account-edit" />
+                  <a href="#/">
+                    <h3 class="mdi mdi-account-edit"> </h3>
                     <div class="text-overline">Editar Perfil</div>
-
                   </a>
 
                 </div>
                 <div class="col">
                   <a href="#/Cita/Crear">
-                    <h3 class="mdi mdi-calendar-plus" />
+                    <h3 class="mdi mdi-calendar-plus"> </h3>
                     <div class="text-overline">Cita Nueva</div>
-
                   </a>
 
                 </div>
@@ -164,72 +209,45 @@
                 <div class="col-lg-6">
                   <div class="form-group">
                     <label for="inputAddress">Fecha</label>
-                    <input type="date" class="form-control form-control-sm" />
+                    <input type="date" class="form-control form-control-sm"
+                      bind:value={fecha} on:input={buscarDisponibilidadHorario}/>
                   </div>
                 </div>
                 <div class="col-lg-6">
                   <div class="form-group ">
                     <label class="font-secondary">Tanda</label>
-                    <select class="form-control form-control-sm js-select2">
-                      <option value="0" disabled selected>
-                        - Seleccionar -
-                      </option>
-                      <option>Matutina</option>
-                      <option>Vespertina</option>
+                    <select class="form-control form-control-sm js-select2"
+                      bind:value={tandaID} on:change={buscarDisponibilidadHorario}>
+                      <option value="0" disabled selected>- Seleccionar -</option>
+                      {#each tandas as i}
+                      <option value={i.id}>{i.nombre}</option>
+                      {/each}
                     </select>
                   </div>
                 </div>
               </div>
+              {#if horasDisponibles.length <= 0}
               <div class="alert alert-success" role="alert">
                 No hay disponibilidad con este horario
               </div>
+              {/if}
 
               <div class="list-group list">
+                {#each horasDisponibles as item}
                 <div class="list-group-item d-flex align-items-center">
                   <div class="">
-                    <div class="name">10:00</div>
-                    <div class="text-muted">Mañana</div>
+                    <div class="name">{item}</div>
                   </div>
                   <div class="ml-auto">
-                    <a
+                    <button
                       class="btn btn-outline-success btn-sm"
-                      href="#/Cita/Crear">
-                      <i class="mdi mdi-calendar-plus" />
+                      on:click={crearCita(item)}>
+                      <i class="mdi mdi-calendar-plus"></i>
                       Crear cita
-                    </a>
+                    </button>
                   </div>
-
                 </div>
-                <div class="list-group-item d-flex align-items-center">
-                  <div class="">
-                    <div class="name">5:00</div>
-                    <div class="text-muted">Tarde</div>
-                  </div>
-                  <div class="ml-auto">
-                    <a
-                      class="btn btn-outline-success btn-sm"
-                      href="#/Cita/Crear">
-                      <i class="mdi mdi-calendar-plus" />
-                      Crear cita
-                    </a>
-                  </div>
-
-                </div>
-                <div class="list-group-item d-flex align-items-center">
-                  <div class="">
-                    <div class="name">11:00</div>
-                    <div class="text-muted">Mañana</div>
-                  </div>
-                  <div class="ml-auto">
-                    <a
-                      class="btn btn-outline-success btn-sm"
-                      href="#/Cita/Crear">
-                      <i class="mdi mdi-calendar-plus" />
-                      Crear cita
-                    </a>
-                  </div>
-
-                </div>
+                {/each}
               </div>
 
             </div>

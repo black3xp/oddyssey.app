@@ -5,7 +5,7 @@
 <div class="row">
   <div class="col-lg-12 mt-3">
     <div class="alert alert-secondary" role="alert">
-      <h4 class="alert-heading">{horario.tanda} {horario.dia}</h4>
+      <h4 class="alert-heading">{horario.tanda}</h4>
       <hr />
       <div class="row">
         <div class="col-lg-3">

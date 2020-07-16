@@ -1,8 +1,106 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { activePage } from "../../store";
+  import { activePage, dataCita, host } from "../../store";
+  import { onMount } from "svelte";
+  import axios from "axios";
+
   $activePage = "citas.crear";
+
+  onMount(() => {
+    axios.get($host + "/Pacientes/Query", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        pacientes = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+
+    axios.get($host + "/Tandas/GetAll", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        tandas = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+
+    let params = "date=" + obj.Fecha + "&" + "tandiId=" + obj.tandaID;
+    axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + "?" + params, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      horas = res.data;
+    }).catch(err => {
+      console.error(err); 
+    })
+  });
+
+  let params = $dataCita;
+  let obj = {
+    Observaciones: "",
+    Fecha: params.fechaCita,
+    MedicoID: params.medicoId,
+    PacienteID: "",
+    AseguradoraID: 0,
+    EstadoID: 0,
+    Nombre: "",
+    Apellidos: "",
+    Telefono: "",
+    Correo: "",
+    Direccion: "",
+    tandaID: params.tandaID,
+    hora: params.hora,
+  };
+  let tandas = [];
+  let horas = [];
+  let pacientes = [];
+
+  function seleccionarPaciente(item) {
+    obj.PacienteID = item.id;
+    obj.Nombre = item.nombre;
+    obj.Apellidos = item.apellidos;
+    obj.Telefono = item.telefono;
+    obj.Direccion = item.direccion;
+    
+    jQuery('#modalPacientes').modal('hide');
+  }
+
+  function crearCita() {
+    axios.post($host + "/Citas/PostAsync", obj)
+    .then(res => {
+      console.log(res);
+    })
+    .catch(err => {
+      console.error(err); 
+    })
+  }
+  function guardarPaciente() {
+    let method = ''
+    let url = '';
+    
+    if (obj.id == "") {
+      method = 'POST';
+      url = '/PostAsync';
+    } else {
+      method = 'PUT';
+      url = '/PutAsync';
+    }
+
+    axios({
+      method: method,
+      url: $host + "/Pacientes" + url,
+      data: obj
+    }).then(res => {
+      console.log(res);
+    }).catch(err => {
+      console.error(err); 
+    })
+  }
 </script>
 
 <style>
@@ -60,27 +158,46 @@
               </div>
             </div>
             <div class="card-body">
-              <div class="row">
+              <form class="row" on:submit|preventDefault={crearCita}>
                 <div class="col-lg-5 borde-derecho">
                   <div class="form-group">
                     <label for="inpNombre">Nombre paciente</label>
-                    <input type="text" class="form-control" id="inpNombre" />
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="inpNombre"
+                      bind:value={obj.Nombre} />
                   </div>
                   <div class="form-group">
-                    <label for="inpNombre">Apellido paciente</label>
-                    <input type="text" class="form-control" id="inpNombre" />
+                    <label for="inpApellido">Apellidos paciente</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="inpApellido"
+                      bind:value={obj.Apellidos} />
                   </div>
                   <div class="form-group">
-                    <label for="inpNombre">Telefono / Celular</label>
-                    <input type="tel" class="form-control" id="inpNombre" />
+                    <label for="inpTelefono">Telefono / Celular</label>
+                    <input
+                      type="tel"
+                      class="form-control"
+                      id="inpTelefono"
+                      bind:value={obj.Telefono} />
                   </div>
                   <div class="form-group">
-                    <label for="inpNombre">Correo electronico</label>
-                    <input type="email" class="form-control" id="inpNombre" />
+                    <label for="inpCorreo">Correo electronico</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="inpCorreo"
+                      bind:value={obj.Correo} />
                   </div>
                   <div class="form-group ">
                     <label class="font-secondary">Direccion</label>
-                    <textarea class="form-control" rows="3" />
+                    <textarea
+                      class="form-control"
+                      rows="3"
+                      bind:value={obj.Direccion} />
                   </div>
 
                 </div>
@@ -88,34 +205,37 @@
                   <div class="row">
                     <div class="col-lg-6">
                       <div class="form-group">
-                        <label for="inputAddress2">Fecha cita</label>
+                        <label for="Fecha">Fecha cita</label>
                         <input
                           type="date"
                           class="form-control mb-2"
-                          id="inputAddress2" />
+                          id="Fecha"
+                          bind:value={obj.Fecha} />
                       </div>
                     </div>
                     <div class="col-lg-6">
                       <div class="form-group ">
                         <label class="font-secondary">Tanda</label>
-                        <select class="form-control js-select2">
-                          <option value="0" disabled selected>
+                        <select
+                          class="form-control js-select2"
+                          bind:value={obj.tandaID}>
+                          <option value={0} disabled selected>
                             - Seleccionar -
                           </option>
-                          <option>Matutina</option>
-                          <option>Vespertina</option>
+                          {#each tandas as item}
+                          <option value={item.id}>{item.nombre}</option>
+                          {/each}
                         </select>
                       </div>
                     </div>
                     <div class="col-lg-6">
-                      <div class="form-group ">
+                      <div class="form-group">
                         <label class="font-secondary">Hora</label>
-                        <select class="form-control js-select2">
-                          <option value="0" disabled selected>
-                            - Seleccionar -
-                          </option>
-                          <option>10:30</option>
-                          <option>11:00</option>
+                        <select class="form-control js-select2" bind:value={obj.hora}>
+                          <option value={0} disabled selected>- Seleccionar -</option>
+                          {#each horas as item}
+                          <option value={item}>{item}</option>
+                          {/each}
                         </select>
                       </div>
                     </div>
@@ -134,18 +254,18 @@
                     <div class="col-lg-12">
                       <div class="form-group ">
                         <label class="font-secondary">Observaciones</label>
-                        <textarea class="form-control" rows="5" />
+                        <textarea class="form-control" rows="5" bind:value={obj.Observaciones}/>
                       </div>
                     </div>
                     <div class="col-lg-12 p-t-80" style="text-align: right;">
-                      <button class="btn btn-success">
+                      <button type="submit" class="btn btn-success">
                         <i class="mdi mdi-content-save-outline" />
                         Crear cita
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         </div>
@@ -190,42 +310,27 @@
         </div>
 
         <div class="list-group list ">
+          {#each pacientes as i}
           <div
             style="cursor:pointer;"
-            class="list-group-item d-flex align-items-center link-pacientes">
+            class="list-group-item d-flex align-items-center link-pacientes"
+            on:click={seleccionarPaciente(i)}>
             <div class="row">
-              <div class="">
+              <div class="text-primary">
                 <div class="name">
-                  <span style="font-weight: bold;">Joel Mena</span>
+                  <span style="font-weight: bold;">{i.nombre} {i.apellidos}</span>
                   »
-                  <span>Tel.: 8095881717</span>
+                  <span>Tel.: {i.telefono}</span>
                   »
-                  <span>ID: 40223257938</span>
+                  <span>ID: {i.cedula}</span>
                 </div>
                 <div class="text-muted">
-                  C/F No. 8, Edificio Scarly, Apart. 9. Aguayo
+                  {i.direccion}
                 </div>
               </div>
             </div>
           </div>
-          <div
-            style="cursor:pointer;"
-            class="list-group-item d-flex align-items-center link-pacientes">
-            <div class="row">
-              <div class="">
-                <div class="name">
-                  <span style="font-weight: bold;">Joel Alfredo Mena</span>
-                  »
-                  <span>Tel.: 80957455588</span>
-                  »
-                  <span>ID: 0568855446</span>
-                </div>
-                <div class="text-muted">
-                  C/F No. 8, Edificio Scarly, Apart. 9. Aguayo
-                </div>
-              </div>
-            </div>
-          </div>
+          {/each}
         </div>
       </div>
       <div class="modal-footer">
