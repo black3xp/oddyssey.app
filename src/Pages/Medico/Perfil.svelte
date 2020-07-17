@@ -97,7 +97,7 @@
 </script>
 
 <style>
-  .list-group-item:nth-child(2) {
+  .list-group-item:nth-child(2n+1) {
     background-color: #3e46760c;
   }
   .list-group-item {
