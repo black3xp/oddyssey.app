@@ -110,11 +110,16 @@
     overflow: auto;
   }
 
+  .list-group-item:nth-child(2n+1) {
+    background-color: #3e46760c;
+  }
+
   .list-group-item {
     border-top: none;
     border-left: none;
     border-right: none;
     background-color: transparent;
+    border-radius: 0 !important;
   }
 
   .link-pacientes {
@@ -123,10 +128,13 @@
   }
 
   .link-pacientes:hover {
-    background-color: rgb(241, 241, 241);
+    background-color: rgba(241, 241, 241, 0.247);
   }
   .borde-derecho {
     border-right: 1px solid rgb(236, 236, 236);
+  }
+  .nombre-apellido{
+    text-transform:capitalize !important
   }
 </style>
 
@@ -318,7 +326,7 @@
             <div class="row">
               <div class="text-primary">
                 <div class="name">
-                  <span style="font-weight: bold;">{i.nombre} {i.apellidos}</span>
+                  <span class="nombre-apellido" style="font-weight: bold;">{i.nombre} {i.apellidos}</span>
                   »
                   <span>Tel.: {i.telefono}</span>
                   »
