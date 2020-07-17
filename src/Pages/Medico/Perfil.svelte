@@ -26,6 +26,10 @@
   ];
 
   onMount(() => {
+    let d = new Date()
+    fecha = d.toISOString().split('T')[0];
+    tandaID = 1;
+
     let id = '238902f7-8445-4640-9e69-892cbfc3019e';
     axios.get($host + "/Medicos/Horarios/" + id, {
       headers: {
