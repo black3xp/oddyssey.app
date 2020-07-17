@@ -8,42 +8,68 @@
   $activePage = "gestor"
 
   let busqueda = "";
+  let filter = {
+    Nombre: "",
+    PerfilID: 0,
+    FechaCita: "",
+    TandaID: 0
+  }
   let especialidades = [];
-
   let listado = [];
-  $: listadoFiltrado = () => {
-    return listado.filter(
-      x =>
-        x.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-        x.apellidos.toLowerCase().includes(busqueda.toLowerCase())
-    );
-  };
+  let tandas = [];
 
   onMount(() => {
-    axios.get($host + "/_data/medicos.json")
-      .then(res => {
+    jQuery("#sltEspecialidad").select2();
+    jQuery("#sltEspecialidad").on("select2:select", e => {
+      let data = e.params.data;
+      filter.PerfilID = parseInt(data.id);
+      filtrar();
+    });
+
+    cargarMedicos();
+    cargarEspecialidades();
+    cargarTandas();
+  });
+
+  function cargarMedicos() {
+    var qs = Object.keys(filter).map(key => key + '=' + filter[key]).join('&');
+    axios.get($host + "/Medicos/Query?" + qs , {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
         listado = res.data;
       }).catch(err => {
         console.error(err);
       });
-
-    axios
-      .get("http://localhost:5000/_data/especialidades.json")
-      .then(res => {
-        let data = res.data.map(x => {
-          return {
-            id: x.id,
-            text: x.nombre
-          };
-        });
-        jQuery("#sltEspecialidad").select2({
-          data
-        });
-      })
-      .catch(err => {
+  }
+  function cargarEspecialidades(params) {
+    axios.get($host + "/Perfiles/GetAll", {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+        especialidades = res.data;
+      }).catch(err => {
         console.error(err);
       });
-  });
+  }
+  function cargarTandas() {
+    axios.get($host + "/Tandas/GetAll", {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+        tandas = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  
+  function filtrar() {
+    console.log('filtro')
+    cargarMedicos();
+  }
 </script>
 
 <style>
@@ -66,12 +92,17 @@
             <div class="card-body">
               <div class="form-group ">
                 <label class="font-secondary">Médico</label>
-                <input bind:value={busqueda} type="text" class="form-control" />
+                <input type="text" class="form-control" bind:value={filter.Nombre} 
+                  on:input={filtrar}/>
               </div>
               <div class="form-group ">
                 <label class="font-secondary">Especialidad</label>
-                <select class="form-control select2" style="width: 100%;" id="sltEspecialidad">
-                  <option value="">- Seleccionar -</option>
+                <select class="form-control select2" style="width: 100%;" id="sltEspecialidad"
+                  bind:value={filter.PerfilID} on:change={filtrar}>
+                  <option value={0}>- Seleccionar -</option>
+                  {#each especialidades as item}
+                  <option value={item.id}>{item.nombre}</option>
+                  {/each}
                 </select>
               </div>
               <div class="form-group">
@@ -79,7 +110,8 @@
                 <input
                   type="date"
                   class="form-control mb-2"
-                  id="inputAddress2" />
+                  id="inputAddress2" 
+                  bind:value={filter.FechaCita} on:input={filtrar}/>
 
                 <div class="contenedor-dias">
                   <div class="option-box">
@@ -118,18 +150,11 @@
 
               <div class="form-group ">
                 <label class="font-secondary">Tanda</label>
-                <select class="form-control js-select2">
+                <select class="form-control" bind:value={filter.TandaID} on:change={filtrar}>
                   <option value="0" disabled selected>- Seleccionar -</option>
-                  <option>Matutina</option>
-                  <option>Vespertina</option>
-                </select>
-              </div>
-              <div class="form-group ">
-                <label class="font-secondary">Hora</label>
-                <select class="form-control js-select2">
-                  <option value="0" disabled selected>- Seleccionar -</option>
-                  <option>10:30</option>
-                  <option>11:00</option>
+                  {#each tandas as item}
+                  <option value={item.id}>{item.nombre}</option>
+                  {/each}
                 </select>
               </div>
 
@@ -149,7 +174,7 @@
                 </tr>
               </thead>
               <tbody>
-                {#each listadoFiltrado() as item}
+                {#each listado as item}
                   <!-- content here -->
                   <tr>
                     <td>
@@ -160,9 +185,9 @@
                           alt="" />
                       </div>
                     </td>
-                    <td>{item.nombre + ' ' + item.apellidos}</td>
-                    <td>{item.especialidad}</td>
-                    <td>{item.telefono}</td>
+                    <td>{item.name}</td>
+                    <td>{item.perfil}</td>
+                    <td>{item.phoneNumber}</td>
                     <td>
                       <a
                         href="#/Medico/Perfil"

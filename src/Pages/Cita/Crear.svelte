@@ -8,36 +8,10 @@
   $activePage = "citas.crear";
 
   onMount(() => {
-    axios.get($host + "/Pacientes/Query", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
-        pacientes = res.data;
-      }).catch(err => {
-        console.error(err);
-      });
-
-    axios.get($host + "/Tandas/GetAll", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
-        tandas = res.data;
-      }).catch(err => {
-        console.error(err);
-      });
-
-    let params = "date=" + obj.Fecha + "&" + "tandiId=" + obj.tandaID;
-    axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + "?" + params, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
-      horas = res.data;
-    }).catch(err => {
-      console.error(err); 
-    })
+    cargarPacientes();
+    cargarTandas();
+    cargarHoras();
+    cargarMedicos();
   });
 
   let params = $dataCita;
@@ -54,11 +28,60 @@
     Correo: "",
     Direccion: "",
     tandaID: params.tandaID,
-    hora: params.hora,
+    hora: ""
   };
   let tandas = [];
   let horas = [];
   let pacientes = [];
+  let medicos = [];
+
+  function cargarMedicos() {
+    axios.get($host + "/Medicos/Query", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        medicos = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarPacientes() {
+    axios.get($host + "/Pacientes/Query", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        pacientes = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarTandas() {
+    axios.get($host + "/Tandas/GetAll", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        tandas = res.data;
+        obj.tandaID = $dataCita.tandaID;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarHoras() {
+    let params = "date=" + obj.Fecha + "&" + "tandiId=" + obj.tandaID;
+    axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + "?" + params, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      horas = res.data;
+      obj.hora = $dataCita.hora;
+    }).catch(err => {
+      console.error(err); 
+    })
+  }
 
   function seleccionarPaciente(item) {
     obj.PacienteID = item.id;
@@ -251,11 +274,10 @@
                       <div class="form-group ">
                         <label class="font-secondary">Médico</label>
                         <select class="form-control js-select2">
-                          <option value="0" disabled selected>
-                            - Seleccionar -
-                          </option>
-                          <option>Dra. Lourdes Rivas</option>
-                          <option>Dr. Ejemplo</option>
+                          <option value={0} disabled selected>- Seleccionar -</option>
+                          {#each medicos as item}
+                          <option value={item.id}>{item.name}</option>
+                          {/each}
                         </select>
                       </div>
                     </div>

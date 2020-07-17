@@ -26,10 +26,33 @@
   ];
 
   onMount(() => {
-    let d = new Date()
-    fecha = d.toISOString().split('T')[0];
-    tandaID = 1;
+    let d = new Date();
 
+    if ($dataCita.fechaCita == undefined) {
+      fecha = d.toISOString().split('T')[0];
+      tandaID = 1;
+    } else {
+      fecha = $dataCita.fechaCita;
+      tandaID = $dataCita.tandaID
+    }
+
+    buscarDisponibilidadHorario();
+    horariosDelMedico();
+    cargarTandas();
+  });
+
+  function cargarTandas() {
+    axios.get($host + "/Tandas/GetAll", {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+        tandas = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function horariosDelMedico() {
     let id = '238902f7-8445-4640-9e69-892cbfc3019e';
     axios.get($host + "/Medicos/Horarios/" + id, {
       headers: {
@@ -37,7 +60,6 @@
       }
     }).then(res => {
         horarios = res.data;
-        console.log(res.data)
 
         diasSemana = diasSemana.map(e => {
           return {
@@ -49,18 +71,7 @@
       }).catch(err => {
         console.error(err);
       });
-
-    axios.get($host + "/Tandas/GetAll", {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
-        tandas = res.data;
-      }).catch(err => {
-        console.error(err);
-      });
-  });
-
+  }
   function buscarDisponibilidadHorario() {
     if (fecha == "" || tandaID <= 0) {
       horasDisponibles = [];
@@ -82,15 +93,14 @@
       console.error(err); 
     })
   }
+
   function crearCita(hora) {
-    let data = {
+    $dataCita = {
       fechaCita: fecha,
       tandaID: tandaID,
       hora: hora,
       medicoId: "238902f7-8445-4640-9e69-892cbfc3019e"
-    }
-
-    $dataCita = data;
+    };
     push('/Cita/Crear/');
   }
 
