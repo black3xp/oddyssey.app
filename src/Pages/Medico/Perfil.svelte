@@ -8,6 +8,8 @@
   import axios from "axios";
   
   $activePage = "mantenimiento.peril";
+  export let params = {};
+  let id = params.id;
 
   let fecha = "";
   let tandaID = 0;
@@ -53,7 +55,6 @@
       });
   }
   function horariosDelMedico() {
-    let id = '238902f7-8445-4640-9e69-892cbfc3019e';
     axios.get($host + "/Medicos/Horarios/" + id, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
@@ -78,17 +79,14 @@
       return;
     }
 
-    let id = "238902f7-8445-4640-9e69-892cbfc3019e";
     let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
     axios.get($host + "/Medicos/HorasDisponibles/" + id + "?" + params, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
-    })
-    .then(res => {
+    }).then(res => {
       horasDisponibles = res.data;
-    })
-    .catch(err => {
+    }).catch(err => {
       horasDisponibles = [];
       console.error(err); 
     })
@@ -99,7 +97,7 @@
       fechaCita: fecha,
       tandaID: tandaID,
       hora: hora,
-      medicoId: "238902f7-8445-4640-9e69-892cbfc3019e"
+      medicoId: id
     };
     push('/Cita/Crear/');
   }

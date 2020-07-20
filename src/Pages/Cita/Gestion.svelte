@@ -1,7 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { activePage, host } from "../../store";
+  import { activePage, host, dataCita } from "../../store";
   import axios from "axios";
   import { onMount } from "svelte";
 
@@ -19,6 +19,8 @@
   let tandas = [];
 
   onMount(() => {
+    $dataCita = {};
+
     jQuery("#sltEspecialidad").select2();
     jQuery("#sltEspecialidad").on("select2:select", e => {
       let data = e.params.data;
@@ -32,7 +34,7 @@
   });
 
   function cargarMedicos() {
-    var qs = Object.keys(filter).map(key => key + '=' + filter[key]).join('&');
+    var qs = Object.keys(filter).map(i => i + '=' + filter[i]).join('&');
     axios.get($host + "/Medicos/Query?" + qs , {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
@@ -43,7 +45,7 @@
         console.error(err);
       });
   }
-  function cargarEspecialidades(params) {
+  function cargarEspecialidades() {
     axios.get($host + "/Perfiles/GetAll", {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
@@ -67,7 +69,6 @@
   }
   
   function filtrar() {
-    console.log('filtro')
     cargarMedicos();
   }
 </script>
@@ -99,7 +100,7 @@
                 <label class="font-secondary">Especialidad</label>
                 <select class="form-control select2" style="width: 100%;" id="sltEspecialidad"
                   bind:value={filter.PerfilID} on:change={filtrar}>
-                  <option value={0}>- Seleccionar -</option>
+                  <option value={0}>Todas</option>
                   {#each especialidades as item}
                   <option value={item.id}>{item.nombre}</option>
                   {/each}
@@ -151,7 +152,7 @@
               <div class="form-group ">
                 <label class="font-secondary">Tanda</label>
                 <select class="form-control" bind:value={filter.TandaID} on:change={filtrar}>
-                  <option value="0" disabled selected>- Seleccionar -</option>
+                  <option value={0} selected>Todas</option>
                   {#each tandas as item}
                   <option value={item.id}>{item.nombre}</option>
                   {/each}
@@ -189,14 +190,12 @@
                     <td>{item.perfil}</td>
                     <td>{item.phoneNumber}</td>
                     <td>
-                      <a
-                        href="#/Medico/Perfil"
+                      <a href="#/Medico/Perfil/{item.id}"
                         class="btn btn-outline-primary btn-sm">
                         <i class="mdi mdi-contacts" />
                         Perfil
                       </a>
-                      <a
-                        href="#/Cita/Crear"
+                      <a href="#/Cita/Crear"
                         class="btn btn-outline-success btn-sm">
                         <i class="mdi mdi-calendar-plus" />
                         Crear cita

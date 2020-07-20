@@ -8,6 +8,13 @@
   $activePage = "citas.crear";
 
   onMount(() => {
+    jQuery("#sltMedicos").select2();
+    jQuery("#sltMedicos").on("select2:select", e => {
+      let data = e.params.data;
+      obj.MedicoID = data.id;
+      cargarHoras();
+    });
+
     cargarPacientes();
     cargarTandas();
     cargarHoras();
@@ -20,8 +27,8 @@
     Fecha: params.fechaCita,
     MedicoID: params.medicoId,
     PacienteID: "",
-    AseguradoraID: 0,
-    EstadoID: 0,
+    AseguradoraID: 1,
+    EstadoID: 1,
     Nombre: "",
     Apellidos: "",
     Telefono: "",
@@ -34,6 +41,7 @@
   let horas = [];
   let pacientes = [];
   let medicos = [];
+  $: faltaLaTanda = obj.tandaID == 0 || obj.tandaID == undefined;
 
   function cargarMedicos() {
     axios.get($host + "/Medicos/Query", {
@@ -70,8 +78,14 @@
       });
   }
   function cargarHoras() {
-    let params = "date=" + obj.Fecha + "&" + "tandiId=" + obj.tandaID;
-    axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + "?" + params, {
+    let params = "obj.MedicoID";
+
+    if ($dataCita.fechaCita != undefined) {
+      params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
+    } else {
+      params = "?tandiID=" + obj.tandaID;
+    }
+    axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + params, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
@@ -93,36 +107,41 @@
     jQuery('#modalPacientes').modal('hide');
   }
 
-  function crearCita() {
-    axios.post($host + "/Citas/PostAsync", obj)
-    .then(res => {
-      console.log(res);
-    })
-    .catch(err => {
-      console.error(err); 
-    })
-  }
   function guardarPaciente() {
     let method = ''
     let url = '';
     
-    if (obj.id == "") {
+    if (obj.PacienteID == "") {
       method = 'POST';
-      url = '/PostAsync';
     } else {
       method = 'PUT';
-      url = '/PutAsync';
     }
 
     axios({
       method: method,
       url: $host + "/Pacientes" + url,
-      data: obj
+      data: obj,
+      headers: {Authorization: "Bearer " + localStorage.getItem("token")}
     }).then(res => {
-      console.log(res);
+      obj.PacienteID = res.data.data;
+      crearCita();
     }).catch(err => {
       console.error(err); 
     })
+  }
+
+  function crearCita() {
+    axios({
+        method: 'POST',
+        url: $host + "/Citas",
+        data: obj,
+        headers: {Authorization: "Bearer " + localStorage.getItem("token")}
+      }).then(res => {
+        console.log(res);
+        guardarPaciente();
+      }).catch(err => {
+        console.error(err); 
+      })
   }
 </script>
 
@@ -189,7 +208,7 @@
               </div>
             </div>
             <div class="card-body">
-              <form class="row" on:submit|preventDefault={crearCita}>
+              <form class="row" on:submit|preventDefault={guardarPaciente}>
                 <div class="col-lg-5 borde-derecho">
                   <div class="form-group">
                     <label for="inpNombre">Nombre paciente</label>
@@ -247,22 +266,21 @@
                     <div class="col-lg-6">
                       <div class="form-group ">
                         <label class="font-secondary">Tanda</label>
-                        <select
-                          class="form-control js-select2"
-                          bind:value={obj.tandaID}>
-                          <option value={0} disabled selected>
-                            - Seleccionar -
-                          </option>
+                        <select class="form-control"
+                          bind:value={obj.tandaID} on:change={cargarHoras} >
+                          <option value={0} disabled selected>- Seleccionar -</option>
                           {#each tandas as item}
                           <option value={item.id}>{item.nombre}</option>
                           {/each}
                         </select>
                       </div>
                     </div>
+
                     <div class="col-lg-6">
                       <div class="form-group">
                         <label class="font-secondary">Hora</label>
-                        <select class="form-control js-select2" bind:value={obj.hora}>
+                        <select class="form-control" bind:value={obj.hora}
+                          disabled={faltaLaTanda}>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each horas as item}
                           <option value={item}>{item}</option>
@@ -273,7 +291,8 @@
                     <div class="col-lg-6">
                       <div class="form-group ">
                         <label class="font-secondary">Médico</label>
-                        <select class="form-control js-select2">
+                        <select class="form-control select2" id="sltMedicos" 
+                          bind:value={obj.MedicoID} disabled={faltaLaTanda}>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each medicos as item}
                           <option value={item.id}>{item.name}</option>
@@ -281,6 +300,7 @@
                         </select>
                       </div>
                     </div>
+                    
                     <div class="col-lg-12">
                       <div class="form-group ">
                         <label class="font-secondary">Observaciones</label>

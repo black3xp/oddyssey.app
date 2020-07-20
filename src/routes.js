@@ -23,7 +23,7 @@ const routes = {
     "/Cita/Gestionar": Gestion,
     "/Cita/Crear": CitaCrear,
     "/Medico/Index": MedicoIndex,
-    "/Medico/Perfil": MedicoPerfil,
+    "/Medico/Perfil/:id": MedicoPerfil,
     "/Medico/EspacioTrabajo": MedicoWorkspace,
     "*": Error404
 }
