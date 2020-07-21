@@ -51,7 +51,7 @@
         }
       }).then(res => {
         medicos = res.data;
-        jQuery("#sltMedicos").val(obj.MedicoID || 0).trigger('change');
+        setTimeout(x => jQuery("#sltMedicos").val(obj.MedicoID).trigger('change'), 10);
       }).catch(err => {
         console.error(err);
       });
@@ -80,7 +80,7 @@
       });
   }
   function cargarHoras() {
-    let params = "obj.MedicoID";
+    let params = "";
 
     if ($dataCita.fechaCita != undefined) {
       params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
@@ -296,8 +296,8 @@
                     <div class="col-lg-6">
                       <div class="form-group ">
                         <label class="font-secondary">Médico</label>
-                        <select class="form-control select2" id="sltMedicos" 
-                            disabled={faltaLaTanda}>
+                        <select class="form-control js-select2" id="sltMedicos" 
+                            disabled={faltaLaTanda} bind:value={obj.MedicoID}>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each medicos as item}
                           <option value={item.id}>{item.name}</option>
