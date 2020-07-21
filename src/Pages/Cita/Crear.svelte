@@ -109,25 +109,33 @@
 
   function guardarPaciente() {
     let method = ''
-    let url = '';
-    
-    if (obj.PacienteID == "") {
-      method = 'POST';
-    } else {
-      method = 'PUT';
-    }
 
-    axios({
-      method: method,
-      url: $host + "/Pacientes" + url,
-      data: obj,
-      headers: {Authorization: "Bearer " + localStorage.getItem("token")}
-    }).then(res => {
-      obj.PacienteID = res.data.data;
-      crearCita();
-    }).catch(err => {
-      console.error(err); 
-    })
+    if (obj.PacienteID == "") {
+      axios.post($host + "/Pacientes", obj , {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      })
+      .then(res => {
+        obj.PacienteID = res.data.data;
+        crearCita();
+      })
+      .catch(err => {
+        console.error(err); 
+      })
+    } else {
+      axios.put($host + "/Pacientes/" + obj.PacienteID, obj, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      })
+      .then(res => {
+        obj.PacienteID = res.data.data;
+        crearCita();
+      }).catch(err => {
+        console.error(err); 
+      })
+    }
   }
 
   function crearCita() {
@@ -138,7 +146,6 @@
         headers: {Authorization: "Bearer " + localStorage.getItem("token")}
       }).then(res => {
         console.log(res);
-        guardarPaciente();
       }).catch(err => {
         console.error(err); 
       })
@@ -277,18 +284,6 @@
                     </div>
 
                     <div class="col-lg-6">
-                      <div class="form-group">
-                        <label class="font-secondary">Hora</label>
-                        <select class="form-control" bind:value={obj.hora}
-                          disabled={faltaLaTanda}>
-                          <option value={0} disabled selected>- Seleccionar -</option>
-                          {#each horas as item}
-                          <option value={item}>{item}</option>
-                          {/each}
-                        </select>
-                      </div>
-                    </div>
-                    <div class="col-lg-6">
                       <div class="form-group ">
                         <label class="font-secondary">Médico</label>
                         <select class="form-control select2" id="sltMedicos" 
@@ -300,7 +295,19 @@
                         </select>
                       </div>
                     </div>
-                    
+                    <div class="col-lg-6">
+                      <div class="form-group">
+                        <label class="font-secondary">Hora</label>
+                        <select class="form-control" bind:value={obj.hora}
+                          disabled={faltaLaTanda}>
+                          <option value={0} disabled selected>- Seleccionar -</option>
+                          {#each horas as item}
+                          <option value={item}>{item}</option>
+                          {/each}
+                        </select>
+                      </div>
+                    </div>
+
                     <div class="col-lg-12">
                       <div class="form-group ">
                         <label class="font-secondary">Observaciones</label>
