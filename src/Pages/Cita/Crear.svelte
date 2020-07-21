@@ -1,6 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+  import { push } from "svelte-spa-router";
   import { activePage, dataCita, host } from "../../store";
   import { onMount } from "svelte";
   import axios from "axios";
@@ -50,6 +51,7 @@
         }
       }).then(res => {
         medicos = res.data;
+        jQuery("#sltMedicos").val(obj.MedicoID || 0).trigger('change');
       }).catch(err => {
         console.error(err);
       });
@@ -130,8 +132,12 @@
         }
       })
       .then(res => {
-        obj.PacienteID = res.data.data;
-        crearCita();
+        if (res.data.success) {
+          obj.PacienteID = res.data.data;
+          crearCita();
+        } else {
+          console.log(res);
+        }
       }).catch(err => {
         console.error(err); 
       })
@@ -145,7 +151,11 @@
         data: obj,
         headers: {Authorization: "Bearer " + localStorage.getItem("token")}
       }).then(res => {
-        console.log(res);
+        if (res.data.success) {
+          push('/Cita/Gestionar');
+        } else {
+          console.log(res);
+        }
       }).catch(err => {
         console.error(err); 
       })
@@ -287,7 +297,7 @@
                       <div class="form-group ">
                         <label class="font-secondary">Médico</label>
                         <select class="form-control select2" id="sltMedicos" 
-                          bind:value={obj.MedicoID} disabled={faltaLaTanda}>
+                            disabled={faltaLaTanda}>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each medicos as item}
                           <option value={item.id}>{item.name}</option>
