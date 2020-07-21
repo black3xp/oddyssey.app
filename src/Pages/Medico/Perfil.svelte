@@ -16,6 +16,7 @@
   let horarios = [];
   let tandas = [];
   let horasDisponibles = [];
+  let btnPrimary = false;
 
   let diasSemana = [
     {check: false, dia: 1, nombre: 'Lunes'},
@@ -61,7 +62,7 @@
       }
     }).then(res => {
         horarios = res.data;
-
+        console.log(horarios);
         diasSemana = diasSemana.map(e => {
           return {
             check: horarios.some(i => i.dia == e.dia),
@@ -102,6 +103,20 @@
     push('/Cita/Crear/');
   }
 
+  function diaSiguiente(params) {
+    let d = new Date();
+    let sumaDia = d.setDate(d.getDate() + 1);
+    let newDate = new Date(sumaDia);
+    fecha = newDate.toISOString().split('T')[0];
+
+    btnPrimary = true
+  }
+  function diaDeHoy(params) {
+    let d = new Date();
+    fecha = d.toISOString().split('T')[0];
+    btnPrimary = false
+  }
+
 </script>
 
 <style>
@@ -123,6 +138,9 @@
   .card.card-vnc {
     box-shadow: none;
     border: #687ae8 solid 1px;
+  }
+  .btn-primary, .btn-write {
+    border: 1px solid #d3e0e9;
   }
 </style>
 
@@ -201,15 +219,14 @@
               </h5>
               <div class="card-controls">
                 <div class="btn-group" role="group" aria-label="Basic example">
-                  <button
-                    type="button"
-                    class="btn btn-primary shadow-none btn-sm">
+                  <button type="button" class:btn-primary={!btnPrimary} class:btn-write={btnPrimary}
+                    class="btn shadow-none btn-sm" on:click={diaDeHoy}>
                     <i class="mdi mdi-calendar" />
                     Hoy
                   </button>
-                  <button
-                    type="button"
-                    class="btn btn-white shadow-none btn-sm">
+                  <button type="button" class:btn-primary={btnPrimary} class:btn-write={!btnPrimary}
+                    class="btn shadow-none btn-sm"
+                    on:click={diaSiguiente}>
                     Mañana
                   </button>
                 </div>
