@@ -27,7 +27,8 @@
           type="checkbox"
           class="custom-control-input"
           id={item.dia}
-          bind:checked={item.check} />
+          bind:checked={item.check}
+          disabled />
         <label class="custom-control-label" for={item.dia}>{item.nombre}</label>
       </div>
     </h5>
