@@ -4,10 +4,6 @@
   export let tandas = {};
   export let horarios = {};
   $: horariosFiltrados = horarios.filter(x => x.dia == item.dia);
-  let checkTandas = [
-    horarios.some(x => x.tandaID == 1),
-    horarios.some(x => x.tandaID == 2)
-  ];
 </script>
 
 <style>
@@ -41,7 +37,6 @@
             type="checkbox"
             name="option"
             value={tanda.id}
-            bind:checked={checkTandas[tanda.id]}
             class="cstm-switch-input" />
           <span class="cstm-switch-indicator bg-success " />
           <span class="cstm-switch-description">{tanda.nombre}</span>

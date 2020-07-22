@@ -100,12 +100,12 @@
                         <td>
                           <div style="width: 150px; text-align: right;" class="ml-auto">
                             <div class="row">
-                              <a href="#/Medico/Perfil"
+                              <a href="#/Medico/Perfil/{i.id}"
                                 class="btn btn-outline-primary btn-sm mr-2">
                                 <i class="mdi mdi-circle-edit-outline" />
                                 Editar
                               </a>
-                              <a href="#/Medico/Perfil"
+                              <a href="#/Medico/Perfil/{i.id}"
                                 class="btn btn-outline-success btn-sm">
                                 <i class="mdi mdi-account-outline" />
                                 Ver perfil

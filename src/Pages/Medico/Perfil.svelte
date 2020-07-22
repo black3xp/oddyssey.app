@@ -62,14 +62,17 @@
       }
     }).then(res => {
         horarios = res.data;
-        console.log(horarios);
+
         diasSemana = diasSemana.map(e => {
           return {
             check: horarios.some(i => i.dia == e.dia),
+            tandasMarcadas: horarios.filter(i => i.dia == e.dia),
             dia: e.dia,
             nombre: e.nombre
           }
         });
+
+        console.log(diasSemana);
       }).catch(err => {
         console.error(err);
       });
