@@ -1,9 +1,18 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
   import Horario from "./Horario.svelte";
+  import Tanda from "./Tanda.svelte";
+
   export let item = {};
   export let tandas = {};
   export let horarios = {};
   $: horariosFiltrados = horarios.filter(x => x.dia == item.dia);
+
+  const dispatch = createEventDispatcher();
+  
+  const actualizar = function () {
+    dispatch('cambioHorario')
+  }
 </script>
 
 <style>
@@ -31,23 +40,13 @@
   </div>
   <div class="card-body">
     <div class="row">
-      {#each tandas as tanda}
-        <label class="cstm-switch ml-3 mr-3 mb-2">
-          <input
-            type="checkbox"
-            name="option"
-            value={tanda.id}
-            class="cstm-switch-input" />
-          <span class="cstm-switch-indicator bg-success " />
-          <span class="cstm-switch-description">{tanda.nombre}</span>
-        </label>
+      {#each tandas as i}
+        <Tanda on:cambioHorario={actualizar} {i} {horarios} dia={item.dia}/>
       {/each}
     </div>
 
     {#each horariosFiltrados as horario}
-      <!-- {#if checkTandas[horario.tandaID-1] && item.check} -->
       <Horario {horario} />
-      <!-- {/if} -->
     {/each}
 
   </div>

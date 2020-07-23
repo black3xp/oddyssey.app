@@ -145,6 +145,7 @@
   }
 
   function crearCita() {
+    obj.Fecha = obj.Fecha + "T" + obj.hora;
     axios({
         method: 'POST',
         url: $host + "/Citas",

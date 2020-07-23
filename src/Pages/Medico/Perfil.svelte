@@ -40,7 +40,7 @@
     }
 
     buscarDisponibilidadHorario();
-    horariosDelMedico();
+    cargarHorarios();
     cargarTandas();
   });
 
@@ -55,7 +55,7 @@
         console.error(err);
       });
   }
-  function horariosDelMedico() {
+  function cargarHorarios() {
     axios.get($host + "/Medicos/Horarios/" + id, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
@@ -65,14 +65,11 @@
 
         diasSemana = diasSemana.map(e => {
           return {
-            check: horarios.some(i => i.dia == e.dia),
-            tandasMarcadas: horarios.filter(i => i.dia == e.dia),
+            check: horarios.some(i => i.dia == e.dia && !i.inactivo),
             dia: e.dia,
             nombre: e.nombre
           }
         });
-
-        console.log(diasSemana);
       }).catch(err => {
         console.error(err);
       });
@@ -448,7 +445,7 @@
             </div>
             <div class="card-body">
               {#each diasSemana as item}
-              <DiaSemana {item} {tandas} {horarios} />
+              <DiaSemana on:cambioHorario={cargarHorarios} {item} {tandas} {horarios} />
               {/each}
 
             </div>
