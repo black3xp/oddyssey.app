@@ -42,6 +42,7 @@
     buscarDisponibilidadHorario();
     cargarHorarios();
     cargarTandas();
+    cargarCitas();
   });
 
   function cargarTandas() {
@@ -74,6 +75,18 @@
         console.error(err);
       });
   }
+  function cargarCitas() {
+    axios.get($host + "/Medicos/Citas/" + id, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+        console.log(res.data);
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+
   function buscarDisponibilidadHorario() {
     if (fecha == "" || tandaID <= 0) {
       horasDisponibles = [];
