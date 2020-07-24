@@ -43,6 +43,7 @@
   let pacientes = [];
   let medicos = [];
   $: faltaLaTanda = obj.tandaID == 0 || obj.tandaID == undefined;
+  let busquedaPacientes = "";
 
   function cargarMedicos() {
     axios.get($host + "/Medicos/Query", {
@@ -57,7 +58,7 @@
       });
   }
   function cargarPacientes() {
-    axios.get($host + "/Pacientes/Query", {
+    axios.get($host + "/Pacientes/Query?keyword=" + busquedaPacientes, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
@@ -146,20 +147,18 @@
 
   function crearCita() {
     obj.Fecha = obj.Fecha + "T" + obj.hora;
-    axios({
-        method: 'POST',
-        url: $host + "/Citas",
-        data: obj,
-        headers: {Authorization: "Bearer " + localStorage.getItem("token")}
-      }).then(res => {
-        if (res.data.success) {
-          push('/Cita/Gestionar');
-        } else {
-          console.log(res);
-        }
-      }).catch(err => {
-        console.error(err); 
-      })
+
+    axios.post($host + "/Citas", obj, {
+      headers: {Authorization: "Bearer " + localStorage.getItem("token")}
+    }).then(res => {
+      if (res.data.success) {
+        push('/Cita/Gestionar');
+      } else {
+        console.log(res);
+      }
+    }).catch(err => {
+      console.error(err); 
+    })
   }
 </script>
 
@@ -369,7 +368,8 @@
           <input
             type="search"
             class="form-control form-control-appended"
-            placeholder="Buscar" />
+            placeholder="Buscar"
+            bind:value={busquedaPacientes} on:input={cargarPacientes}/>
           <div class="input-group-append">
             <div class=" input-group-text">
               <span class="mdi mdi-magnify" />

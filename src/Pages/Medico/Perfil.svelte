@@ -11,11 +11,19 @@
   export let params = {};
   let id = params.id;
 
+  let obj = {
+    name: "",
+    email: "",
+    perfil: "",
+    prefix: "",
+    phoneNumber: ""
+  };
   let fecha = "";
   let tandaID = 0;
   let horarios = [];
   let tandas = [];
   let horasDisponibles = [];
+  let citas = [];
   let btnPrimary = false;
 
   let diasSemana = [
@@ -39,12 +47,24 @@
       tandaID = $dataCita.tandaID
     }
 
+    cargarPerfil();
     buscarDisponibilidadHorario();
     cargarHorarios();
     cargarTandas();
     cargarCitas();
   });
 
+  function cargarPerfil() {
+    axios.get($host + "/Medicos/" + id, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+        obj = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
   function cargarTandas() {
     axios.get($host + "/Tandas/GetAll", {
       headers: {
@@ -81,7 +101,18 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-        console.log(res.data);
+        citas = res.data.map(x => {
+          let fecha = new Date(x.fecha).toISOString().split('T')[0];
+          let hora = new Date(x.fecha).toISOString().split('T')[1];
+
+          return {
+            fecha: fecha,
+            hora: hora,
+            observaciones: x.observaciones
+          }
+        });
+
+        console.log(res.data)
       }).catch(err => {
         console.error(err);
       });
@@ -178,15 +209,15 @@
                       alt="name" />
                   </div>
                 </div>
-                <h3 class="p-t-10 searchBy-name">Dr. Joel Mena</h3>
+                <h3 class="p-t-10 searchBy-name">{obj.prefix} {obj.name}</h3>
               </div>
               <div class="text-muted text-center m-b-10">
-                Ginecologo obstetra
+                {obj.perfil}
               </div>
               <p class="text-muted text-center" style="margin-bottom: 0;">
-                joelmena056@gmail.com
+                {obj.email}
               </p>
-              <p class="text-muted text-center">809-588-1717</p>
+              <p class="text-muted text-center">{obj.phoneNumber}</p>
               <div class="row text-center p-b-10">
                 <div class="col">
                   <a
@@ -328,16 +359,19 @@
               </div>
             </div>
             <div class="card-body">
+              {#if citas.length == 0}
               <div class="alert alert-success" role="alert">
                 No hay citas programadas para este dia
               </div>
-
+              {/if}
 
               <div class="row">
+                {#each citas as i}
                 <div class="col-lg-6">
                   <div class="card m-b-20 card-vnc">
                     <div class="card-header">
-                      <h5 class="m-b-0">Miercoles 22, Julio</h5>
+                      <h5 class="m-b-0">{i.fecha}</h5>
+                      <!-- <h5 class="m-b-0">Miercoles 22, Julio</h5> -->
                     </div>
                     <div class="card-body">
     
@@ -348,11 +382,11 @@
                               Alfredo Joel Mena Villafañas
                             </div>
                             <div class="text-muted">
-                              <span>10:00</span>
+                              <span>{i.hora}</span>
                               -
                               <span>Mañana</span>
                               -
-                              <span>Cita primera vez (Observaciones)</span>
+                              <span>{i.observaciones} (Observaciones)</span>
                             </div>
                           </div>
                         </div>
@@ -362,11 +396,11 @@
                               Alfredo Joel Mena Villafañas
                             </div>
                             <div class="text-muted">
-                              <span>10:00</span>
+                              <span>{i.hora}</span>
                               -
                               <span>Mañana</span>
                               -
-                              <span>Cita primera vez (Observaciones)</span>
+                              <span>{i.observaciones} (Observaciones)</span>
                             </div>
                           </div>
                         </div>
@@ -376,74 +410,20 @@
                               Alfredo Joel Mena Villafañas
                             </div>
                             <div class="text-muted">
-                              <span>10:00</span>
+                              <span>{i.hora}</span>
                               -
                               <span>Mañana</span>
                               -
-                              <span>Cita primera vez (Observaciones)</span>
+                              <span>{i.observaciones} (Observaciones)</span>
                             </div>
                           </div>
                         </div>
                       </div>
-    
+
                     </div>
                   </div>
                 </div>
-                <div class="col-lg-6">
-                  <div class="card m-b-20 card-vnc">
-                    <div class="card-header">
-                      <h5 class="m-b-0">Jueves 23, Julio</h5>
-                    </div>
-                    <div class="card-body">
-    
-                      <div class="list-group list ">
-                        <div class="list-group-item d-flex align-items-center">
-                          <div class="">
-                            <div class="name text-primary">
-                              Alfredo Joel Mena Villafañas
-                            </div>
-                            <div class="text-muted">
-                              <span>10:00</span>
-                              -
-                              <span>Mañana</span>
-                              -
-                              <span>Cita primera vez (Observaciones)</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                          <div class="">
-                            <div class="name text-primary">
-                              Alfredo Joel Mena Villafañas
-                            </div>
-                            <div class="text-muted">
-                              <span>10:00</span>
-                              -
-                              <span>Mañana</span>
-                              -
-                              <span>Cita primera vez (Observaciones)</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                          <div class="">
-                            <div class="name text-primary">
-                              Alfredo Joel Mena Villafañas
-                            </div>
-                            <div class="text-muted">
-                              <span>10:00</span>
-                              -
-                              <span>Mañana</span>
-                              -
-                              <span>Cita primera vez (Observaciones)</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-    
-                    </div>
-                  </div>
-                </div>
+                {/each}
               </div>
 
             </div>

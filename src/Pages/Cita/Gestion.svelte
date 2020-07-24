@@ -67,6 +67,13 @@
         console.error(err);
       });
   }
+  function elegirTiempo(e) {
+    let dia = e.target.value;
+    let d = new Date();
+    let sumaDia = d.setDate(d.getDate() + dia - 1);
+    let newDate = new Date(sumaDia);
+    filter.FechaCita = newDate.toISOString().split('T')[0];
+  }
   
   function filtrar() {
     cargarMedicos();
@@ -116,7 +123,8 @@
 
                 <div class="contenedor-dias">
                   <div class="option-box">
-                    <input id="radio-new1" name="bigradios" type="radio" />
+                    <input id="radio-new1" name="tiempo" type="radio" 
+                      value={0} on:change={elegirTiempo} />
                     <label
                       for="radio-new1"
                       style="height: 40px; padding: 3px 10px;">
@@ -126,7 +134,8 @@
                     </label>
                   </div>
                   <div class="option-box">
-                    <input id="radio-new2" name="bigradios" type="radio" />
+                    <input id="radio-new2" name="tiempo" type="radio" 
+                      value={1} on:change={elegirTiempo} />
                     <label
                       for="radio-new2"
                       style="height: 40px; padding: 3px 10px;">
@@ -136,7 +145,8 @@
                     </label>
                   </div>
                   <div class="option-box">
-                    <input id="radio-new3" name="bigradios" type="radio" />
+                    <input id="radio-new3" name="tiempo" type="radio" 
+                      value={2} on:change={elegirTiempo} />
                     <label
                       for="radio-new3"
                       style="height: 40px; padding: 3px 10px;">
