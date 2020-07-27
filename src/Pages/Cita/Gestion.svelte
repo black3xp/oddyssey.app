@@ -1,9 +1,10 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+  import { push } from "svelte-spa-router";
+  import { onMount } from "svelte";
   import { activePage, host, dataCita } from "../../store";
   import axios from "axios";
-  import { onMount } from "svelte";
 
   $activePage = "gestor"
 
@@ -19,7 +20,10 @@
   let tandas = [];
 
   onMount(() => {
-    $dataCita = {};
+    if ($dataCita.fechaCita != undefined) {
+      filter.FechaCita = $dataCita.fechaCita;
+      filter.TandaID = $dataCita.tandaID
+    }
 
     jQuery("#sltEspecialidad").select2();
     jQuery("#sltEspecialidad").on("select2:select", e => {
@@ -70,9 +74,18 @@
   function elegirTiempo(e) {
     let dia = e.target.value;
     let d = new Date();
-    let sumaDia = d.setDate(d.getDate() + dia - 1);
+    let sumaDia = d.setDate(d.getDate() + dia);
     let newDate = new Date(sumaDia);
     filter.FechaCita = newDate.toISOString().split('T')[0];
+  }
+  function crearCita(id) {
+    $dataCita = {
+      fechaCita: filter.FechaCita,
+      tandaID: filter.TandaID,
+      hora: "",
+      medicoId: id
+    };
+    push('/Cita/Crear');
   }
   
   function filtrar() {
@@ -205,11 +218,10 @@
                         <i class="mdi mdi-contacts" />
                         Perfil
                       </a>
-                      <a href="#/Cita/Crear"
-                        class="btn btn-outline-success btn-sm">
+                      <button on:click={crearCita(item.id)} class="btn btn-outline-success btn-sm">
                         <i class="mdi mdi-calendar-plus" />
                         Crear cita
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 {/each}

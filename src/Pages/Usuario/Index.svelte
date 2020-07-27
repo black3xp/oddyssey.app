@@ -8,15 +8,23 @@
 
   let perfiles = [];
   let list = [];
+  let prefijos = [
+    {value: 'dr', name: 'Dr.'},
+    {value: 'dra', name: 'Dra.'},
+    {value: 'lic', name: 'Lic.'},
+    {value: 'lida', name: 'Lida.'},
+    {value: 'sr', name: 'Sr.'},
+    {value: 'sra', name: 'Sra.'},
+  ]
   let obj = {
-    idUser: "",
+    id: "",
     prefix: "",
     name: "",
     email: "",
     phoneNumber: "",
     passwordHash: "",
     isDoctor: false,
-    perfilID: null
+    perfilID: 0
   };
   onMount(() => {
     cargar();
@@ -61,7 +69,8 @@
 
   function guardar() {
     console.log(obj);
-    axios.post($host + "/User", obj, {
+    if (obj.id == "") {
+      axios.post($host + "/User", obj, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
@@ -70,6 +79,17 @@
       }).catch(err => {
         console.error(err);
       });
+    } else {
+      axios.put($host + "/User/" + obj.id, obj, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        console.log(res);
+      }).catch(err => {
+        console.error(err);
+      });
+    }
   }
 </script>
 
@@ -148,6 +168,11 @@
                           <td>
                             <div style="width: 150px; text-align: right;"
                               class="ml-auto">
+                              {#if i.isDoctor}
+                              <a href="#/Medico/Perfil/{i.id}">
+                                <i class=" mdi-24px mdi mdi-doctor" />
+                              </a>
+                              {/if}
                               <a href="#!"
                                 on:click={cargarDetalle(i.id)}
                                 data-toggle="modal"
@@ -166,6 +191,7 @@
                                 class="icon-rol">
                                 <i class=" mdi-24px mdi mdi-security" />
                               </a>
+                              
                             </div>
                           </td>
                         </tr>
@@ -218,8 +244,9 @@
                 name="prefijo"
                 bind:value={obj.prefix}>
                 <option value="">- Seleccionar -</option>
-                <option value={'sr'}>Sr.</option>
-                <option value={'sra'}>Sra.</option>
+                {#each prefijos as item}
+                  <option value={item.value}>{item.name}</option>
+                {/each}
               </select>
             </div>
           </div>
@@ -261,6 +288,7 @@
                 maxlength="100" />
             </div>
           </div>
+          {#if obj.id == ""}
           <div class="form-row">
             <div class="form-group col-md-12">
               <label for="">Contraseña</label>
@@ -272,8 +300,8 @@
                 name="PasswordHash"
                 maxlength="50" />
             </div>
-
           </div>
+          {/if}
 
           <div class="form-row">
             <div class="form-group col-md-12">
@@ -286,8 +314,7 @@
                 autocomplete="off"
                 maxlength="14"
                 placeholder="(809) 000-0000"
-                name="PhoneNumber"
-                id="txtTelefono" />
+                bind:value={obj.phoneNumber}/>
             </div>
             <div class="form-group col-md-12">
               <label class="cstm-switch">
@@ -295,7 +322,7 @@
                   type="checkbox"
                   value="true"
                   name="EsMedico"
-                  bind:checked={obj.iIsDoctor}
+                  bind:checked={obj.isDoctor}
                   class="cstm-switch-input" />
                 <span class="cstm-switch-indicator " />
                 <span class="cstm-switch-description">Es Medico</span>

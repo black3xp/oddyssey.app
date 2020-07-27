@@ -6,6 +6,7 @@
   import { activePage, dataCita, host } from "../../store";
   import { onMount } from "svelte";
   import axios from "axios";
+  import moment from 'moment';
   
   $activePage = "mantenimiento.peril";
   export let params = {};
@@ -102,17 +103,37 @@
       }
     }).then(res => {
         citas = res.data.map(x => {
-          let fecha = new Date(x.fecha).toISOString().split('T')[0];
-          let hora = new Date(x.fecha).toISOString().split('T')[1];
-
           return {
-            fecha: fecha,
-            hora: hora,
+            fecha: moment(x.fecha).format('LL'),
+            hora: moment(x.fecha).format('LT'),
             observaciones: x.observaciones
           }
         });
+        
+        let horario = [
+          {dia: 1, hora: '8:00am'},
+          {dia: 1, hora: '9:00am'},
+          {dia: 1, hora: '10:00am'},
+          {dia: 2, hora: '8:00am'},
+          {dia: 2, hora: '9:30am'},
+          {dia: 3, hora: '10:00am'},
+          {dia: 3, hora: '11:00am'},
+          {dia: 3, hora: '12:00pm'},
+          {dia: 3, hora: '1:00pm'},
+        ];
 
-        console.log(res.data)
+        let dias = horario.map(e => { return e.dia });
+        let diasUnicos = [...new Set(dias)];
+
+        let newHorario = diasUnicos.map(e => {
+          return {
+            dia: e,
+            horas: horario.filter(i => i.dia == e).map(e => {
+              return e.hora
+            })
+          }
+        })
+        console.log(newHorario);
       }).catch(err => {
         console.error(err);
       });
