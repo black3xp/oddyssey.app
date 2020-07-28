@@ -5,6 +5,7 @@
   import { onMount } from "svelte";
   import { activePage, host, dataCita } from "../../store";
   import axios from "axios";
+  import moment from 'moment';
 
   $activePage = "gestor"
 
@@ -72,11 +73,12 @@
       });
   }
   function elegirTiempo(e) {
-    let dia = e.target.value;
-    let d = new Date();
-    let sumaDia = d.setDate(d.getDate() + dia);
-    let newDate = new Date(sumaDia);
-    filter.FechaCita = newDate.toISOString().split('T')[0];
+    let dia = parseInt(e.target.value);
+    let hoy = moment();
+    hoy.add(moment.duration(dia, 'd'));
+    
+    filter.FechaCita = hoy.format('YYYY-MM-DD');
+    cargarMedicos();
   }
   function crearCita(id) {
     $dataCita = {

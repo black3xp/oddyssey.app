@@ -42,10 +42,10 @@
       </li>
       <!--list item ends-->
       <!--list item begins-->
-      <li class="menu-item " class:active={$activePage.includes('citas')}>
-        <a href="/Cita/Index" use:link class="menu-link">
+      <li class="menu-item " class:active={$activePage.includes('asistente')}>
+        <a href="/Asistente/Index" use:link class="menu-link">
           <span class="menu-label">
-            <span class="menu-name">Citas</span>
+            <span class="menu-name">Asistente</span>
           </span>
           <span class="menu-icon">
 
@@ -78,7 +78,7 @@
               Mantenimiento
               <span class="menu-arrow" />
             </span>
-            <span class="menu-info">Medicos, Usuarios...</span>
+            <span class="menu-info">Usuarios...</span>
           </span>
           <span class="menu-icon">
             <i class="icon-placeholder mdi mdi-settings-outline" />
@@ -86,16 +86,6 @@
         </a>
         <!--submenu-->
         <ul class="sub-menu">
-          <li class="menu-item">
-            <a href="/Medico/Index" use:link class=" menu-link">
-              <span class="menu-label">
-                <span class="menu-name">Medicos</span>
-              </span>
-              <span class="menu-icon">
-                <i class="icon-placeholder ">M</i>
-              </span>
-            </a>
-          </li>
           <li
             class="menu-item"
             class:active={$activePage.includes('usuario.index')}>

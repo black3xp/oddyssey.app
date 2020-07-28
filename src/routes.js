@@ -1,6 +1,6 @@
 import Index from './Pages/Home/Index.svelte'
 import Login from './Pages/Home/Login.svelte'
-import CitaIndex from './Pages/Cita/Index.svelte'
+import AsistenteIndex from './Pages/Asistente/Index.svelte'
 import CitaCrear from './Pages/Cita/Crear.svelte'
 import Gestion from './Pages/Cita/Gestion.svelte'
 import UsuarioIndex from './Pages/Usuario/Index.svelte'
@@ -19,7 +19,7 @@ const routes = {
     "/": Index,
     "/Home/Login": Login,
     "/Usuario/Index": UsuarioIndex,
-    "/Cita/Index": CitaIndex,
+    "/Asistente/Index": AsistenteIndex,
     "/Cita/Gestionar": Gestion,
     "/Cita/Crear": CitaCrear,
     "/Medico/Index": MedicoIndex,

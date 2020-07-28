@@ -5,30 +5,12 @@
   import { activePage, host } from "../../store";
   import { onMount } from "svelte";
 
-  $activePage = "citas.index";
+  $activePage = "asistente.index";
 
   let busqueda = "";
   let citas = [];
 
-  $: citasPendientes = () => {
-    return citas.filter(
-      x =>
-        x.codigoEstado == "P" &&
-        x.nombrePaciente.toLowerCase().includes(busqueda)
-    );
-  };
-  $: citasFinalizadas = () => {
-    return citas.filter(x => x.codigoEstado == "F");
-  };
-
-  onMount(() => {
-    axios.get($host + "/_data/citas.json")
-      .then(res => {
-        citas = res.data;
-      }).catch(err => {
-        console.error(err);
-      });
-  });
+  onMount(() => {});
 </script>
 
 <style>
@@ -117,30 +99,28 @@
               </tr>
             </thead>
             <tbody>
-              {#each citasPendientes() as item}
-                <tr class="cursor-table">
-                  <td>{item.nombrePaciente}</td>
-                  <td>{item.observaciones}</td>
-                  <td>40222355854</td>
-                  <td>8095881717</td>
-                  <td style="text-align: right;">
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
-                      <i class="mdi mdi-account-search-outline" />
-                      Ver paciente
-                    </button>
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
-                      <i class="mdi mdi-calendar-plus" />
-                      Crear cita
-                    </button>
-                  </td>
-                </tr>
-              {/each}
+              <tr class="cursor-table">
+                <td>Nombre completo</td>
+                <td>Observaciones</td>
+                <td>40222355854</td>
+                <td>8095881717</td>
+                <td style="text-align: right;">
+                  <button
+                    class="btn btn-success btn-sm mb-1"
+                    data-toggle="modal"
+                    data-target="#modalPaciente">
+                    <i class="mdi mdi-account-search-outline" />
+                    Ver paciente
+                  </button>
+                  <button
+                    class="btn btn-success btn-sm mb-1"
+                    data-toggle="modal"
+                    data-target="#modalPaciente">
+                    <i class="mdi mdi-calendar-plus" />
+                    Crear cita
+                  </button>
+                </td>
+              </tr>
             </tbody>
           </table>
 
@@ -150,10 +130,10 @@
         <div class="table-responsive">
           <table class="table align-td-middle table-card">
             <tbody>
-              {#each citasFinalizadas() as item}
+              
                 <tr class="cursor-table">
-                  <td>{item.nombrePaciente}</td>
-                  <td>{item.observaciones}</td>
+                  <td>Paciente</td>
+                  <td>Observaciones</td>
                   <td>40222355854</td>
                   <td>8095881717</td>
                   <td style="text-align: right;">
@@ -173,7 +153,7 @@
                     </button>
                   </td>
                 </tr>
-              {/each}
+              
             </tbody>
           </table>
 

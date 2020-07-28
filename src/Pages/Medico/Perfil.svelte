@@ -20,12 +20,15 @@
     phoneNumber: ""
   };
   let fecha = "";
+  let fechaBusquedaCita = "";
   let tandaID = 0;
   let horarios = [];
   let tandas = [];
   let horasDisponibles = [];
   let citas = [];
+  let citasDB = [];
   let btnPrimary = false;
+  let btnCita = '';
 
   let diasSemana = [
     {check: false, dia: 1, nombre: 'Lunes'},
@@ -102,38 +105,30 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-        citas = res.data.map(x => {
+        let datos = res.data.map(x => {
           return {
             fecha: moment(x.fecha).format('LL'),
             hora: moment(x.fecha).format('LT'),
-            observaciones: x.observaciones
+            observaciones: x.observaciones,
+            nombrePaciente: x.nombrePaciente
           }
         });
-        
-        let horario = [
-          {dia: 1, hora: '8:00am'},
-          {dia: 1, hora: '9:00am'},
-          {dia: 1, hora: '10:00am'},
-          {dia: 2, hora: '8:00am'},
-          {dia: 2, hora: '9:30am'},
-          {dia: 3, hora: '10:00am'},
-          {dia: 3, hora: '11:00am'},
-          {dia: 3, hora: '12:00pm'},
-          {dia: 3, hora: '1:00pm'},
-        ];
+        let diasUnicos = [...new Set( datos.map(e => { return e.fecha }) )];
 
-        let dias = horario.map(e => { return e.dia });
-        let diasUnicos = [...new Set(dias)];
-
-        let newHorario = diasUnicos.map(e => {
+        citasDB = diasUnicos.map(e => {
           return {
-            dia: e,
-            horas: horario.filter(i => i.dia == e).map(e => {
-              return e.hora
+            fecha: e,
+            horas: datos.filter(i => i.fecha == e).map(e => {
+              return {
+                hora: e.hora,
+                nombrePaciente: e.nombrePaciente,
+                observaciones: e.observaciones
+              }
             })
           }
         })
-        console.log(newHorario);
+        citas = citasDB;
+        buscarCitas('h');
       }).catch(err => {
         console.error(err);
       });
@@ -180,6 +175,21 @@
     let d = new Date();
     fecha = d.toISOString().split('T')[0];
     btnPrimary = false
+  }
+  function buscarCitas(tipo) {
+    let hoy = moment();
+    btnCita = tipo;
+
+    if (tipo == 'h') {
+      citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
+    } else if (tipo == 'm') {
+      hoy.add(moment.duration(1, 'd'));
+      citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
+    } else if (tipo == 's') {
+      citas = citasDB.filter(e => moment(e.fecha).format('W') == hoy.format('W'));
+    } else {
+      citas = citasDB.filter(e => e.fecha == moment(fechaBusquedaCita).format('LL'));
+    }
   }
 
 </script>
@@ -359,20 +369,27 @@
               <div class="card-controls">
 
                 <div class="btn-group" role="group" aria-label="Basic example">
-                  <input type="date" class="form-control form-control-sm" />
+                  <input type="date" class="form-control form-control-sm"
+                    bind:value={fechaBusquedaCita} on:change={() => buscarCitas('f')}/>
                   <button
                     type="button"
-                    class="btn btn-primary shadow-none btn-sm">
+                    class:btn-primary={btnCita == 'h'} class:btn-write={btnCita != 'h'}
+                    class="btn shadow-none btn-sm"
+                    on:click={() => buscarCitas('h')}>
                     Hoy
                   </button>
                   <button
                     type="button"
-                    class="btn btn-white shadow-none btn-sm">
+                    class:btn-primary={btnCita == 'm'} class:btn-write={btnCita != 'm'}
+                    class="btn shadow-none btn-sm"
+                    on:click={() => buscarCitas('m')}>
                     Mañana
                   </button>
                   <button
                     type="button"
-                    class="btn btn-white shadow-none btn-sm">
+                    class:btn-primary={btnCita == 's'} class:btn-write={btnCita != 's'}
+                    class="btn shadow-none btn-sm"
+                    on:click={() => buscarCitas('s')}>
                     Semana
                   </button>
                 </div>
@@ -392,53 +409,26 @@
                   <div class="card m-b-20 card-vnc">
                     <div class="card-header">
                       <h5 class="m-b-0">{i.fecha}</h5>
-                      <!-- <h5 class="m-b-0">Miercoles 22, Julio</h5> -->
                     </div>
                     <div class="card-body">
     
                       <div class="list-group list ">
+                        {#each i.horas as h}
                         <div class="list-group-item d-flex align-items-center">
                           <div class="">
                             <div class="name text-primary">
-                              Alfredo Joel Mena Villafañas
+                              {h.nombrePaciente}
                             </div>
                             <div class="text-muted">
-                              <span>{i.hora}</span>
+                              <span>{h.hora}</span>
                               -
                               <span>Mañana</span>
                               -
-                              <span>{i.observaciones} (Observaciones)</span>
+                              <span>{h.observaciones} (Observaciones)</span>
                             </div>
                           </div>
                         </div>
-                        <div class="list-group-item d-flex align-items-center">
-                          <div class="">
-                            <div class="name text-primary">
-                              Alfredo Joel Mena Villafañas
-                            </div>
-                            <div class="text-muted">
-                              <span>{i.hora}</span>
-                              -
-                              <span>Mañana</span>
-                              -
-                              <span>{i.observaciones} (Observaciones)</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                          <div class="">
-                            <div class="name text-primary">
-                              Alfredo Joel Mena Villafañas
-                            </div>
-                            <div class="text-muted">
-                              <span>{i.hora}</span>
-                              -
-                              <span>Mañana</span>
-                              -
-                              <span>{i.observaciones} (Observaciones)</span>
-                            </div>
-                          </div>
-                        </div>
+                        {/each}
                       </div>
 
                     </div>

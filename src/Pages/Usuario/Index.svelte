@@ -43,13 +43,11 @@
       });
   }
   function cargarDetalle(id) {
-    console.log(id)
     axios.get($host + "/User/" + id, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
       }).then(res => {
-        console.log(res.data)
         obj = res.data;
       }).catch(err => {
         console.error(err);
@@ -68,14 +66,15 @@
   }
 
   function guardar() {
-    console.log(obj);
     if (obj.id == "") {
       axios.post($host + "/User", obj, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
       }).then(res => {
-        console.log(res);
+        if (res.data.success) {
+          cargar();
+        }
       }).catch(err => {
         console.error(err);
       });
@@ -85,10 +84,25 @@
           Authorization: "Bearer " + localStorage.getItem("token")
         }
       }).then(res => {
-        console.log(res);
+        if (res.data.success) {
+          cargar();
+        }
       }).catch(err => {
         console.error(err);
       });
+    }
+  }
+
+  function agregarNuevo() {
+    obj = {
+      id: "",
+      prefix: "",
+      name: "",
+      email: "",
+      phoneNumber: "",
+      passwordHash: "",
+      isDoctor: false,
+      perfilID: 0
     }
   }
 </script>
@@ -123,15 +137,13 @@
                 </div>
               </div>
             </div>
-            <a
-              href="/Expediente/Nuevo"
-              type="button"
-              class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary"
+            <button class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary"
+              on:click={agregarNuevo}
               data-toggle="modal"
               data-target="#modalUsuario">
               <i class="mdi mdi-account-plus" />
               Nuevo usuario
-            </a>
+            </button>
           </div>
         </div>
 
@@ -166,8 +178,7 @@
                           </td>
                           <td>{i.email}</td>
                           <td>
-                            <div style="width: 150px; text-align: right;"
-                              class="ml-auto">
+                            <div style="width: 150px; text-align: right;" class="ml-auto">
                               {#if i.isDoctor}
                               <a href="#/Medico/Perfil/{i.id}">
                                 <i class=" mdi-24px mdi mdi-doctor" />
@@ -212,8 +223,7 @@
   </section>
 </main>
 
-<div
-  class="modal fade modal-slide-right"
+<div class="modal fade modal-slide-right"
   id="modalUsuario"
   tabindex="-1"
   role="dialog"
@@ -363,20 +373,17 @@
                 <option value="" />
                 <option value="1">Psiquiatría</option>
               </select>
-              <span
-                class="select2 select2-container select2-container--default"
+              <span class="select2 select2-container select2-container--default"
                 dir="ltr"
                 style="width: 100%;">
                 <span class="selection">
-                  <span
-                    class="select2-selection select2-selection--single"
+                  <span class="select2-selection select2-selection--single"
                     role="combobox"
                     aria-haspopup="true"
                     aria-expanded="false"
                     tabindex="0"
                     aria-labelledby="select2-sltDepartamentos-container">
-                    <span
-                      class="select2-selection__rendered"
+                    <span class="select2-selection__rendered"
                       id="select2-sltDepartamentos-container"
                       role="textbox"
                       aria-readonly="true">
@@ -396,8 +403,7 @@
 
           <br />
           <div class="modal-footer">
-            <button
-              type="button"
+            <button type="button"
               class="btn btn-secondary"
               data-dismiss="modal">
               Cerrar
