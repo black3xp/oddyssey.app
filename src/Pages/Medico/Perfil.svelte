@@ -13,6 +13,7 @@
   let id = params.id;
 
   let obj = {
+    medicoID: "",
     name: "",
     email: "",
     perfil: "",
@@ -65,6 +66,7 @@
       }
     }).then(res => {
         obj = res.data;
+        console.log(obj);
       }).catch(err => {
         console.error(err);
       });
@@ -243,7 +245,7 @@
                 <h3 class="p-t-10 searchBy-name">{obj.prefix} {obj.name}</h3>
               </div>
               <div class="text-muted text-center m-b-10">
-                {obj.perfil}
+                {obj.perfil || ""}
               </div>
               <p class="text-muted text-center" style="margin-bottom: 0;">
                 {obj.email}
@@ -449,7 +451,7 @@
             </div>
             <div class="card-body">
               {#each diasSemana as item}
-              <DiaSemana on:cambioHorario={cargarHorarios} {item} {tandas} {horarios} />
+              <DiaSemana on:cambioHorario={cargarHorarios} {item} {tandas} {horarios} medicoID={id} />
               {/each}
 
             </div>

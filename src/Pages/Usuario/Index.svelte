@@ -16,8 +16,8 @@
     {value: 'sr', name: 'Sr.'},
     {value: 'sra', name: 'Sra.'},
   ]
+  let userID = "";
   let obj = {
-    id: "",
     prefix: "",
     name: "",
     email: "",
@@ -48,6 +48,7 @@
           Authorization: "Bearer " + localStorage.getItem("token")
         }
       }).then(res => {
+        userID = id
         obj = res.data;
       }).catch(err => {
         console.error(err);
@@ -66,7 +67,7 @@
   }
 
   function guardar() {
-    if (obj.id == "") {
+    if (userID == "") {
       axios.post($host + "/User", obj, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
@@ -79,7 +80,7 @@
         console.error(err);
       });
     } else {
-      axios.put($host + "/User/" + obj.id, obj, {
+      axios.put($host + "/User/" + userID, obj, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
@@ -94,8 +95,8 @@
   }
 
   function agregarNuevo() {
+    userID = "";
     obj = {
-      id: "",
       prefix: "",
       name: "",
       email: "",
@@ -298,7 +299,7 @@
                 maxlength="100" />
             </div>
           </div>
-          {#if obj.id == ""}
+          {#if userID == ""}
           <div class="form-row">
             <div class="form-group col-md-12">
               <label for="">Contraseña</label>

@@ -6,6 +6,7 @@
   export let item = {};
   export let tandas = {};
   export let horarios = {};
+  export let medicoID = {};
   $: horariosFiltrados = horarios.filter(x => x.dia == item.dia);
 
   const dispatch = createEventDispatcher();
@@ -41,7 +42,7 @@
   <div class="card-body">
     <div class="row">
       {#each tandas as i}
-        <Tanda on:cambioHorario={actualizar} {i} {horarios} dia={item.dia}/>
+        <Tanda on:cambioHorario={actualizar} {i} {horarios} dia={item.dia} {medicoID}/>
       {/each}
     </div>
 

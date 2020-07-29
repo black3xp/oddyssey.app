@@ -6,6 +6,7 @@
   export let i = {};
   export let horarios = {};
   export let dia = {};
+  export let medicoID = {};
 
   const dispatch = createEventDispatcher();
 
@@ -13,9 +14,8 @@
     x => x.dia == dia && x.tandaID == i.id && !x.inactivo
   );
   function cambiarCheck(e) {
-    let obj = horarios.find(x => x.dia);
     let hr = {
-      MedicoID: obj.medicoID,
+      MedicoID: medicoID,
       Dia: dia ,
       TandaID: i.id,
       HoraInicio: "00:00",
@@ -27,7 +27,7 @@
       if (horarios.some(x => x.dia == dia && x.tandaID == i.id)) {
         let data = horarios.find(x => x.dia && x.tandaID == i.id);
         hr = {
-          MedicoID: data.medicoID,
+          MedicoID: medicoID,
           Dia: dia ,
           TandaID: i.id,
           HoraInicio: data.horaInicio,
@@ -59,7 +59,7 @@
     } else {
       let data = horarios.find(x => x.dia && x.tandaID == i.id);
       hr = {
-        MedicoID: data.medicoID,
+        MedicoID: medicoID,
         Dia: dia ,
         TandaID: i.id,
         HoraInicio: data.horaInicio,
@@ -68,6 +68,7 @@
         Inactivo: true
       }
 
+      console.log(hr);
       axios.put($host + "/Horarios", hr, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token")

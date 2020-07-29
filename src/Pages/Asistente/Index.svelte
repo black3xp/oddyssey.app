@@ -8,9 +8,23 @@
   $activePage = "asistente.index";
 
   let busqueda = "";
-  let citas = [];
+  let medicos = [];
 
-  onMount(() => {});
+  onMount(() => {
+    cargarMedicos();
+  });
+
+  function cargarMedicos() {
+    axios.get($host + "/User/Query", {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      medicos = res.data.filter(x => x.isDoctor);
+    }).catch(err => {
+      console.error(err); 
+    })
+  }
 </script>
 
 <style>
@@ -99,6 +113,7 @@
               </tr>
             </thead>
             <tbody>
+            {#each medicos as item}
               <tr class="cursor-table">
                 <td>Nombre completo</td>
                 <td>Observaciones</td>
@@ -121,6 +136,7 @@
                   </button>
                 </td>
               </tr>
+            {/each}
             </tbody>
           </table>
 
@@ -130,30 +146,30 @@
         <div class="table-responsive">
           <table class="table align-td-middle table-card">
             <tbody>
-              
-                <tr class="cursor-table">
-                  <td>Paciente</td>
-                  <td>Observaciones</td>
-                  <td>40222355854</td>
-                  <td>8095881717</td>
-                  <td style="text-align: right;">
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
-                      <i class="mdi mdi-account-search-outline" />
-                      Ver paciente
-                    </button>
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
-                      <i class="mdi mdi-calendar-plus" />
-                      Crear cita
-                    </button>
-                  </td>
-                </tr>
-              
+
+              <tr class="cursor-table">
+                <td>Paciente</td>
+                <td>Observaciones</td>
+                <td>40222355854</td>
+                <td>8095881717</td>
+                <td style="text-align: right;">
+                  <button
+                    class="btn btn-success btn-sm mb-1"
+                    data-toggle="modal"
+                    data-target="#modalPaciente">
+                    <i class="mdi mdi-account-search-outline" />
+                    Ver paciente
+                  </button>
+                  <button
+                    class="btn btn-success btn-sm mb-1"
+                    data-toggle="modal"
+                    data-target="#modalPaciente">
+                    <i class="mdi mdi-calendar-plus" />
+                    Crear cita
+                  </button>
+                </td>
+              </tr>
+
             </tbody>
           </table>
 
