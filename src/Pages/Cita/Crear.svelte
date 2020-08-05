@@ -83,10 +83,11 @@
   function cargarHoras() {
     let params = "";
 
-    if ($dataCita.fechaCita != undefined) {
-      params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
-    } else {
+    console.log($dataCita.fechaCita);
+    if ($dataCita.fechaCita == undefined || $dataCita.fechaCita == "") {
       params = "?tandiID=" + obj.tandaID;
+    } else {
+      params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
     }
     axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + params, {
       headers: {
@@ -277,7 +278,9 @@
                           type="date"
                           class="form-control mb-2"
                           id="Fecha"
-                          bind:value={obj.Fecha} />
+                          bind:value={obj.Fecha} on:change={() => {
+                            cargarHoras();
+                          }}/>
                       </div>
                     </div>
                     <div class="col-lg-6">

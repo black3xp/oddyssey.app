@@ -21,6 +21,8 @@
   let tandas = [];
 
   onMount(() => {
+    filter.FechaCita = moment().format('YYYY-MM-DD');
+
     if ($dataCita.fechaCita != undefined) {
       filter.FechaCita = $dataCita.fechaCita;
       filter.TandaID = $dataCita.tandaID
@@ -91,6 +93,15 @@
   }
   
   function filtrar() {
+    if (filter.FechaCita == "" || filter.FechaCita == undefined) {
+      let tiempos = Array.from(document.getElementsByName('tiempo'));
+      tiempos.forEach(x => {
+        if (x.checked) {
+          x.checked = false;
+        }
+      })
+    }
+
     cargarMedicos();
   }
 </script>

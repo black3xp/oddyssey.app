@@ -44,7 +44,7 @@
   onMount(() => {
     let d = new Date();
 
-    if ($dataCita.fechaCita == undefined) {
+    if ($dataCita.fechaCita == undefined || $dataCita.fechaCita == "") {
       fecha = d.toISOString().split('T')[0];
       tandaID = 1;
     } else {
