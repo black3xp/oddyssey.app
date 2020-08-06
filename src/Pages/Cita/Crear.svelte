@@ -34,10 +34,12 @@
     Apellidos: "",
     Telefono: "",
     Correo: "",
+    Sexo: '',
     Direccion: "",
     tandaID: params.tandaID,
     hora: ""
   };
+  let sexos = ['M', 'F'];
   let tandas = [];
   let horas = [];
   let pacientes = [];
@@ -58,7 +60,8 @@
       });
   }
   function cargarPacientes() {
-    axios.get($host + "/Pacientes/Query?keyword=" + busquedaPacientes, {
+    let qs = busquedaPacientes != "" ? "?keyword=" + busquedaPacientes : "";
+    axios.get($host + "/Pacientes/Query" + qs, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
@@ -83,8 +86,8 @@
   function cargarHoras() {
     let params = "";
 
-    console.log($dataCita.fechaCita);
-    if ($dataCita.fechaCita == undefined || $dataCita.fechaCita == "") {
+    if ($dataCita.fechaCita == undefined || $dataCita.fechaCita == "" ||
+        $dataCita.tandaID == undefined || $dataCita.tandaID == "") {
       params = "?tandiID=" + obj.tandaID;
     } else {
       params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
@@ -245,6 +248,14 @@
                       bind:value={obj.Apellidos} />
                   </div>
                   <div class="form-group">
+                    <label for="inpCorreo">Correo electronico</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="inpCorreo"
+                      bind:value={obj.Correo} />
+                  </div>
+                  <div class="form-group">
                     <label for="inpTelefono">Telefono / Celular</label>
                     <input
                       type="tel"
@@ -253,13 +264,23 @@
                       bind:value={obj.Telefono} />
                   </div>
                   <div class="form-group">
-                    <label for="inpCorreo">Correo electronico</label>
-                    <input
-                      type="email"
-                      class="form-control"
-                      id="inpCorreo"
-                      bind:value={obj.Correo} />
+                    <label for="">Sexo</label>
+                      <div class="m-b-10">
+                        <label class="cstm-switch ">
+                          <input type="radio" name="radioSexo" class="cstm-switch-input" 
+                            value={'M'} bind:group={obj.Sexo} required>
+                            <span class="cstm-switch-indicator"></span>
+                            <span class="cstm-switch-description">Masculino</span>
+                        </label>
+                        <label class="cstm-switch m-l-10 ">
+                            <input type="radio" name="radioSexo" class="cstm-switch-input"
+                            value={'F'} bind:group={obj.Sexo} required>
+                            <span class="cstm-switch-indicator"></span>
+                            <span class="cstm-switch-description">Femenino</span>
+                        </label>
+                      </div>
                   </div>
+
                   <div class="form-group ">
                     <label class="font-secondary">Direccion</label>
                     <textarea

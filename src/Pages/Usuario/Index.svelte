@@ -74,6 +74,7 @@
         }
       }).then(res => {
         if (res.data.success) {
+          jQuery('#modalUsuario').modal('hide');
           cargar();
         }
       }).catch(err => {
@@ -86,6 +87,7 @@
         }
       }).then(res => {
         if (res.data.success) {
+          jQuery('#modalUsuario').modal('hide');
           cargar();
         }
       }).catch(err => {
@@ -253,7 +255,7 @@
               <select
                 class="form-control"
                 name="prefijo"
-                bind:value={obj.prefix}>
+                bind:value={obj.prefix} required>
                 <option value="">- Seleccionar -</option>
                 {#each prefijos as item}
                   <option value={item.value}>{item.name}</option>
@@ -345,7 +347,7 @@
                 <select
                   class="form-control"
                   name="perfil"
-                  bind:value={obj.perfilID}>
+                  bind:value={obj.perfilID} required>
                   <option value={0}>- Seleccionar -</option>
                   {#each perfiles as item}
                     <option value={item.id}>{item.nombre}</option>

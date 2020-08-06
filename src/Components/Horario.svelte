@@ -1,6 +1,7 @@
 <script>
   import { host } from "../store";
   import axios from "axios";
+  import moment from 'moment';
 
   export let horario = {};
   $: invisible = horario.inactivo;
@@ -16,12 +17,19 @@
     };
 
     if (!isNaN(horario.intervalo)) {
+      let hora = moment(obj.HoraInicio, 'HH:mm');
+      hora.add(obj.Intervalo, 'minutes');
+
+      if (hora.format('HH:mm') > obj.HoraFin) {
+        console.log('hora inicio mayor que hora fin')
+      }
+      
       axios.put($host + "/Horarios", obj, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token")
           }
         }).then(res => {
-          console.log(res.data);
+          
         }).catch(err => {
           console.error(err);
         });

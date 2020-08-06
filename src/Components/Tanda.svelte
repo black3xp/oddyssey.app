@@ -18,13 +18,13 @@
       MedicoID: medicoID,
       Dia: dia ,
       TandaID: i.id,
-      HoraInicio: "00:00",
-      HoraFin: "00:30",
+      HoraInicio: "01:00",
+      HoraFin: "01:30",
       Intervalo: 30
     }
 
-    if (e.target.checked) {
-      if (horarios.some(x => x.dia == dia && x.tandaID == i.id)) {
+    if (e.target.checked) { // Si la tanda esta marcada
+      if (horarios.some(x => x.dia == dia && x.tandaID == i.id)) { // 
         let data = horarios.find(x => x.dia && x.tandaID == i.id);
         hr = {
           MedicoID: medicoID,
@@ -56,7 +56,7 @@
           console.error(err);
         });
       }
-    } else {
+    } else { // Si la tanda se desmarca
       let data = horarios.find(x => x.dia && x.tandaID == i.id);
       hr = {
         MedicoID: medicoID,

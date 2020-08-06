@@ -21,8 +21,6 @@
   let tandas = [];
 
   onMount(() => {
-    filter.FechaCita = moment().format('YYYY-MM-DD');
-
     if ($dataCita.fechaCita != undefined) {
       filter.FechaCita = $dataCita.fechaCita;
       filter.TandaID = $dataCita.tandaID

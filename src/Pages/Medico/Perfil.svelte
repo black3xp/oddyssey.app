@@ -43,6 +43,7 @@
 
   onMount(() => {
     let d = new Date();
+    btnCita = 's';
 
     if ($dataCita.fechaCita == undefined || $dataCita.fechaCita == "") {
       fecha = d.toISOString().split('T')[0];
@@ -130,7 +131,7 @@
           }
         })
         citas = citasDB;
-        buscarCitas('h');
+        buscarCitas('s');
       }).catch(err => {
         console.error(err);
       });
@@ -272,13 +273,6 @@
                   <a href="#/">
                     <h3 class="mdi mdi-account-edit"> </h3>
                     <div class="text-overline">Editar Perfil</div>
-                  </a>
-
-                </div>
-                <div class="col">
-                  <a href="#/Cita/Crear">
-                    <h3 class="mdi mdi-calendar-plus"> </h3>
-                    <div class="text-overline">Cita Nueva</div>
                   </a>
 
                 </div>
