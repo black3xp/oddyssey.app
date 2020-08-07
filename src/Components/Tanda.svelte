@@ -18,24 +18,23 @@
       MedicoID: medicoID,
       Dia: dia ,
       TandaID: i.id,
-      HoraInicio: "01:00",
-      HoraFin: "01:30",
+      HoraInicio: i.id == 1 ? '08:00' : '12:00',
+      HoraFin: i.id == 1 ? '08:30' : '12:30',
       Intervalo: 30
     }
 
     if (e.target.checked) { // Si la tanda esta marcada
-      if (horarios.some(x => x.dia == dia && x.tandaID == i.id)) { // 
-        let data = horarios.find(x => x.dia && x.tandaID == i.id);
-        hr = {
-          MedicoID: medicoID,
-          Dia: dia ,
-          TandaID: i.id,
-          HoraInicio: data.horaInicio,
-          HoraFin: data.horaFin,
-          Intervalo: data.intervalo,
-          Inactivo: false
-        }
+      hr = {
+        MedicoID: medicoID,
+        Dia: dia ,
+        TandaID: i.id,
+        HoraInicio: i.id == 1 ? '08:00' : '12:00',
+        HoraFin: i.id == 1 ? '08:30' : '12:30',
+        Intervalo: 30,
+        Inactivo: false
+      }
 
+      if (horarios.some(x => x.dia == dia && x.tandaID == i.id)) { // Si existe horario en ese dia y tanda
         axios.put($host + "/Horarios", hr, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token")
@@ -45,7 +44,7 @@
         }).catch(err => {
           console.error(err);
         });
-      } else {
+      } else { // Si no existe horario en ese dia y tanda
         axios.post($host + "/Horarios", hr, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token")
@@ -57,18 +56,13 @@
         });
       }
     } else { // Si la tanda se desmarca
-      let data = horarios.find(x => x.dia && x.tandaID == i.id);
       hr = {
         MedicoID: medicoID,
         Dia: dia ,
         TandaID: i.id,
-        HoraInicio: data.horaInicio,
-        HoraFin: data.horaFin,
-        Intervalo: data.intervalo,
         Inactivo: true
       }
 
-      console.log(hr);
       axios.put($host + "/Horarios", hr, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token")

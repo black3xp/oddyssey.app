@@ -5,13 +5,12 @@ import CitaCrear from './Pages/Cita/Crear.svelte'
 import Gestion from './Pages/Cita/Gestion.svelte'
 import UsuarioIndex from './Pages/Usuario/Index.svelte'
 import MedicoPerfil from './Pages/Medico/Perfil.svelte'
-import MedicoWorkspace from "./Pages/Medico/Workspace.svelte"
+import MedicoEspacioTrabajo from "./Pages/Medico/EspacioTrabajo.svelte"
 
 //Error Page
 import Error404 from './Pages/Home/Error404.svelte'
 
 //External import
-
 //Method
 
 const routes = {
@@ -22,7 +21,7 @@ const routes = {
     "/Cita/Gestionar": Gestion,
     "/Cita/Crear": CitaCrear,
     "/Medico/Perfil/:id": MedicoPerfil,
-    "/Medico/EspacioTrabajo": MedicoWorkspace,
+    "/Medico/EspacioTrabajo": MedicoEspacioTrabajo,
     "*": Error404
 }
 
