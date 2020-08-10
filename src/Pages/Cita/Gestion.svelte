@@ -91,6 +91,7 @@
   }
   
   function filtrar() {
+    console.log('cambio')
     if (filter.FechaCita == "" || filter.FechaCita == undefined) {
       let tiempos = Array.from(document.getElementsByName('tiempo'));
       tiempos.forEach(x => {

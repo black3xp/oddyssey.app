@@ -4,13 +4,23 @@
   import axios from "axios";
   import { activePage, host } from "../../store";
   import { onMount } from "svelte";
+  import moment from 'moment';
 
   $activePage = "asistente.index";
 
   let busqueda = "";
   let medicos = [];
+  let citas = [];
+  let idMedico = '';
 
   onMount(() => {
+    jQuery("#sltMedicos").select2();
+    jQuery("#sltMedicos").on("select2:select", e => {
+      let data = e.params.data;
+      idMedico = data.id;
+      cargarCitas();
+    });
+
     cargarMedicos();
   });
 
@@ -24,6 +34,25 @@
     }).catch(err => {
       console.error(err); 
     })
+  }
+  function cargarCitas() {
+    axios.get($host + "/Medicos/Citas/" + idMedico, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      console.log(res.data)
+      citas = res.data.map(e => {
+        return {
+          nombrePaciente: e.nombrePaciente,
+          observaciones: e.observaciones,
+          fecha: moment(e.fecha).format('LL'),
+          hora: moment(e.fecha).format('LT')
+        }
+      });
+    }).catch(err => {
+      console.error(err);
+    });
   }
 </script>
 
@@ -94,6 +123,15 @@
               </div>
             </div>
           </div>
+          <div class="col-lg-4">
+            <select class="form-control" id="sltMedicos">
+              <option value={0} disabled selected>- Seleccionar -</option>
+              {#each medicos as item}
+              <option value={item.id}>{item.name}</option>
+              {/each}
+            </select>
+          </div>
+
           <a href="#/Cita/Crear" class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary">
             <i class="mdi mdi-plus" />
             Nueva cita
@@ -113,12 +151,12 @@
               </tr>
             </thead>
             <tbody>
-            {#each medicos as item}
+              {#each citas as i}
               <tr class="cursor-table">
-                <td>Nombre completo</td>
-                <td>Observaciones</td>
-                <td>40222355854</td>
-                <td>8095881717</td>
+                <td>{i.nombrePaciente}</td>
+                <td>{i.observaciones}</td>
+                <td></td>
+                <td></td>
                 <td style="text-align: right;">
                   <button
                     class="btn btn-success btn-sm mb-1"
@@ -136,7 +174,7 @@
                   </button>
                 </td>
               </tr>
-            {/each}
+              {/each}
             </tbody>
           </table>
 

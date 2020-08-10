@@ -100,7 +100,7 @@
           <a class="dropdown-item" href="#!">Reset Password</a>
           <a class="dropdown-item" href="#!">Help</a>
           <div class="dropdown-divider" />
-          <a class="dropdown-item" href="#!">Logout</a>
+          <a class="dropdown-item" href="#/Home/Login">Logout</a>
         </div>
       </li>
 

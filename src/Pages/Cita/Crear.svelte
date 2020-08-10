@@ -248,14 +248,6 @@
                       bind:value={obj.Apellidos} />
                   </div>
                   <div class="form-group">
-                    <label for="inpCorreo">Correo electronico</label>
-                    <input
-                      type="email"
-                      class="form-control"
-                      id="inpCorreo"
-                      bind:value={obj.Correo} />
-                  </div>
-                  <div class="form-group">
                     <label for="inpTelefono">Telefono / Celular</label>
                     <input
                       type="tel"
@@ -264,6 +256,14 @@
                       bind:value={obj.Telefono} />
                   </div>
                   <div class="form-group">
+                    <label for="inpCorreo">Correo electronico</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      id="inpCorreo"
+                      bind:value={obj.Correo} />
+                  </div>
+                  <!-- <div class="form-group">
                     <label for="">Sexo</label>
                       <div class="m-b-10">
                         <label class="cstm-switch ">
@@ -279,7 +279,7 @@
                             <span class="cstm-switch-description">Femenino</span>
                         </label>
                       </div>
-                  </div>
+                  </div> -->
 
                   <div class="form-group ">
                     <label class="font-secondary">Direccion</label>
@@ -414,7 +414,7 @@
                   »
                   <span>Tel.: {i.telefono}</span>
                   »
-                  <span>ID: {i.cedula}</span>
+                  <span>ID: {i.cedula || '\"Ningulo\"'}</span>
                 </div>
                 <div class="text-muted">
                   {i.direccion}
