@@ -12,6 +12,22 @@
   let medicos = [];
   let citas = [];
   let idMedico = '';
+  let horasDisponibles = [];
+  let fecha = '';
+  let tandaID = '';
+
+  let paciente = {
+    id: "",
+    nombre: "",
+    apellido: "",
+    cedula: "",
+    telefono: "",
+    aseguradoraID: 0,
+    provinciaID: 0,
+    sexo: "",
+    direccion: "",
+    observacion: "",
+  }
 
   onMount(() => {
     jQuery("#sltMedicos").select2();
@@ -41,15 +57,44 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      console.log(res.data)
       citas = res.data.map(e => {
         return {
+          pacienteID: e.pacienteID,
           nombrePaciente: e.nombrePaciente,
           observaciones: e.observaciones,
           fecha: moment(e.fecha).format('LL'),
           hora: moment(e.fecha).format('LT')
         }
       });
+    }).catch(err => {
+      console.error(err);
+    });
+  }
+  function buscarDisponibilidadHorario() {
+    if (fecha == "" || tandaID <= 0) {
+      horasDisponibles = [];
+      return;
+    }
+
+    let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
+    axios.get($host + "/Medicos/HorasDisponibles/" + idMedico + "?" + params, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      horasDisponibles = res.data;
+    }).catch(err => {
+      horasDisponibles = [];
+      console.error(err); 
+    })
+  }
+  function cargarDatosPaciente(id) {
+    axios.get($host + "/Pacientes?id=" + id, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      paciente = res.data;
     }).catch(err => {
       console.error(err);
     });
@@ -124,7 +169,7 @@
             </div>
           </div>
           <div class="col-lg-4">
-            <select class="form-control" id="sltMedicos">
+            <select class="form-control" id="sltMedicos" style="width: 100%">
               <option value={0} disabled selected>- Seleccionar -</option>
               {#each medicos as item}
               <option value={item.id}>{item.name}</option>
@@ -192,13 +237,15 @@
                   <button
                     class="btn btn-success btn-sm mb-1"
                     data-toggle="modal"
-                    data-target="#modalPaciente">
+                    data-target="#modalPaciente"
+                    on:click={cargarDatosPaciente(i.pacienteID)} >
                     <i class="mdi mdi-account-search-outline" />
                     Ver paciente
                   </button>
                   <button
                     class="btn btn-success btn-sm mb-1"
-                    data-toggle="modal" data-target="#modalCrearCita">
+                    data-toggle="modal" data-target="#modalCrearCita"
+                    on:click={buscarDisponibilidadHorario} >
                     <i class="mdi mdi-calendar-remove"></i>
                     Reprogramar
                   </button>
@@ -290,7 +337,7 @@
                 class="form-control"
                 name="Name"
                 maxlength="200"
-                required="" />
+                required bind:value={paciente.nombre}/>
             </div>
           </div>
           <div class="form-row">
@@ -301,7 +348,7 @@
                 class="form-control"
                 name="Name"
                 maxlength="200"
-                required="" />
+                required bind:value={paciente.apellidos} />
             </div>
           </div>
           <div class="form-row">
@@ -312,7 +359,7 @@
                 class="form-control"
                 name="Name"
                 maxlength="200"
-                required="" />
+                required bind:value={paciente.cedula} />
             </div>
           </div>
           <div class="form-row">
@@ -323,7 +370,7 @@
                 class="form-control"
                 name="Name"
                 maxlength="200"
-                required="" />
+                required bind:value={paciente.telefono} />
             </div>
           </div>
           <div class="form-row">
@@ -383,13 +430,13 @@
           <div class="form-row">
             <div class="form-group col-md-12">
               <label for="">Direccion</label>
-              <textarea class="form-control" rows="2" name="Observaciones" />
+              <textarea class="form-control" rows="2" bind:value={paciente.direccion}/>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group col-md-12">
               <label for="">Observaciones</label>
-              <textarea class="form-control" rows="3" name="Observaciones" />
+              <textarea class="form-control" rows="3" bind:value={paciente.observaciones}/>
             </div>
           </div>
 
@@ -446,13 +493,15 @@
           <div class="col-lg-6">
             <div class="form-group">
               <label for="inputAddress">Fecha</label> 
-              <input type="date" class="form-control form-control-sm">
+              <input type="date" class="form-control form-control-sm"
+                bind:value={fecha} on:input={buscarDisponibilidadHorario}>
             </div>
           </div> 
           <div class="col-lg-6">
             <div class="form-group ">
               <label class="font-secondary">Tanda</label> 
-              <select class="form-control form-control-sm js-select2">
+              <select class="form-control form-control-sm js-select2"
+                bind:value={tandaID} on:change={buscarDisponibilidadHorario}>
                 <option value="0" disabled="">- Seleccionar -</option>
                 <option value="1">Matutina</option>
                 <option value="2">Vespertina</option>
@@ -461,22 +510,16 @@
           </div>
         </div>  
         <div class="list-group list">
+          {#each horasDisponibles as i}
           <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
             <div class="">
-              <div class="name">09:00:00</div>
+              <div class="name">{i}</div>
             </div>
             <div class="ml-auto">
               <button class="btn btn-outline-success btn-sm">Seleccionar</button>
             </div>
           </div>
-          <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
-            <div class="">
-              <div class="name">09:30:00</div>
-            </div>
-            <div class="ml-auto">
-              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
-            </div>
-          </div>
+          {/each}
         </div>
 
       </div>
