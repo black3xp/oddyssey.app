@@ -211,7 +211,7 @@
                     Crear cita
                   </button>
                   <button class="btn btn-primary btn-sm mb-1" title="Poner en cola">
-                    <i class="mdi mdi-ticket-outline"></i>
+                    <i class="mdi mdi-ticket-confirmation"></i>
                   </button>
                 </td>
               </tr>
