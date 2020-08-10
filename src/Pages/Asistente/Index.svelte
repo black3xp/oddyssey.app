@@ -139,6 +139,44 @@
         </div>
       </div>
       <div class="col-md-12 m-b-30">
+
+        <div class="alert alert-success" role="alert">
+          <h4 class="alert-heading">Consultas en turno</h4>
+          <div class="table-responsive">
+            <table class="table align-td-middle table-card">
+              <tbody>
+  
+                <tr class="cursor-table">
+                  <td>Paciente</td>
+                  <td>Observaciones</td>
+                  <td>40222355854</td>
+                  <td>8095881717</td>
+                  <td style="text-align: right;">
+                    <button
+                      class="btn btn-success btn-sm mb-1"
+                      data-toggle="modal"
+                      data-target="#modalPaciente">
+                      <i class="mdi mdi-account-search-outline" />
+                      Ver paciente
+                    </button>
+                    <button
+                      class="btn btn-success btn-sm mb-1"
+                      data-toggle="modal"
+                      data-target="#modalPaciente">
+                      <i class="mdi mdi-calendar-plus" />
+                      Crear cita
+                    </button>
+                  </td>
+                </tr>
+  
+              </tbody>
+            </table>
+  
+          </div>
+      </div>
+
+      <div class="alert alert-primary" role="alert">
+        <h4 class="alert-heading">Consultas pendientes</h4>
         <div class="table-responsive">
           <table class="table align-td-middle table-card">
             <thead>
@@ -172,6 +210,11 @@
                     <i class="mdi mdi-calendar-plus" />
                     Crear cita
                   </button>
+                  <button
+                    class="btn btn-primary btn-sm mb-1"
+                    >
+                    <i class="fas fa-ticket-alt"></i>
+                  </button>
                 </td>
               </tr>
               {/each}
@@ -179,39 +222,45 @@
           </table>
 
         </div>
+    </div>
 
-        <h5 class="mt-3">Consultas realizadas</h5>
-        <div class="table-responsive">
-          <table class="table align-td-middle table-card">
-            <tbody>
 
-              <tr class="cursor-table">
-                <td>Paciente</td>
-                <td>Observaciones</td>
-                <td>40222355854</td>
-                <td>8095881717</td>
-                <td style="text-align: right;">
-                  <button
-                    class="btn btn-success btn-sm mb-1"
-                    data-toggle="modal"
-                    data-target="#modalPaciente">
-                    <i class="mdi mdi-account-search-outline" />
-                    Ver paciente
-                  </button>
-                  <button
-                    class="btn btn-success btn-sm mb-1"
-                    data-toggle="modal"
-                    data-target="#modalPaciente">
-                    <i class="mdi mdi-calendar-plus" />
-                    Crear cita
-                  </button>
-                </td>
-              </tr>
+        <div class="alert alert-secondary" role="alert">
+          <h4 class="alert-heading">Consultas realizadas</h4>
+          <div class="table-responsive">
+            <table class="table align-td-middle table-card">
+              <tbody>
+  
+                <tr class="cursor-table">
+                  <td>Paciente</td>
+                  <td>Observaciones</td>
+                  <td>40222355854</td>
+                  <td>8095881717</td>
+                  <td style="text-align: right;">
+                    <button
+                      class="btn btn-success btn-sm mb-1"
+                      data-toggle="modal"
+                      data-target="#modalPaciente">
+                      <i class="mdi mdi-account-search-outline" />
+                      Ver paciente
+                    </button>
+                    <button
+                      class="btn btn-success btn-sm mb-1"
+                      data-toggle="modal"
+                      data-target="#modalPaciente">
+                      <i class="mdi mdi-calendar-plus" />
+                      Crear cita
+                    </button>
+                  </td>
+                </tr>
+  
+              </tbody>
+            </table>
+  
+          </div>
+      </div>
 
-            </tbody>
-          </table>
 
-        </div>
       </div>
     </div>
   </section>
@@ -367,7 +416,7 @@
               Guardar
               <i class="mdi mdi-content-save-outline" />
             </button>
-            <button type="submit" class="btn btn-success">
+            <button type="submit" class="btn btn-success" title="Guardar y enviar">
               Enviar paciente
               <i class="mdi mdi-send" />
             </button>

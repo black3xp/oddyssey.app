@@ -217,43 +217,43 @@
               </h5>
               <div class="card-controls">
 
-                <button
-                  class="btn btn-outline-primary btn-sm"
-                  data-toggle="modal"
-                  data-target="#modalPacientes"
-                  type="button">
-                  <i class="mdi mdi-search-web" />
-                  Explorar paciente
-                </button>
+                
 
               </div>
             </div>
             <div class="card-body">
               <form class="row" on:submit|preventDefault={guardarPaciente}>
                 <div class="col-lg-5 borde-derecho">
+                  <div class="col-lg-12 mt-2" style="padding: 0; margin: 0;">
+                      <button class="btn btn-primary btn-sm" data-toggle="modal" style="position: absolute; top: -30px; right: 0;" data-target="#modalPacientes" type="button">
+                    <i class="mdi mdi-search-web" />
+                    Buscar paciente
+                  </button>
+                  </div>
+
                   <div class="form-group">
-                    <label for="inpNombre">Nombre paciente</label>
+                    <label for="inpNombre">Nombre paciente <span class="text-danger">*</span> </label>
                     <input
                       type="text"
                       class="form-control"
                       id="inpNombre"
-                      bind:value={obj.Nombre} />
+                      bind:value={obj.Nombre} required />
                   </div>
                   <div class="form-group">
-                    <label for="inpApellido">Apellidos paciente</label>
+                    <label for="inpApellido">Apellidos paciente <span class="text-danger">*</span></label>
                     <input
                       type="text"
                       class="form-control"
                       id="inpApellido"
-                      bind:value={obj.Apellidos} />
+                      bind:value={obj.Apellidos} required />
                   </div>
                   <div class="form-group">
-                    <label for="inpTelefono">Telefono / Celular</label>
+                    <label for="inpTelefono">Telefono / Celular <span class="text-danger">*</span></label>
                     <input
                       type="tel"
                       class="form-control"
                       id="inpTelefono"
-                      bind:value={obj.Telefono} />
+                      bind:value={obj.Telefono} required />
                   </div>
                   <div class="form-group">
                     <label for="inpCorreo">Correo electronico</label>
@@ -288,6 +288,7 @@
                       rows="3"
                       bind:value={obj.Direccion} />
                   </div>
+                  <p>Los campos con un ( <span class="text-danger">*</span> ) son obligatorios</p>
 
                 </div>
                 <div class="col-lg-7">
@@ -341,7 +342,12 @@
                         </select>
                       </div>
                     </div>
-
+                    <div class="col-lg-12">
+                      <div class="form-group ">
+                        <label class="font-secondary">Ubicaci&oacute;n del M&eacute;dico en el centro</label>
+                        <input type="text" class="form-control" readonly>
+                      </div>
+                    </div>
                     <div class="col-lg-12">
                       <div class="form-group ">
                         <label class="font-secondary">Observaciones</label>
@@ -349,9 +355,8 @@
                       </div>
                     </div>
                     <div class="col-lg-12 p-t-80" style="text-align: right;">
-                      <button type="submit" class="btn btn-success">
-                        <i class="mdi mdi-content-save-outline" />
-                        Crear cita
+                      <button type="submit" class="btn btn-success" style="position: fixed; height: 50px; width: 50px; border-radius: 50%; right: 40px; bottom: 40px;" title="Guardar">
+                        <i class="mdi mdi-content-save-outline" style="font-size: 23px;"/>
                       </button>
                     </div>
                   </div>

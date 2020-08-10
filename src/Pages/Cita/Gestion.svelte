@@ -40,15 +40,15 @@
 
   function cargarMedicos() {
     var qs = Object.keys(filter).map(i => i + '=' + filter[i]).join('&');
-    axios.get($host + "/Medicos/Query?" + qs , {
+    axios.get($host + "/Medicos/Query?" + qs, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-        listado = res.data;
-      }).catch(err => {
-        console.error(err);
-      });
+      listado = res.data;
+    }).catch(err => {
+      console.error(err);
+    });
   }
   function cargarEspecialidades() {
     axios.get($host + "/Perfiles/GetAll", {
@@ -56,10 +56,10 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-        especialidades = res.data;
-      }).catch(err => {
-        console.error(err);
-      });
+      especialidades = res.data;
+    }).catch(err => {
+      console.error(err);
+    });
   }
   function cargarTandas() {
     axios.get($host + "/Tandas/GetAll", {
@@ -67,16 +67,16 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-        tandas = res.data;
-      }).catch(err => {
-        console.error(err);
-      });
+      tandas = res.data;
+    }).catch(err => {
+      console.error(err);
+    });
   }
   function elegirTiempo(e) {
     let dia = parseInt(e.target.value);
     let hoy = moment();
     hoy.add(moment.duration(dia, 'd'));
-    
+
     filter.FechaCita = hoy.format('YYYY-MM-DD');
     cargarMedicos();
   }
@@ -89,7 +89,7 @@
     };
     push('/Cita/Crear');
   }
-  
+
   function filtrar() {
     console.log('cambio')
     if (filter.FechaCita == "" || filter.FechaCita == undefined) {
@@ -125,8 +125,7 @@
             <div class="card-body">
               <div class="form-group ">
                 <label class="font-secondary">Médico</label>
-                <input type="text" class="form-control" bind:value={filter.Nombre} 
-                  on:input={filtrar}/>
+                <input type="text" class="form-control" bind:value={filter.Nombre} on:input={filtrar} />
               </div>
               <div class="form-group ">
                 <label class="font-secondary">Especialidad</label>
@@ -224,13 +223,13 @@
                     <td>{item.name}</td>
                     <td>{item.perfil}</td>
                     <td>{item.phoneNumber}</td>
-                    <td>
+                    <td style="text-align: right;">
                       <a href="#/Medico/Perfil/{item.id}"
                         class="btn btn-outline-primary btn-sm">
                         <i class="mdi mdi-contacts" />
                         Perfil
                       </a>
-                      <button on:click={crearCita(item.id)} class="btn btn-outline-success btn-sm">
+                      <button class="btn btn-outline-success btn-sm" data-toggle="modal" data-target="#modalCrearCita">
                         <i class="mdi mdi-calendar-plus" />
                         Crear cita
                       </button>
@@ -246,3 +245,73 @@
     </div>
   </section>
 </main>
+
+
+
+
+<div
+  class="modal fade modal-slide-right"
+  id="modalCrearCita"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalCrearCitaLabel"
+  style="display: none; padding-right: 16px;"
+  aria-modal="true">
+  <div class="modal-dialog" role="document" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCrearCitaLabel">
+          <i class="mdi mdi-calendar-plus"></i>
+          Crear cita
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body" style="height: 100%; top: 0; overflow: auto;">
+
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label for="inputAddress">Fecha</label> 
+              <input type="date" class="form-control form-control-sm">
+            </div>
+          </div> 
+          <div class="col-lg-6">
+            <div class="form-group ">
+              <label class="font-secondary">Tanda</label> 
+              <select class="form-control form-control-sm js-select2">
+                <option value="0" disabled="">- Seleccionar -</option>
+                <option value="1">Matutina</option>
+                <option value="2">Vespertina</option>
+              </select>
+            </div>
+          </div>
+        </div>  
+        <div class="list-group list">
+          <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
+            <div class="">
+              <div class="name">09:00:00</div>
+            </div>
+            <div class="ml-auto">
+              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
+            </div>
+          </div>
+          <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
+            <div class="">
+              <div class="name">09:30:00</div>
+            </div>
+            <div class="ml-auto">
+              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
