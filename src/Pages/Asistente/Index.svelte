@@ -159,13 +159,6 @@
                       <i class="mdi mdi-account-search-outline" />
                       Ver paciente
                     </button>
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
-                      <i class="mdi mdi-calendar-plus" />
-                      Crear cita
-                    </button>
                   </td>
                 </tr>
   
@@ -205,10 +198,9 @@
                   </button>
                   <button
                     class="btn btn-success btn-sm mb-1"
-                    data-toggle="modal"
-                    data-target="#modalPaciente">
-                    <i class="mdi mdi-calendar-plus" />
-                    Crear cita
+                    data-toggle="modal" data-target="#modalCrearCita">
+                    <i class="mdi mdi-calendar-remove"></i>
+                    Reprogramar
                   </button>
                   <button class="btn btn-primary btn-sm mb-1" title="Poner en cola">
                     <i class="mdi mdi-ticket-confirmation"></i>
@@ -244,8 +236,7 @@
                     </button>
                     <button
                       class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
+                      data-toggle="modal" data-target="#modalCrearCita">
                       <i class="mdi mdi-calendar-plus" />
                       Crear cita
                     </button>
@@ -420,6 +411,73 @@
             </button>
           </div>
         </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade modal-slide-right"
+  id="modalCrearCita"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalCrearCitaLabel"
+  style="display: none; padding-right: 16px;"
+  aria-modal="true">
+  <div class="modal-dialog" role="document" >
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCrearCitaLabel">
+          <i class="mdi mdi-calendar-plus"></i>
+          Crear cita
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body" style="height: 100%; top: 0; overflow: auto;">
+
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label for="inputAddress">Fecha</label> 
+              <input type="date" class="form-control form-control-sm">
+            </div>
+          </div> 
+          <div class="col-lg-6">
+            <div class="form-group ">
+              <label class="font-secondary">Tanda</label> 
+              <select class="form-control form-control-sm js-select2">
+                <option value="0" disabled="">- Seleccionar -</option>
+                <option value="1">Matutina</option>
+                <option value="2">Vespertina</option>
+              </select>
+            </div>
+          </div>
+        </div>  
+        <div class="list-group list">
+          <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
+            <div class="">
+              <div class="name">09:00:00</div>
+            </div>
+            <div class="ml-auto">
+              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
+            </div>
+          </div>
+          <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
+            <div class="">
+              <div class="name">09:30:00</div>
+            </div>
+            <div class="ml-auto">
+              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>
