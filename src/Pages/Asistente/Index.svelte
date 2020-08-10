@@ -210,10 +210,8 @@
                     <i class="mdi mdi-calendar-plus" />
                     Crear cita
                   </button>
-                  <button
-                    class="btn btn-primary btn-sm mb-1"
-                    >
-                    <i class="fas fa-ticket-alt"></i>
+                  <button class="btn btn-primary btn-sm mb-1" title="Poner en cola">
+                    <i class="mdi mdi-ticket-outline"></i>
                   </button>
                 </td>
               </tr>
