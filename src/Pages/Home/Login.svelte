@@ -16,7 +16,7 @@
       .then(x => {
         if (x.status >= 200 && x.status < 300) {
             localStorage.setItem('token', x.data.data);
-            push('/');
+            push('/Home/Index');
         }
       }).catch(e => {
         console.log(e);

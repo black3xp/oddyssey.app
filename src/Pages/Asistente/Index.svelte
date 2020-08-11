@@ -11,8 +11,20 @@
   let busqueda = "";
   let medicos = [];
   let citas = [];
-  let idMedico = '';
   let horasDisponibles = [];
+  let provincias = [
+    {id: 1, nombre: 'Duarte'},
+    {id: 2, nombre: 'Santiago'},
+    {id: 3, nombre: 'Distrito Nacional'}
+  ];
+  let aseguradoras = [
+    {id: 1, nombre: 'SENASA'},
+    {id: 2, nombre: 'HUMANO SEGURO'},
+    {id: 3, nombre: 'RENACER'},
+    {id: 4, nombre: 'PALIC'},
+    {id: 5, nombre: 'FUTURO'}
+  ];
+  let idMedico = '';
   let fecha = '';
   let tandaID = '';
 
@@ -23,10 +35,20 @@
     cedula: "",
     telefono: "",
     aseguradoraID: 0,
+    nombreAseguradora: "",
     provinciaID: 0,
+    noAfiliado: "",
     sexo: "",
     direccion: "",
-    observacion: "",
+    observaciones: "",
+  }
+  let cita = {
+    medicoID: "",
+    pacienteID: "",
+    aseguradoraID: 0,
+    estadoID: 1,
+    fecha: "",
+    observaciones: ""
   }
 
   onMount(() => {
@@ -40,6 +62,17 @@
     cargarMedicos();
   });
 
+  function cargarProvincias() {
+    axios.get($host + "/User/Query", {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      medicos = res.data.filter(x => x.isDoctor);
+    }).catch(err => {
+      console.error(err); 
+    })
+  }
   function cargarMedicos() {
     axios.get($host + "/User/Query", {
       headers: {
@@ -98,6 +131,42 @@
     }).catch(err => {
       console.error(err);
     });
+  }
+  function guardarPaciente() {
+    paciente.nombreAseguradora = aseguradoras.find(e => e.id == paciente.aseguradoraID).nombre;
+    
+    axios.put($host + "/Pacientes/" + paciente.id, paciente, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        if (res.data.success) {
+          jQuery('#modalPaciente').modal('hide');
+        } else {
+          console.log(res);
+        }
+      }).catch(err => {
+        console.error(err); 
+      })
+  }
+  function crearCita(hora) {
+    cita.medicoID = idMedico;
+    cita.pacienteID = paciente.id;
+    cita.aseguradoraID = paciente.aseguradoraID;
+    cita.fecha = fecha + "T" + hora;
+    cita.observaciones = paciente.observaciones;
+
+    axios.post($host + "/Citas", cita, {
+      headers: {Authorization: "Bearer " + localStorage.getItem("token")}
+    }).then(res => {
+      if (res.data.success) {
+        jQuery('#modalCrearCita').modal('hide');
+      } else {
+        console.log(res);
+      }
+    }).catch(err => {
+      console.error(err); 
+    })
   }
 </script>
 
@@ -189,13 +258,19 @@
           <h4 class="alert-heading">Consultas en turno</h4>
           <div class="table-responsive">
             <table class="table align-td-middle table-card">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Celular</th>
+                  <th>Observacion</th>
+                  <th />
+                </tr>
+              </thead>
               <tbody>
-  
                 <tr class="cursor-table">
                   <td>Paciente</td>
-                  <td>Observaciones</td>
-                  <td>40222355854</td>
                   <td>8095881717</td>
+                  <td>Observaciones</td>
                   <td style="text-align: right;">
                     <button
                       class="btn btn-success btn-sm mb-1"
@@ -220,9 +295,8 @@
             <thead>
               <tr>
                 <th>Nombre</th>
-                <th>Observacion</th>
-                <th>Cedula</th>
                 <th>Celular</th>
+                <th>Observacion</th>
                 <th />
               </tr>
             </thead>
@@ -230,8 +304,8 @@
               {#each citas as i}
               <tr class="cursor-table">
                 <td>{i.nombrePaciente}</td>
-                <td>{i.observaciones}</td>
                 <td></td>
+                <td>{i.observaciones}</td>
                 <td></td>
                 <td style="text-align: right;">
                   <button
@@ -245,7 +319,7 @@
                   <button
                     class="btn btn-success btn-sm mb-1"
                     data-toggle="modal" data-target="#modalCrearCita"
-                    on:click={buscarDisponibilidadHorario} >
+                    on:click={cargarDatosPaciente(i.pacienteID)} >
                     <i class="mdi mdi-calendar-remove"></i>
                     Reprogramar
                   </button>
@@ -266,13 +340,20 @@
           <h4 class="alert-heading">Consultas realizadas</h4>
           <div class="table-responsive">
             <table class="table align-td-middle table-card">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Celular</th>
+                  <th>Observacion</th>
+                  <th />
+                </tr>
+              </thead>
               <tbody>
   
                 <tr class="cursor-table">
                   <td>Paciente</td>
-                  <td>Observaciones</td>
-                  <td>40222355854</td>
                   <td>8095881717</td>
+                  <td>Observaciones</td>
                   <td style="text-align: right;">
                     <button
                       class="btn btn-success btn-sm mb-1"
@@ -327,7 +408,7 @@
       </div>
       <div class="modal-body">
 
-        <form id="frmPaciente">
+        <form id="frmPaciente" on:submit|preventDefault={guardarPaciente}>
           <input type="hidden" name="IdUser" value="0" />
           <div class="form-row">
             <div class="form-group col-md-12">
@@ -359,7 +440,7 @@
                 class="form-control"
                 name="Name"
                 maxlength="200"
-                required bind:value={paciente.cedula} />
+                bind:value={paciente.cedula} />
             </div>
           </div>
           <div class="form-row">
@@ -387,10 +468,11 @@
           <div class="form-row">
             <div class="form-group col-md-12">
               <label for="">Aseguradora</label>
-              <select class="form-control js-select2">
+              <select class="form-control js-select2" bind:value={paciente.aseguradoraID}>
                 <option value="0" disabled selected>- Seleccionar -</option>
-                <option>SENASA</option>
-                <option>Primera ARS Humano</option>
+                {#each aseguradoras as item}
+                <option value={item.id}>{item.nombre}</option>
+                {/each}
               </select>
             </div>
           </div>
@@ -402,7 +484,7 @@
                 class="form-control"
                 name="Name"
                 maxlength="200"
-                required="" />
+                bind:value={paciente.noAfiliado} />
             </div>
           </div>
           <div class="form-row">
@@ -419,11 +501,11 @@
           <div class="form-row">
             <div class="form-group col-md-12">
               <label for="">Provincia</label>
-              <select class="form-control js-select2">
+              <select class="form-control js-select2" bind:value={paciente.provinciaID}>
                 <option value="0" disabled selected>- Seleccionar -</option>
-                <option>Duarte</option>
-                <option>Santiago</option>
-                <option>Santo Domingo</option>
+                {#each provincias as item}
+                <option value={item.id}>{item.nombre}</option>
+                {/each}
               </select>
             </div>
           </div>
@@ -516,7 +598,8 @@
               <div class="name">{i}</div>
             </div>
             <div class="ml-auto">
-              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
+              <button on:click={crearCita(i)} class="btn btn-outline-success btn-sm">
+                Seleccionar</button>
             </div>
           </div>
           {/each}
