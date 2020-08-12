@@ -26,7 +26,7 @@
   ];
   let idMedico = '';
   let fecha = '';
-  let tandaID = '';
+  let tandaID = 0;
 
   let paciente = {
     id: "",
@@ -99,6 +99,8 @@
           hora: moment(e.fecha).format('LT')
         }
       });
+
+      console.log(moment().format('LL'));
     }).catch(err => {
       console.error(err);
     });
@@ -115,6 +117,7 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
+      console.log('Busqueda horario')
       horasDisponibles = res.data;
     }).catch(err => {
       horasDisponibles = [];
@@ -122,6 +125,13 @@
     })
   }
   function cargarDatosPaciente(id) {
+    if (fecha == '' || tandaID <= 0) {
+      fecha = moment().format('YYYY-MM-DD');
+      tandaID = 1;
+
+      buscarDisponibilidadHorario();
+    }
+
     axios.get($host + "/Pacientes?id=" + id, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
@@ -576,7 +586,7 @@
             <div class="form-group">
               <label for="inputAddress">Fecha</label> 
               <input type="date" class="form-control form-control-sm"
-                bind:value={fecha} on:input={buscarDisponibilidadHorario}>
+                bind:value={fecha} on:change={buscarDisponibilidadHorario}>
             </div>
           </div> 
           <div class="col-lg-6">
@@ -584,9 +594,9 @@
               <label class="font-secondary">Tanda</label> 
               <select class="form-control form-control-sm js-select2"
                 bind:value={tandaID} on:change={buscarDisponibilidadHorario}>
-                <option value="0" disabled="">- Seleccionar -</option>
-                <option value="1">Matutina</option>
-                <option value="2">Vespertina</option>
+                <option value={0} disabled="">- Seleccionar -</option>
+                <option value={1}>Matutina</option>
+                <option value={2}>Vespertina</option>
               </select>
             </div>
           </div>
