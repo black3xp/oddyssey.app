@@ -7,18 +7,23 @@
   import axios from "axios";
   import moment from 'moment';
 
-  $activePage = "gestor"
-
-  let busqueda = "";
   let filter = {
     Nombre: "",
     PerfilID: 0,
     FechaCita: "",
     TandaID: 0
   }
+  if ($activePage == 'citas.crear') {
+    limpiarFiltro();
+  }
+
+  $activePage = "gestor"
+
+  let busqueda = "";
   let especialidades = [];
   let listado = [];
   let tandas = [];
+  let horasDisponibles = [];
 
   onMount(() => {
     if ($dataCita.fechaCita != undefined) {
@@ -102,6 +107,43 @@
     }
 
     cargarMedicos();
+  }
+  function limpiarFiltro() {
+    filter = {
+      Nombre: "",
+      PerfilID: 0,
+      FechaCita: "",
+      TandaID: 0
+    }
+
+    let tiempos = Array.from(document.getElementsByName('tiempo'));
+    tiempos.forEach(x => {
+      if (x.checked) {
+        x.checked = false;
+      }
+    })
+
+    jQuery("#sltEspecialidad").val(0).trigger('change');
+    filtrar();
+  }
+  function buscarDisponibilidadHorario(idMedico) {
+    if (filter.FechaCita == "" || filter.TandaID <= 0) {
+      horasDisponibles = [];
+      return;
+    }
+
+    let params = "date=" + filter.FechaCita + "&" + "tandiId=" + filter.TandaID;
+    axios.get($host + "/Medicos/HorasDisponibles/" + idMedico + "?" + params, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      console.log('Busqueda horario')
+      horasDisponibles = res.data;
+    }).catch(err => {
+      horasDisponibles = [];
+      console.error(err); 
+    })
   }
 </script>
 
@@ -192,7 +234,7 @@
                   {/each}
                 </select>
               </div>
-              <button class="btn btn-secondary btn-block">Limpiar</button>
+              <button on:click={limpiarFiltro} class="btn btn-secondary btn-block">Limpiar</button>
             </div>
           </div>
         </div>

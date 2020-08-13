@@ -45,7 +45,7 @@
     let d = new Date();
     btnCita = 's';
 
-    if ($dataCita.fechaCita == undefined || $dataCita.fechaCita == "") {
+    if (Object.keys($dataCita).length <= 0) {
       fecha = d.toISOString().split('T')[0];
       tandaID = 1;
     } else {
@@ -67,7 +67,6 @@
       }
     }).then(res => {
         obj = res.data;
-        console.log(obj);
       }).catch(err => {
         console.error(err);
       });
@@ -172,12 +171,16 @@
     let newDate = new Date(sumaDia);
     fecha = newDate.toISOString().split('T')[0];
 
-    btnPrimary = true
+    btnPrimary = true;
+
+    buscarDisponibilidadHorario();
   }
   function diaDeHoy(params) {
     let d = new Date();
     fecha = d.toISOString().split('T')[0];
-    btnPrimary = false
+    btnPrimary = false;
+
+    buscarDisponibilidadHorario();
   }
   function buscarCitas(tipo) {
     let hoy = moment();

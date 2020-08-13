@@ -60,6 +60,9 @@
         MedicoID: medicoID,
         Dia: dia ,
         TandaID: i.id,
+        HoraInicio: i.id == 1 ? '08:00' : '12:00',
+        HoraFin: i.id == 1 ? '08:30' : '12:30',
+        Intervalo: 30,
         Inactivo: true
       }
 

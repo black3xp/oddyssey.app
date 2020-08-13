@@ -22,11 +22,11 @@
     cargarMedicos();
   });
 
-  let params = $dataCita;
+  let data = $dataCita;
   let obj = {
     Observaciones: "",
-    Fecha: params.fechaCita,
-    MedicoID: params.medicoId,
+    Fecha: data.fechaCita || "",
+    MedicoID: data.medicoId,
     PacienteID: "",
     AseguradoraID: 1,
     EstadoID: 1,
@@ -36,7 +36,7 @@
     Correo: "",
     Sexo: '',
     Direccion: "",
-    tandaID: params.tandaID,
+    tandaID: 0,
     hora: ""
   };
   let sexos = ['M', 'F'];
@@ -78,29 +78,29 @@
         }
       }).then(res => {
         tandas = res.data;
-        obj.tandaID = $dataCita.tandaID;
+        obj.tandaID = $dataCita.tandaID || 0;
       }).catch(err => {
         console.error(err);
       });
   }
   function cargarHoras() {
-    let params = "";
+    let params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
 
-    if ($dataCita.fechaCita == undefined || $dataCita.fechaCita == "" ||
-        $dataCita.tandaID == undefined || $dataCita.tandaID == "") {
-      params = "?tandiID=" + obj.tandaID;
-    } else {
-      params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
+    if (obj.Fecha == "" || obj.tandaID <= 0 || obj.MedicoID == "" || obj.MedicoID == 0) {
+      horas = [];
+      return;  
     }
+
     axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + params, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
       horas = res.data;
-      obj.hora = $dataCita.hora;
+      obj.hora = $dataCita.hora || "";
     }).catch(err => {
-      console.error(err); 
+      horas = [];
+      console.error(err);
     })
   }
 
@@ -213,6 +213,7 @@
             <div class="card-header">
               <h5>
                 <i class="mdi mdi-checkbox-intermediate" />
+                {obj.hora}
                 Creando cita
               </h5>
               <div class="card-controls">
@@ -302,14 +303,14 @@
                           id="Fecha"
                           bind:value={obj.Fecha} on:change={() => {
                             cargarHoras();
-                          }}/>
+                          }} required/>
                       </div>
                     </div>
                     <div class="col-lg-6">
                       <div class="form-group ">
                         <label class="font-secondary">Tanda</label>
                         <select class="form-control"
-                          bind:value={obj.tandaID} on:change={cargarHoras} >
+                          bind:value={obj.tandaID} on:change={cargarHoras} required>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each tandas as item}
                           <option value={item.id}>{item.nombre}</option>
@@ -322,7 +323,7 @@
                       <div class="form-group ">
                         <label class="font-secondary">Médico</label>
                         <select class="form-control js-select2" id="sltMedicos" 
-                            disabled={faltaLaTanda} bind:value={obj.MedicoID}>
+                            disabled={faltaLaTanda} bind:value={obj.MedicoID} required>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each medicos as item}
                           <option value={item.id}>{item.name}</option>
@@ -334,8 +335,8 @@
                       <div class="form-group">
                         <label class="font-secondary">Hora</label>
                         <select class="form-control" bind:value={obj.hora}
-                          disabled={faltaLaTanda}>
-                          <option value={0} disabled selected>- Seleccionar -</option>
+                          disabled={faltaLaTanda} required>
+                          <option value={""} disabled selected>- Seleccionar -</option>
                           {#each horas as item}
                           <option value={item}>{item}</option>
                           {/each}
