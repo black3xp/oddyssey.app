@@ -108,6 +108,7 @@
       perfilID: 0
     }
   }
+
 </script>
 
 <style>
@@ -226,6 +227,7 @@
   </section>
 </main>
 
+<form id="frmUsuario" on:submit|preventDefault={guardar}>
 <div class="modal fade modal-slide-right"
   id="modalUsuario"
   tabindex="-1"
@@ -245,9 +247,8 @@
           <span aria-hidden="true">×</span>
         </button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="height: 100% !important; top: 0; overflow: auto;">
 
-        <form id="frmUsuario" on:submit|preventDefault={guardar}>
           <input type="hidden" name="IdUser" value="0" />
           <div class="form-row">
             <div class="form-group col-md-12">
@@ -354,6 +355,21 @@
                   {/each}
                 </select>
               </div>
+              <div class="form-group col-md-12">
+                <label for="">Asistentes</label>
+                <select
+                  class="form-control"
+                  name="asistentes"
+                  required>
+                  <option value="0">- Seleccionar -</option>
+
+                    <option value="Henry">HEnry</option>
+
+                </select>
+              </div>
+              <div class="agregados col-lg-12">
+                <button type="button" class="btn btn-primary btn-block">Joel Mena</button>
+              </div>
             {/if}
 
             <div class="form-group col-md-12" style="display: none;">
@@ -405,20 +421,21 @@
           </div>
 
           <br />
-          <div class="modal-footer">
-            <button type="button"
-              class="btn btn-secondary"
-              data-dismiss="modal">
-              Cerrar
-            </button>
-            <button type="submit" class="btn btn-success">Guardar</button>
-          </div>
-        </form>
-
+          
+          
+        </div>
+        <div class="modal-footer">
+          <button type="button"
+          class="btn btn-secondary"
+          data-dismiss="modal">
+          Cerrar
+        </button>
+        <button type="submit" class="btn btn-success">Guardar</button>
       </div>
     </div>
   </div>
 </div>
+</form>
 
 <div
   class="modal fade modal-slide-right"
