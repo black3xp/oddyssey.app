@@ -192,7 +192,7 @@
                   {/each}
                 </select>
               </div>
-
+              <button class="btn btn-secondary btn-block">Limpiar</button>
             </div>
           </div>
         </div>
