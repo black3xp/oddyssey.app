@@ -1,3 +1,14 @@
+<script>
+  import jwt from "jwt-decode";
+  let name = '';
+
+  if (localStorage.length > 0 && localStorage.getItem('token').length > 0) {
+    let obj = jwt(localStorage.getItem('token'));
+    name = obj.unique_name;
+  }
+
+</script>
+
 <header class="admin-header">
   <a
     href="#!"
@@ -91,16 +102,14 @@
           aria-haspopup="true"
           aria-expanded="false">
           <div class="avatar avatar-sm avatar-online">
-            <span class="avatar-title rounded-circle bg-dark">V</span>
+            <span class="avatar-title rounded-circle bg-dark">{name[0].toUpperCase()}</span>
 
           </div>
         </a>
         <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#!">Add Account</a>
-          <a class="dropdown-item" href="#!">Reset Password</a>
-          <a class="dropdown-item" href="#!">Help</a>
+          <a class="dropdown-item" href="#!">Resetear contraseña</a>
           <div class="dropdown-divider" />
-          <a class="dropdown-item" href="#/Home/Login">Logout</a>
+          <a class="dropdown-item" href="#/Home/Login">Cerrar sesion</a>
         </div>
       </li>
 

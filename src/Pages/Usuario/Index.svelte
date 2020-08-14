@@ -228,213 +228,206 @@
 </main>
 
 <form id="frmUsuario" on:submit|preventDefault={guardar}>
-<div class="modal fade modal-slide-right"
-  id="modalUsuario"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="modalUsuarioLabel"
-  style="display: none; padding-right: 16px;"
-  aria-modal="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalUsuarioLabel">Usuario</h5>
-        <button
-          type="button"
-          class="close"
-          data-dismiss="modal"
-          aria-label="Close">
-          <span aria-hidden="true">×</span>
-        </button>
-      </div>
-      <div class="modal-body" style="height: 100% !important; top: 0; overflow: auto;">
+  <div class="modal fade modal-slide-right"
+    id="modalUsuario"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modalUsuarioLabel"
+    style="display: none; padding-right: 16px;"
+    aria-modal="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalUsuarioLabel">Usuario</h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body" style="height: 100% !important; top: 0; overflow: auto;">
 
-          <input type="hidden" name="IdUser" value="0" />
-          <div class="form-row">
-            <div class="form-group col-md-12">
-              <label for="">Prefijo</label>
-              <select
-                class="form-control"
-                name="prefijo"
-                bind:value={obj.prefix} required>
-                <option value="">- Seleccionar -</option>
-                {#each prefijos as item}
-                  <option value={item.value}>{item.name}</option>
-                {/each}
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group col-md-12">
-              <label for="">Nombre Completo</label>
-              <input
-                type="name"
-                class="form-control"
-                placeholder="Ing. John Doe"
-                bind:value={obj.name}
-                name="Name"
-                maxlength="200"
-                required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group col-md-12" style="display: none;">
-              <label for="">Usuario</label>
-              <input
-                type="email"
-                class="form-control"
-                autocomplete="off"
-                name="UserName"
-                id=""
-                maxlength="100" />
-            </div>
-            <div class="form-group col-md-12">
-              <label for="">Email</label>
-              <input
-                type="email"
-                required
-                class="form-control"
-                placeholder="usuario@correo.com"
-                bind:value={obj.email}
-                autocomplete="off"
-                name="Email"
-                id="txtCorreo"
-                maxlength="100" />
-            </div>
-          </div>
-          {#if userID == ""}
-          <div class="form-row">
-            <div class="form-group col-md-12">
-              <label for="">Contraseña</label>
-              <input
-                type="password"
-                class="form-control"
-                required
-                bind:value={obj.passwordHash}
-                name="PasswordHash"
-                maxlength="50" />
-            </div>
-          </div>
-          {/if}
-
-          <div class="form-row">
-            <div class="form-group col-md-12">
-              <label for="">Telefono</label>
-              <input
-                type="text"
-                class="form-control"
-                data-mask="(000) 000-0000"
-                data-mask-clearifnotmatch="true"
-                autocomplete="off"
-                maxlength="14"
-                placeholder="(809) 000-0000"
-                bind:value={obj.phoneNumber}/>
-            </div>
-            <div class="form-group col-md-12">
-              <label class="cstm-switch">
-                <input
-                  type="checkbox"
-                  value="true"
-                  name="EsMedico"
-                  bind:checked={obj.isDoctor}
-                  class="cstm-switch-input" />
-                <span class="cstm-switch-indicator " />
-                <span class="cstm-switch-description">Es Medico</span>
-              </label>
-            </div>
-            {#if obj.isDoctor}
+            <input type="hidden" name="IdUser" value="0" />
+            <div class="form-row">
               <div class="form-group col-md-12">
-                <label for="">Perfil</label>
+                <label for="">Prefijo</label>
                 <select
                   class="form-control"
-                  name="perfil"
-                  bind:value={obj.perfilID} required>
-                  <option value={0}>- Seleccionar -</option>
-                  {#each perfiles as item}
-                    <option value={item.id}>{item.nombre}</option>
+                  name="prefijo"
+                  bind:value={obj.prefix} required>
+                  <option value="">- Seleccionar -</option>
+                  {#each prefijos as item}
+                    <option value={item.value}>{item.name}</option>
                   {/each}
                 </select>
               </div>
+            </div>
+            <div class="form-row">
               <div class="form-group col-md-12">
-                <label for="">Asistentes</label>
-                <select
+                <label for="">Nombre Completo</label>
+                <input
+                  type="name"
                   class="form-control"
-                  name="asistentes"
-                  required>
-                  <option value="0">- Seleccionar -</option>
-
-                    <option value="Henry">HEnry</option>
-
-                </select>
+                  placeholder="Ing. John Doe"
+                  bind:value={obj.name}
+                  name="Name"
+                  maxlength="200"
+                  required />
               </div>
-              <div class="agregados col-lg-12">
-                <button type="button" class="btn btn-primary btn-block">Joel Mena</button>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12" style="display: none;">
+                <label for="">Usuario</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  autocomplete="off"
+                  name="UserName"
+                  id=""
+                  maxlength="100" />
               </div>
+              <div class="form-group col-md-12">
+                <label for="">Email</label>
+                <input
+                  type="email"
+                  required
+                  class="form-control"
+                  placeholder="usuario@correo.com"
+                  bind:value={obj.email}
+                  autocomplete="off"
+                  name="Email"
+                  id="txtCorreo"
+                  maxlength="100" />
+              </div>
+            </div>
+            {#if userID == ""}
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="">Contraseña</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  required
+                  bind:value={obj.passwordHash}
+                  name="PasswordHash"
+                  maxlength="50" />
+              </div>
+            </div>
             {/if}
 
-            <div class="form-group col-md-12" style="display: none;">
-              <label for="">exequatur</label>
-              <input
-                type="text"
-                class="form-control"
-                utocomplete="off"
-                name="Exequatur"
-                id="txtTelefono" />
-            </div>
-            <div class="form-group col-md-12" style="display: none;">
-              <select
-                name="IdDepartamento"
-                class="js-select2 select2-hidden-accessible"
-                id="sltDepartamentos"
-                style="width: 100%;"
-                aria-hidden="true"
-                tabindex="-1">
-                <option value="" />
-                <option value="1">Psiquiatría</option>
-              </select>
-              <span class="select2 select2-container select2-container--default"
-                dir="ltr"
-                style="width: 100%;">
-                <span class="selection">
-                  <span class="select2-selection select2-selection--single"
-                    role="combobox"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    tabindex="0"
-                    aria-labelledby="select2-sltDepartamentos-container">
-                    <span class="select2-selection__rendered"
-                      id="select2-sltDepartamentos-container"
-                      role="textbox"
-                      aria-readonly="true">
-                      <span class="select2-selection__placeholder">
-                        - Departamento -
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="">Telefono</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  data-mask="(000) 000-0000"
+                  data-mask-clearifnotmatch="true"
+                  autocomplete="off"
+                  maxlength="14"
+                  placeholder="(809) 000-0000"
+                  bind:value={obj.phoneNumber}/>
+              </div>
+              <div class="form-group col-md-12">
+                <label class="cstm-switch">
+                  <input
+                    type="checkbox"
+                    value="true"
+                    name="EsMedico"
+                    bind:checked={obj.isDoctor}
+                    class="cstm-switch-input" />
+                  <span class="cstm-switch-indicator " />
+                  <span class="cstm-switch-description">Es Medico</span>
+                </label>
+              </div>
+              {#if obj.isDoctor}
+                <div class="form-group col-md-12">
+                  <label for="">Perfil</label>
+                  <select class="form-control" name="perfil"
+                    bind:value={obj.perfilID} required>
+                    <option value={0}>- Seleccionar -</option>
+                    {#each perfiles as item}
+                      <option value={item.id}>{item.nombre}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div class="form-group col-md-12">
+                  <label for="">Asistentes</label>
+                  <select
+                    class="form-control"
+                    name="asistentes"
+                    required>
+                    <option value="0">- Seleccionar -</option>
+                    <option value="Henry">HEnry</option>
+                  </select>
+                </div>
+                <div class="agregados col-lg-12">
+                  <button type="button" class="btn btn-primary btn-block">Joel Mena</button>
+                </div>
+              {/if}
+
+              <div class="form-group col-md-12" style="display: none;">
+                <label for="">exequatur</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  utocomplete="off"
+                  name="Exequatur"
+                  id="txtTelefono" />
+              </div>
+              <div class="form-group col-md-12" style="display: none;">
+                <select
+                  name="IdDepartamento"
+                  class="js-select2 select2-hidden-accessible"
+                  id="sltDepartamentos"
+                  style="width: 100%;"
+                  aria-hidden="true"
+                  tabindex="-1">
+                  <option value="" />
+                  <option value="1">Psiquiatría</option>
+                </select>
+                <span class="select2 select2-container select2-container--default"
+                  dir="ltr"
+                  style="width: 100%;">
+                  <span class="selection">
+                    <span class="select2-selection select2-selection--single"
+                      role="combobox"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                      tabindex="0"
+                      aria-labelledby="select2-sltDepartamentos-container">
+                      <span class="select2-selection__rendered"
+                        id="select2-sltDepartamentos-container"
+                        role="textbox"
+                        aria-readonly="true">
+                        <span class="select2-selection__placeholder">
+                          - Departamento -
+                        </span>
+                      </span>
+                      <span class="select2-selection__arrow" role="presentation">
+                        <b role="presentation" />
                       </span>
                     </span>
-                    <span class="select2-selection__arrow" role="presentation">
-                      <b role="presentation" />
-                    </span>
                   </span>
+                  <span class="dropdown-wrapper" aria-hidden="true" />
                 </span>
-                <span class="dropdown-wrapper" aria-hidden="true" />
-              </span>
+              </div>
             </div>
+            <br />
           </div>
-
-          <br />
-          
-          
+          <div class="modal-footer">
+            <button type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal">
+              Cerrar
+            </button>
+            <button type="submit" class="btn btn-success">Guardar</button>
         </div>
-        <div class="modal-footer">
-          <button type="button"
-          class="btn btn-secondary"
-          data-dismiss="modal">
-          Cerrar
-        </button>
-        <button type="submit" class="btn btn-success">Guardar</button>
       </div>
     </div>
   </div>
-</div>
 </form>
 
 <div

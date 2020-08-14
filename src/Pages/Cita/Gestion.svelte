@@ -13,6 +13,11 @@
     FechaCita: "",
     TandaID: 0
   }
+  let filterCita = {
+    MedicoId: "",
+    FechaCita: "",
+    TandaID: 0
+  }
   if ($activePage == 'citas.crear') {
     limpiarFiltro();
   }
@@ -94,9 +99,17 @@
     };
     push('/Cita/Crear');
   }
+  function irAlPerfil(id) {
+    $dataCita = {
+      fechaCita: filter.FechaCita,
+      tandaID: filter.TandaID,
+      hora: "",
+      medicoId: id
+    };
+    push('/Medico/Perfil/' + id);
+  }
 
   function filtrar() {
-    console.log('cambio')
     if (filter.FechaCita == "" || filter.FechaCita == undefined) {
       let tiempos = Array.from(document.getElementsByName('tiempo'));
       tiempos.forEach(x => {
@@ -127,22 +140,25 @@
     filtrar();
   }
   function buscarDisponibilidadHorario(idMedico) {
-    if (filter.FechaCita == "" || filter.TandaID <= 0) {
+    if (typeof idMedico === 'string') {
+      filterCita.MedicoId = idMedico;
+    }
+
+    if (filterCita.FechaCita == "" || filterCita.TandaID <= 0) {
       horasDisponibles = [];
       return;
     }
 
-    let params = "date=" + filter.FechaCita + "&" + "tandiId=" + filter.TandaID;
-    axios.get($host + "/Medicos/HorasDisponibles/" + idMedico + "?" + params, {
+    let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + filterCita.TandaID;
+    axios.get($host + "/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      console.log('Busqueda horario')
       horasDisponibles = res.data;
     }).catch(err => {
       horasDisponibles = [];
-      console.error(err); 
+      console.error(err);
     })
   }
 </script>
@@ -266,12 +282,12 @@
                     <td>{item.perfil}</td>
                     <td>{item.phoneNumber}</td>
                     <td style="text-align: right;">
-                      <a href="#/Medico/Perfil/{item.id}"
-                        class="btn btn-outline-primary btn-sm">
+                      <button class="btn btn-outline-primary btn-sm"
+                        on:click={irAlPerfil(item.id)}>
                         <i class="mdi mdi-contacts" />
                         Perfil
-                      </a>
-                      <button class="btn btn-outline-success btn-sm" data-toggle="modal" data-target="#modalCrearCita">
+                      </button>
+                      <button class="btn btn-outline-success btn-sm" on:click={crearCita(item.id)}>
                         <i class="mdi mdi-calendar-plus" />
                         Crear cita
                       </button>
@@ -320,37 +336,33 @@
           <div class="col-lg-6">
             <div class="form-group">
               <label for="inputAddress">Fecha</label> 
-              <input type="date" class="form-control form-control-sm">
+              <input type="date" class="form-control form-control-sm"
+                bind:value={filterCita.FechaCita} on:change={buscarDisponibilidadHorario}>
             </div>
           </div> 
           <div class="col-lg-6">
             <div class="form-group ">
               <label class="font-secondary">Tanda</label> 
-              <select class="form-control form-control-sm js-select2">
-                <option value="0" disabled="">- Seleccionar -</option>
-                <option value="1">Matutina</option>
-                <option value="2">Vespertina</option>
+              <select class="form-control form-control-sm"
+                bind:value={filterCita.TandaID} on:change={buscarDisponibilidadHorario}>
+                <option value={0} disabled="">- Seleccionar -</option>
+                <option value={1}>Matutina</option>
+                <option value={2}>Vespertina</option>
               </select>
             </div>
           </div>
         </div>  
         <div class="list-group list">
+          {#each horasDisponibles as i}
           <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
             <div class="">
-              <div class="name">09:00:00</div>
+              <div class="name">{i}</div>
             </div>
             <div class="ml-auto">
               <button class="btn btn-outline-success btn-sm">Seleccionar</button>
             </div>
           </div>
-          <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
-            <div class="">
-              <div class="name">09:30:00</div>
-            </div>
-            <div class="ml-auto">
-              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
-            </div>
-          </div>
+          {/each}
         </div>
 
       </div>

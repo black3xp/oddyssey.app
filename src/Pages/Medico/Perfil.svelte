@@ -11,6 +11,7 @@
   $activePage = "mantenimiento.peril";
   export let params = {};
   let id = params.id;
+  let data = $dataCita;
 
   let obj = {
     medicoID: "",
@@ -45,7 +46,7 @@
     let d = new Date();
     btnCita = 's';
 
-    if (Object.keys($dataCita).length <= 0) {
+    if ($dataCita.fechaCita == "" || $dataCita.fechaCita == undefined) {
       fecha = d.toISOString().split('T')[0];
       tandaID = 1;
     } else {
@@ -148,6 +149,7 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
+      console.log(res.data)
       horasDisponibles = res.data;
     }).catch(err => {
       horasDisponibles = [];
@@ -187,11 +189,14 @@
     btnCita = tipo;
 
     if (tipo == 'h') {
+      fechaBusquedaCita = '';
       citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
     } else if (tipo == 'm') {
+      fechaBusquedaCita = ''
       hoy.add(moment.duration(1, 'd'));
       citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
     } else if (tipo == 's') {
+      fechaBusquedaCita = ''
       citas = citasDB.filter(e => moment(e.fecha).format('W') == hoy.format('W'));
     } else {
       citas = citasDB.filter(e => e.fecha == moment(fechaBusquedaCita).format('LL'));

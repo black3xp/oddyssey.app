@@ -36,7 +36,7 @@
     Correo: "",
     Sexo: '',
     Direccion: "",
-    tandaID: 0,
+    tandaID: data.tandaID,
     hora: ""
   };
   let sexos = ['M', 'F'];
@@ -213,14 +213,9 @@
             <div class="card-header">
               <h5>
                 <i class="mdi mdi-checkbox-intermediate" />
-                {obj.hora}
                 Creando cita
               </h5>
-              <div class="card-controls">
-
-                
-
-              </div>
+              <div class="card-controls"></div>
             </div>
             <div class="card-body">
               <form class="row" on:submit|preventDefault={guardarPaciente}>
