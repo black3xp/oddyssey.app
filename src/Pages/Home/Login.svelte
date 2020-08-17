@@ -3,6 +3,7 @@
   import { push } from "svelte-spa-router";
   import axios from "axios";
 
+  jQuery('.modal-backdrop').hide();
   let obj = {
     username: "",
     password: ""

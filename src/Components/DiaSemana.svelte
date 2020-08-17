@@ -47,7 +47,7 @@
     </div>
 
     {#each horariosFiltrados as horario}
-      <Horario {horario} />
+      <Horario on:cambioHorario={actualizar} {horario} />
     {/each}
 
   </div>

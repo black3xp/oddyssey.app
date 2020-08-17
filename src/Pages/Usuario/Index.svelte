@@ -347,7 +347,7 @@
                   <label for="">Perfil</label>
                   <select class="form-control" name="perfil"
                     bind:value={obj.perfilID} required>
-                    <option value={0}>- Seleccionar -</option>
+                    <option value="">- Seleccionar -</option>
                     {#each perfiles as item}
                       <option value={item.id}>{item.nombre}</option>
                     {/each}
@@ -359,7 +359,7 @@
                     class="form-control"
                     name="asistentes"
                     required>
-                    <option value="0">- Seleccionar -</option>
+                    <option value="">- Seleccionar -</option>
                     <option value="Henry">HEnry</option>
                   </select>
                 </div>

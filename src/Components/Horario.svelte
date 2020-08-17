@@ -1,10 +1,13 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
   import { host } from "../store";
   import axios from "axios";
   import moment from 'moment';
 
   export let horario = {};
   $: invisible = horario.inactivo;
+
+  const dispatch = createEventDispatcher();
 
   function cambiarHorario(e) {
     let obj = {
@@ -29,7 +32,7 @@
             Authorization: "Bearer " + localStorage.getItem("token")
           }
         }).then(res => {
-          
+          dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);
         });

@@ -149,7 +149,6 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      console.log(res.data)
       horasDisponibles = res.data;
     }).catch(err => {
       horasDisponibles = [];
@@ -453,7 +452,8 @@
             </div>
             <div class="card-body">
               {#each diasSemana as item}
-              <DiaSemana on:cambioHorario={cargarHorarios} {item} {tandas} {horarios} medicoID={id} />
+              <DiaSemana on:cambioHorario={cargarHorarios} on:cambioHorario={buscarDisponibilidadHorario}
+                {item} {tandas} {horarios} medicoID={id} />
               {/each}
 
             </div>

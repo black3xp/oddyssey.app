@@ -99,8 +99,6 @@
           hora: moment(e.fecha).format('LT')
         }
       });
-
-      console.log(moment().format('LL'));
     }).catch(err => {
       console.error(err);
     });
