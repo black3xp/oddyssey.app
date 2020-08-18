@@ -129,13 +129,6 @@
       TandaID: 0
     }
 
-    let tiempos = Array.from(document.getElementsByName('tiempo'));
-    tiempos.forEach(x => {
-      if (x.checked) {
-        x.checked = false;
-      }
-    })
-
     jQuery("#sltEspecialidad").val(0).trigger('change');
     filtrar();
   }
