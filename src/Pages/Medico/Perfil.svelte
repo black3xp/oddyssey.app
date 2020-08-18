@@ -117,17 +117,20 @@
           }
         });
         let diasUnicos = [...new Set( datos.map(e => { return e.fecha }) )];
+        diasUnicos.sort()
 
         citasDB = diasUnicos.map(e => {
+          let horas = datos.filter(i => i.fecha == e).map(e => {
+            return {
+              hora: e.hora,
+              nombrePaciente: e.nombrePaciente,
+              observaciones: e.observaciones
+            }
+          });
+
           return {
             fecha: e,
-            horas: datos.filter(i => i.fecha == e).map(e => {
-              return {
-                hora: e.hora,
-                nombrePaciente: e.nombrePaciente,
-                observaciones: e.observaciones
-              }
-            })
+            horas: horas.sort((e, i)=> e.hora.localeCompare(i.hora) )
           }
         })
         citas = citasDB;
