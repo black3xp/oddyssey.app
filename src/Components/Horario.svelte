@@ -28,14 +28,14 @@
       }
       
       axios.put($host + "/Horarios", obj, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token")
-          }
-        }).then(res => {
-          dispatch('cambioHorario')
-        }).catch(err => {
-          console.error(err);
-        });
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        dispatch('cambioHorario')
+      }).catch(err => {
+        console.error(err);
+      });
     }
   }
 </script>
@@ -75,7 +75,7 @@
                 type="number"
                 class="form-control"
                 bind:value={horario.intervalo}
-                on:change={cambiarHorario} />
+                on:input={cambiarHorario} />
             </div>
           </div>
 

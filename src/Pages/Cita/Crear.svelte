@@ -5,6 +5,7 @@
   import { activePage, dataCita, host } from "../../store";
   import { onMount } from "svelte";
   import axios from "axios";
+  import moment from 'moment';
 
   $activePage = "citas.crear";
 
@@ -96,7 +97,14 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      horas = res.data;
+      console.log($dataCita.hora);
+
+      horas = res.data.map(x => {
+        return {
+          time: x,
+          hora: moment(x, 'LT').format('LT')
+        }
+      });
       obj.hora = $dataCita.hora || "";
     }).catch(err => {
       horas = [];
@@ -333,7 +341,7 @@
                           disabled={faltaLaTanda} required>
                           <option value={""} disabled selected>- Seleccionar -</option>
                           {#each horas as item}
-                          <option value={item}>{item}</option>
+                          <option value={item.time}>{item.hora}</option>
                           {/each}
                         </select>
                       </div>

@@ -40,7 +40,7 @@
     jQuery("#sltEspecialidad").on("select2:select", e => {
       let data = e.params.data;
       filter.PerfilID = parseInt(data.id);
-      filtrar();
+      filtrar('general');
     });
 
     cargarMedicos();
@@ -109,8 +109,8 @@
     push('/Medico/Perfil/' + id);
   }
 
-  function filtrar() {
-    if (filter.FechaCita == "" || filter.FechaCita == undefined) {
+  function filtrar(tipo) {
+    if (tipo == 'fecha' || tipo == 'limpiar') {
       let tiempos = Array.from(document.getElementsByName('tiempo'));
       tiempos.forEach(x => {
         if (x.checked) {
@@ -130,7 +130,7 @@
     }
 
     jQuery("#sltEspecialidad").val(0).trigger('change');
-    filtrar();
+    filtrar('limpiar');
   }
   function buscarDisponibilidadHorario(idMedico) {
     if (typeof idMedico === 'string') {
@@ -176,12 +176,12 @@
             <div class="card-body">
               <div class="form-group ">
                 <label class="font-secondary">Médico</label>
-                <input type="text" class="form-control" bind:value={filter.Nombre} on:input={filtrar} />
+                <input type="text" class="form-control" bind:value={filter.Nombre} on:input={() => filtrar('medico')} />
               </div>
               <div class="form-group ">
                 <label class="font-secondary">Especialidad</label>
                 <select class="form-control select2" style="width: 100%;" id="sltEspecialidad"
-                  bind:value={filter.PerfilID} on:change={filtrar}>
+                  bind:value={filter.PerfilID} on:change={() => filtrar('especialidad')}>
                   <option value={0}>Todas</option>
                   {#each especialidades as item}
                   <option value={item.id}>{item.nombre}</option>
@@ -194,7 +194,7 @@
                   type="date"
                   class="form-control mb-2"
                   id="inputAddress2" 
-                  bind:value={filter.FechaCita} on:input={filtrar}/>
+                  bind:value={filter.FechaCita} on:input={() => filtrar('fecha')}/>
 
                 <div class="contenedor-dias">
                   <div class="option-box">
@@ -236,7 +236,8 @@
 
               <div class="form-group ">
                 <label class="font-secondary">Tanda</label>
-                <select class="form-control" bind:value={filter.TandaID} on:change={filtrar}>
+                <select class="form-control" bind:value={filter.TandaID} 
+                  on:change={() => filtrar('tanda')}>
                   <option value={0} selected>Todas</option>
                   {#each tandas as item}
                   <option value={item.id}>{item.nombre}</option>

@@ -122,7 +122,7 @@
         citasDB = diasUnicos.map(e => {
           let horas = datos.filter(i => i.fecha == e).map(e => {
             return {
-              hora: e.hora,
+              hora:  moment(e.hora, 'LT'),
               nombrePaciente: e.nombrePaciente,
               observaciones: e.observaciones
             }
@@ -130,7 +130,13 @@
 
           return {
             fecha: e,
-            horas: horas.sort((e, i)=> e.hora.localeCompare(i.hora) )
+            horas: horas.sort((e, i)=> e.hora - i.hora ).map(x => {
+              return {
+                hora : moment(x.hora).format('LT'),
+                nombrePaciente: x.nombrePaciente,
+                observaciones: x.observaciones
+              }
+            })
           }
         })
         citas = citasDB;
@@ -152,7 +158,12 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      horasDisponibles = res.data;
+      horasDisponibles = res.data.map(e => {
+        return {
+          time : e,
+          hora : moment(e, 'LT').format('LT')
+        } 
+      });
     }).catch(err => {
       horasDisponibles = [];
       console.error(err); 
@@ -346,12 +357,12 @@
                 {#each horasDisponibles as item}
                 <div class="list-group-item d-flex align-items-center">
                   <div class="">
-                    <div class="name">{item}</div>
+                    <div class="name">{item.hora}</div>
                   </div>
                   <div class="ml-auto">
                     <button
                       class="btn btn-outline-success btn-sm"
-                      on:click={crearCita(item)}>
+                      on:click={crearCita(item.time)}>
                       <i class="mdi mdi-calendar-plus"></i>
                       Crear cita
                     </button>
