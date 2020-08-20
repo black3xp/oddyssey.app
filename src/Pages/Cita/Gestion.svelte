@@ -29,6 +29,7 @@
   let listado = [];
   let tandas = [];
   let horasDisponibles = [];
+  let horasCompleta = [];
 
   onMount(() => {
     if ($dataCita.fechaCita != undefined) {
@@ -91,14 +92,22 @@
     cargarMedicos();
   }
   function crearCita(id) {
+    filterCita.TandaID = filter.TandaID;
+    filterCita.FechaCita = filter.FechaCita;
+    buscarDisponibilidadHorario(id)
+
+    jQuery('#modalCrearCita').modal('show')
+  }
+  function irACita(time) {
     $dataCita = {
-      fechaCita: filter.FechaCita,
-      tandaID: filter.TandaID,
-      hora: "",
-      medicoId: id
+      fechaCita: filterCita.FechaCita,
+      tandaID: filterCita.TandaID,
+      hora: time,
+      medicoId: filterCita.MedicoId
     };
     push('/Cita/Crear');
   }
+
   function irAlPerfil(id) {
     $dataCita = {
       fechaCita: filter.FechaCita,
@@ -133,22 +142,48 @@
     filtrar('limpiar');
   }
   function buscarDisponibilidadHorario(idMedico) {
+    let tanda = "";
+
     if (typeof idMedico === 'string') {
       filterCita.MedicoId = idMedico;
     }
 
-    if (filterCita.FechaCita == "" || filterCita.TandaID <= 0) {
+    if (filterCita.FechaCita == "") {
       horasDisponibles = [];
       return;
     }
 
-    let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + filterCita.TandaID;
+    if (filterCita.TandaID == "") {
+      if(horasCompleta.length <= 0) {
+        tanda = 1;
+      } else {
+        tanda = 2;
+      }
+    } else {
+      tanda = filterCita.TandaID;
+    }
+
+    let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + tanda;
     axios.get($host + "/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      horasDisponibles = res.data;
+      horasDisponibles = res.data.map(e => {
+        return {
+          time : e,
+          hora : moment(e, 'LT').format('LT')
+        }
+      });
+
+      if (filterCita.TandaID == "") {
+        horasCompleta = horasCompleta.concat(horasDisponibles);
+        horasDisponibles = horasCompleta;
+        
+        if (tanda == 1) {
+          buscarDisponibilidadHorario(idMedico)
+        }
+      }
     }).catch(err => {
       horasDisponibles = [];
       console.error(err);
@@ -277,11 +312,12 @@
                     <td>{item.phoneNumber}</td>
                     <td style="text-align: right;">
                       <button class="btn btn-outline-primary btn-sm"
-                        on:click={irAlPerfil(item.id)}>
+                        on:click={() => irAlPerfil(item.id)}>
                         <i class="mdi mdi-contacts" />
                         Perfil
                       </button>
-                      <button class="btn btn-outline-success btn-sm" on:click={crearCita(item.id)}>
+                      <button class="btn btn-outline-success btn-sm" 
+                        on:click={() => crearCita(item.id)}>
                         <i class="mdi mdi-calendar-plus" />
                         Crear cita
                       </button>
@@ -336,10 +372,10 @@
           </div> 
           <div class="col-lg-6">
             <div class="form-group ">
-              <label class="font-secondary">Tanda</label> 
+              <label class="font-secondary">Tanda</label>
               <select class="form-control form-control-sm"
                 bind:value={filterCita.TandaID} on:change={buscarDisponibilidadHorario}>
-                <option value={0} disabled="">- Seleccionar -</option>
+                <option value={""} disabled="">Todas</option>
                 <option value={1}>Matutina</option>
                 <option value={2}>Vespertina</option>
               </select>
@@ -350,10 +386,11 @@
           {#each horasDisponibles as i}
           <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
             <div class="">
-              <div class="name">{i}</div>
+              <div class="name">{i.hora}</div>
             </div>
             <div class="ml-auto">
-              <button class="btn btn-outline-success btn-sm">Seleccionar</button>
+              <button class="btn btn-outline-success btn-sm"
+                on:click={() => irACita(i.time)}>Seleccionar</button>
             </div>
           </div>
           {/each}
