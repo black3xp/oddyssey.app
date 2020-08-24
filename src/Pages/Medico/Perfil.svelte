@@ -29,8 +29,8 @@
   let horasDisponibles = [];
   let citas = [];
   let citasDB = [];
-  let btnPrimary = false;
-  let btnCita = '';
+  let btnFechaDisponibilidad = 'h';
+  let btnFechaCita = '';
 
   let diasSemana = [
     {check: false, dia: 1, nombre: 'Lunes'},
@@ -44,7 +44,7 @@
 
   onMount(() => {
     let d = new Date();
-    btnCita = 's';
+    btnFechaCita = 's';
 
     if ($dataCita.fechaCita == "" || $dataCita.fechaCita == undefined) {
       fecha = d.toISOString().split('T')[0];
@@ -147,9 +147,20 @@
   }
 
   function buscarDisponibilidadHorario() {
+    let hoy = moment();
+    let unDia = moment().add(moment.duration(1, 'd'));
+    
     if (fecha == "" || tandaID <= 0) {
       horasDisponibles = [];
       return;
+    }
+
+    if (fecha == hoy.format('YYYY-MM-DD')) {
+      btnFechaDisponibilidad = 'h';
+    } else if (fecha == unDia.format('YYYY-MM-DD')) {
+      btnFechaDisponibilidad = 'm';
+    } else {
+      btnFechaDisponibilidad = ''
     }
 
     let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
@@ -186,32 +197,42 @@
     let newDate = new Date(sumaDia);
     fecha = newDate.toISOString().split('T')[0];
 
-    btnPrimary = true;
+    btnFechaDisponibilidad = 'm';
 
     buscarDisponibilidadHorario();
   }
   function diaDeHoy(params) {
     let d = new Date();
     fecha = d.toISOString().split('T')[0];
-    btnPrimary = false;
+    btnFechaDisponibilidad = 'h';
 
     buscarDisponibilidadHorario();
   }
   function buscarCitas(tipo) {
     let hoy = moment();
-    btnCita = tipo;
+    btnFechaCita = tipo;
 
     if (tipo == 'h') {
-      fechaBusquedaCita = '';
+      fechaBusquedaCita = hoy.format('YYYY-MM-DD');
       citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
     } else if (tipo == 'm') {
-      fechaBusquedaCita = ''
       hoy.add(moment.duration(1, 'd'));
+      fechaBusquedaCita = hoy.format('YYYY-MM-DD')
       citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
     } else if (tipo == 's') {
       fechaBusquedaCita = ''
       citas = citasDB.filter(e => moment(e.fecha).format('W') == hoy.format('W'));
     } else {
+      if (fechaBusquedaCita == hoy.format('YYYY-MM-DD')) {
+        btnFechaCita = 'h';
+      } else if (fechaBusquedaCita == hoy.add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
+        btnFechaCita = 'm';
+      } else if (moment(fechaBusquedaCita).format('W') == hoy.format('W')) {
+        btnFechaCita = 's'
+      } else {
+        btnFechaCita = ''
+      }
+
       citas = citasDB.filter(e => e.fecha == moment(fechaBusquedaCita).format('LL'));
     }
   }
@@ -311,13 +332,14 @@
               </h5>
               <div class="card-controls">
                 <div class="btn-group" role="group" aria-label="Basic example">
-                  <button type="button" class:btn-primary={!btnPrimary} class:btn-write={btnPrimary}
-                    class="btn shadow-none btn-sm" on:click={diaDeHoy}>
+                  <button type="button" class:btn-primary={btnFechaDisponibilidad == 'h'} 
+                    class:btn-write={btnFechaDisponibilidad != 'h'} class="btn shadow-none btn-sm" 
+                    on:click={diaDeHoy}>
                     <i class="mdi mdi-calendar" />
                     Hoy
                   </button>
-                  <button type="button" class:btn-primary={btnPrimary} class:btn-write={!btnPrimary}
-                    class="btn shadow-none btn-sm"
+                  <button type="button" class:btn-primary={btnFechaDisponibilidad == 'm'}
+                    class:btn-write={!btnFechaDisponibilidad != 'm'} class="btn shadow-none btn-sm"
                     on:click={diaSiguiente}>
                     Mañana
                   </button>
@@ -390,21 +412,21 @@
                     bind:value={fechaBusquedaCita} on:change={() => buscarCitas('f')}/>
                   <button
                     type="button"
-                    class:btn-primary={btnCita == 'h'} class:btn-write={btnCita != 'h'}
+                    class:btn-primary={btnFechaCita == 'h'} class:btn-write={btnFechaCita != 'h'}
                     class="btn shadow-none btn-sm"
                     on:click={() => buscarCitas('h')}>
                     Hoy
                   </button>
                   <button
                     type="button"
-                    class:btn-primary={btnCita == 'm'} class:btn-write={btnCita != 'm'}
+                    class:btn-primary={btnFechaCita == 'm'} class:btn-write={btnFechaCita != 'm'}
                     class="btn shadow-none btn-sm"
                     on:click={() => buscarCitas('m')}>
                     Mañana
                   </button>
                   <button
                     type="button"
-                    class:btn-primary={btnCita == 's'} class:btn-write={btnCita != 's'}
+                    class:btn-primary={btnFechaCita == 's'} class:btn-write={btnFechaCita != 's'}
                     class="btn shadow-none btn-sm"
                     on:click={() => buscarCitas('s')}>
                     Semana

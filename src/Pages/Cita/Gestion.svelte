@@ -85,10 +85,10 @@
   }
   function elegirTiempo(e) {
     let dia = parseInt(e.target.value);
-    let hoy = moment();
-    hoy.add(moment.duration(dia, 'd'));
+    let date = moment();
+    date.add(moment.duration(dia, 'd'));
 
-    filter.FechaCita = hoy.format('YYYY-MM-DD');
+    filter.FechaCita = date.format('YYYY-MM-DD');
     cargarMedicos();
   }
   function crearCita(id) {
