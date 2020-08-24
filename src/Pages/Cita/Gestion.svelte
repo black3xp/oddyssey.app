@@ -142,7 +142,6 @@
     filtrar('limpiar');
   }
   function buscarDisponibilidadHorario(idMedico) {
-    let tanda = "";
 
     if (typeof idMedico === 'string') {
       filterCita.MedicoId = idMedico;
@@ -153,17 +152,7 @@
       return;
     }
 
-    if (filterCita.TandaID == "") {
-      if(horasCompleta.length <= 0) {
-        tanda = 1;
-      } else {
-        tanda = 2;
-      }
-    } else {
-      tanda = filterCita.TandaID;
-    }
-
-    let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + tanda;
+    let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + filterCita.TandaID;
     axios.get($host + "/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
@@ -175,15 +164,6 @@
           hora : moment(e, 'LT').format('LT')
         }
       });
-
-      if (filterCita.TandaID == "") {
-        horasCompleta = horasCompleta.concat(horasDisponibles);
-        horasDisponibles = horasCompleta;
-        
-        if (tanda == 1) {
-          buscarDisponibilidadHorario(idMedico)
-        }
-      }
     }).catch(err => {
       horasDisponibles = [];
       console.error(err);
@@ -375,9 +355,10 @@
               <label class="font-secondary">Tanda</label>
               <select class="form-control form-control-sm"
                 bind:value={filterCita.TandaID} on:change={buscarDisponibilidadHorario}>
-                <option value={""} disabled="">Todas</option>
-                <option value={1}>Matutina</option>
-                <option value={2}>Vespertina</option>
+                <option value={""} disabled>- Seleccionar -</option>
+                {#each tandas as i}
+                <option value={i.id}>{i.nombre}</option>
+                {/each}
               </select>
             </div>
           </div>
