@@ -10,7 +10,9 @@
 
   let busqueda = "";
   let medicos = [];
-  let citas = [];
+  let citasPendientes = [];
+  let citasEnTurno = [];
+
   let horasDisponibles = [];
   let provincias = [
     {id: 1, nombre: 'Duarte'},
@@ -43,6 +45,7 @@
     observaciones: "",
   }
   let cita = {
+    id: 0,
     medicoID: "",
     pacienteID: "",
     aseguradoraID: 0,
@@ -90,15 +93,22 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      citas = res.data.map(e => {
+      let array = res.data.map(e => {
         return {
+          id: e.id,
           pacienteID: e.pacienteID,
+          estadoID: e.estadoID,
+          aseguradoraID: e.aseguradoraID,
+          medicoID: e.medicoID,
           nombrePaciente: e.nombrePaciente,
           observaciones: e.observaciones,
-          fecha: moment(e.fecha).format('LL'),
+          fecha: e.fecha,
           hora: moment(e.fecha).format('LT')
         }
       });
+
+      citasPendientes = array.filter(e => e.estadoID == 1)
+      citasEnTurno = array.filter(e => e.estadoID == 2)
     }).catch(err => {
       console.error(err);
     });
@@ -115,21 +125,18 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      console.log('Busqueda horario')
-      horasDisponibles = res.data;
+      horasDisponibles = res.data.map(x => {
+        return {
+          time: x,
+          hora: moment(x, 'LT').format('LT')
+        }
+      });
     }).catch(err => {
       horasDisponibles = [];
       console.error(err); 
     })
   }
   function cargarDatosPaciente(id) {
-    if (fecha == '' || tandaID <= 0) {
-      fecha = moment().format('YYYY-MM-DD');
-      tandaID = 1;
-
-      buscarDisponibilidadHorario();
-    }
-
     axios.get($host + "/Pacientes?id=" + id, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
@@ -140,6 +147,15 @@
       console.error(err);
     });
   }
+  function reprogramarCita(item) {
+    cita = item;
+    if (fecha == '' || tandaID <= 0) {
+      fecha = moment().format('YYYY-MM-DD');
+      tandaID = 1;
+    }
+    
+    buscarDisponibilidadHorario();
+  }
   function guardarPaciente() {
     paciente.nombreAseguradora = aseguradoras.find(e => e.id == paciente.aseguradoraID).nombre;
     
@@ -149,6 +165,7 @@
         }
       }).then(res => {
         if (res.data.success) {
+          alert('Paciente actualizado con exito');
           jQuery('#modalPaciente').modal('hide');
         } else {
           console.log(res);
@@ -157,17 +174,14 @@
         console.error(err); 
       })
   }
-  function crearCita(hora) {
-    cita.medicoID = idMedico;
-    cita.pacienteID = paciente.id;
-    cita.aseguradoraID = paciente.aseguradoraID;
+  function cambiarFechaCita(hora) {
     cita.fecha = fecha + "T" + hora;
-    cita.observaciones = paciente.observaciones;
 
-    axios.post($host + "/Citas", cita, {
+    axios.put($host + "/Citas/" + cita.id, cita, {
       headers: {Authorization: "Bearer " + localStorage.getItem("token")}
     }).then(res => {
       if (res.data.success) {
+        alert('Fecha de cita actualizada con exito')
         jQuery('#modalCrearCita').modal('hide');
       } else {
         console.log(res);
@@ -175,6 +189,22 @@
     }).catch(err => {
       console.error(err); 
     })
+  }
+  function cambiarEstadoCita(item) {
+    cita = item;
+    
+    cita.estadoID = 2;
+    axios.put($host + "/Citas/" + cita.id, cita, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        if (res.data.success) {
+          cargarCitas()
+        }
+      }).catch(err => {
+        console.error(err);
+      })
   }
 </script>
 
@@ -275,21 +305,22 @@
                 </tr>
               </thead>
               <tbody>
-                <tr class="cursor-table">
-                  <td>Paciente</td>
-                  <td>8095881717</td>
-                  <td>Observaciones</td>
-                  <td style="text-align: right;">
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
-                      <i class="mdi mdi-account-search-outline" />
-                      Ver paciente
-                    </button>
-                  </td>
-                </tr>
-  
+                {#each citasEnTurno as i}
+                  <tr class="cursor-table">
+                    <td>{i.nombrePaciente}</td>
+                    <td></td>
+                    <td>{i.observaciones}</td>
+                    <td style="text-align: right;">
+                      <button
+                        class="btn btn-success btn-sm mb-1"
+                        data-toggle="modal"
+                        data-target="#modalPaciente">
+                        <i class="mdi mdi-account-search-outline" />
+                        Ver paciente
+                      </button>
+                    </td>
+                  </tr>
+                {/each}
               </tbody>
             </table>
   
@@ -309,33 +340,34 @@
               </tr>
             </thead>
             <tbody>
-              {#each citas as i}
-              <tr class="cursor-table">
-                <td>{i.nombrePaciente}</td>
-                <td></td>
-                <td>{i.observaciones}</td>
-                <td></td>
-                <td style="text-align: right;">
-                  <button
-                    class="btn btn-success btn-sm mb-1"
-                    data-toggle="modal"
-                    data-target="#modalPaciente"
-                    on:click={cargarDatosPaciente(i.pacienteID)} >
-                    <i class="mdi mdi-account-search-outline" />
-                    Ver paciente
-                  </button>
-                  <button
-                    class="btn btn-success btn-sm mb-1"
-                    data-toggle="modal" data-target="#modalCrearCita"
-                    on:click={cargarDatosPaciente(i.pacienteID)} >
-                    <i class="mdi mdi-calendar-remove"></i>
-                    Reprogramar
-                  </button>
-                  <button class="btn btn-primary btn-sm mb-1" title="Poner en cola">
-                    <i class="mdi mdi-ticket-confirmation"></i>
-                  </button>
-                </td>
-              </tr>
+              {#each citasPendientes as i}
+                <tr class="cursor-table">
+                  <td>{i.nombrePaciente}</td>
+                  <td></td>
+                  <td>{i.observaciones}</td>
+                  <td></td>
+                  <td style="text-align: right;">
+                    <button
+                      class="btn btn-success btn-sm mb-1"
+                      data-toggle="modal"
+                      data-target="#modalPaciente"
+                      on:click={cargarDatosPaciente(i.pacienteID)} >
+                      <i class="mdi mdi-account-search-outline" />
+                      Ver paciente
+                    </button>
+                    <button
+                      class="btn btn-success btn-sm mb-1"
+                      data-toggle="modal" data-target="#modalCrearCita"
+                      on:click={reprogramarCita(i)} >
+                      <i class="mdi mdi-calendar-remove"></i>
+                      Reprogramar
+                    </button>
+                    <button class="btn btn-primary btn-sm mb-1" title="Poner en cola"
+                      on:click={() => cambiarEstadoCita(i)}>
+                      <i class="mdi mdi-ticket-confirmation"></i>
+                    </button>
+                  </td>
+                </tr>
               {/each}
             </tbody>
           </table>
@@ -603,10 +635,10 @@
           {#each horasDisponibles as i}
           <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
             <div class="">
-              <div class="name">{i}</div>
+              <div class="name">{i.hora}</div>
             </div>
             <div class="ml-auto">
-              <button on:click={crearCita(i)} class="btn btn-outline-success btn-sm">
+              <button on:click={cambiarFechaCita(i.time)} class="btn btn-outline-success btn-sm">
                 Seleccionar</button>
             </div>
           </div>
