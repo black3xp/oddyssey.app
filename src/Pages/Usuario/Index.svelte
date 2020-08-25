@@ -74,6 +74,7 @@
         }
       }).then(res => {
         if (res.data.success) {
+          alert('Usuario guardado con exito')
           jQuery('#modalUsuario').modal('hide');
           cargar();
         }
@@ -87,6 +88,7 @@
         }
       }).then(res => {
         if (res.data.success) {
+          alert('Usuario actualizado con exito')
           jQuery('#modalUsuario').modal('hide');
           cargar();
         }

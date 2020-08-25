@@ -10,13 +10,10 @@
   };
 
   function iniciar() {
-    var qs = Object.keys(obj)
-      .map(key => key + "=" + obj[key])
-      .join("&");
-    axios.get($host + "/User/Login?" + qs)
+    axios.post($host + "/User/Login", obj)
       .then(x => {
-        if (x.status >= 200 && x.status < 300) {
-            localStorage.setItem('token', x.data.data);
+        if (x.data.success) {
+            localStorage.setItem('token', x.data.access_token);
             push('/Home/Index');
         }
       }).catch(e => {

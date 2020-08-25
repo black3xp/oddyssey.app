@@ -2,7 +2,7 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import axios from "axios";
-  import { activePage, host } from "../../store";
+  import { activePage, host, dataCita} from "../../store";
   import { onMount } from "svelte";
   import moment from 'moment';
 
@@ -93,19 +93,9 @@
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-      let array = res.data.map(e => {
-        return {
-          id: e.id,
-          pacienteID: e.pacienteID,
-          estadoID: e.estadoID,
-          aseguradoraID: e.aseguradoraID,
-          medicoID: e.medicoID,
-          nombrePaciente: e.nombrePaciente,
-          observaciones: e.observaciones,
-          fecha: e.fecha,
-          hora: moment(e.fecha).format('LT')
-        }
-      });
+      let array = res.data.filter(e => 
+        moment(e.fecha).format('YYYY-MM-DD') == moment().format('YYYY-MM-DD')
+      );
 
       citasPendientes = array.filter(e => e.estadoID == 1)
       citasEnTurno = array.filter(e => e.estadoID == 2)
@@ -284,10 +274,10 @@
             </select>
           </div>
 
-          <a href="#/Cita/Crear" class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary">
+          <button class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary">
             <i class="mdi mdi-plus" />
             Nueva cita
-          </a>
+          </button>
         </div>
       </div>
       <div class="col-md-12 m-b-30">
@@ -314,7 +304,8 @@
                       <button
                         class="btn btn-success btn-sm mb-1"
                         data-toggle="modal"
-                        data-target="#modalPaciente">
+                        data-target="#modalPaciente"
+                        on:click={cargarDatosPaciente(i.pacienteID)}>
                         <i class="mdi mdi-account-search-outline" />
                         Ver paciente
                       </button>

@@ -25,6 +25,7 @@
   $activePage = "gestor"
 
   let busqueda = "";
+  let dia = -1;
   let especialidades = [];
   let listado = [];
   let tandas = [];
@@ -119,14 +120,21 @@
   }
 
   function filtrar(tipo) {
-    if (tipo == 'fecha' || tipo == 'limpiar') {
-      let tiempos = Array.from(document.getElementsByName('tiempo'));
-      tiempos.forEach(x => {
-        if (x.checked) {
-          x.checked = false;
-        }
-      })
+    if (tipo == 'limpiar') {
+      dia = -1;
     }
+    if (tipo == 'fecha') {
+      if (filter.FechaCita == moment().format('YYYY-MM-DD')) {
+        dia = 0;
+      } else if (filter.FechaCita == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
+        dia = 1;
+      } else if (filter.FechaCita == moment().add(moment.duration(2, 'd')).format('YYYY-MM-DD')) {
+        dia = 2;
+      } else {
+        dia = -1;
+      }
+    }
+
 
     cargarMedicos();
   }
@@ -214,7 +222,7 @@
                 <div class="contenedor-dias">
                   <div class="option-box">
                     <input id="radio-new1" name="tiempo" type="radio" 
-                      value={0} on:change={elegirTiempo} />
+                      value={0} on:change={elegirTiempo} bind:group={dia} />
                     <label
                       for="radio-new1"
                       style="height: 40px; padding: 3px 10px;">
@@ -225,7 +233,7 @@
                   </div>
                   <div class="option-box">
                     <input id="radio-new2" name="tiempo" type="radio" 
-                      value={1} on:change={elegirTiempo} />
+                      value={1} on:change={elegirTiempo} bind:group={dia} />
                     <label
                       for="radio-new2"
                       style="height: 40px; padding: 3px 10px;">
@@ -236,7 +244,7 @@
                   </div>
                   <div class="option-box">
                     <input id="radio-new3" name="tiempo" type="radio" 
-                      value={2} on:change={elegirTiempo} />
+                      value={2} on:change={elegirTiempo} bind:group={dia} />
                     <label
                       for="radio-new3"
                       style="height: 40px; padding: 3px 10px;">
@@ -355,7 +363,7 @@
               <label class="font-secondary">Tanda</label>
               <select class="form-control form-control-sm"
                 bind:value={filterCita.TandaID} on:change={buscarDisponibilidadHorario}>
-                <option value={""} disabled>- Seleccionar -</option>
+                <option value={0} disabled>- Seleccionar -</option>
                 {#each tandas as i}
                 <option value={i.id}>{i.nombre}</option>
                 {/each}

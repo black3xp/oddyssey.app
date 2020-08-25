@@ -14,7 +14,7 @@ import Error404 from './Pages/Home/Error404.svelte'
 //Method
 
 const routes = {
-    "/": Login,
+    "/": Index,
     "/Home/Index": Index,
     "/Home/Login": Login,
     "/Usuario/Index": UsuarioIndex,

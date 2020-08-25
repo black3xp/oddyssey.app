@@ -31,7 +31,7 @@
     <ul class="menu">
       <!--list item begins-->
       <li class="menu-item" class:active={$activePage.includes('home.index')}>
-        <a href="/Home/Index" use:link class="menu-link">
+        <a href="/" use:link class="menu-link">
           <span class="menu-label">
             <span class="menu-name">Escritorio</span>
           </span>
