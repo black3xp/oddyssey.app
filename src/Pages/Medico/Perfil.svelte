@@ -13,17 +13,34 @@
   let id = params.id;
   let data = $dataCita;
 
-  let obj = {
+  let detail = {
     medicoID: "",
     name: "",
     email: "",
     perfil: "",
-    prefix: "",
     phoneNumber: ""
   };
+  let obj = {
+    medicoID: "",
+    name: "",
+    email: "",
+    perfilID: 0,
+    phoneNumber: ""
+  };
+  
+  let prefijos = [
+    {value: 'dr', name: 'Dr.'},
+    {value: 'dra', name: 'Dra.'},
+    {value: 'lic', name: 'Lic.'},
+    {value: 'lida', name: 'Lida.'},
+    {value: 'sr', name: 'Sr.'},
+    {value: 'sra', name: 'Sra.'},
+  ]
+
   let fecha = "";
   let fechaBusquedaCita = "";
   let tandaID = 0;
+  let perfiles = [];
   let horarios = [];
   let tandas = [];
   let horasDisponibles = [];
@@ -54,20 +71,21 @@
       tandaID = $dataCita.tandaID
     }
 
-    cargarPerfil();
+    cargarDetalle();
     buscarDisponibilidadHorario();
     cargarHorarios();
     cargarTandas();
     cargarCitas();
+    cargarPerfiles();
   });
 
-  function cargarPerfil() {
+  function cargarDetalle() {
     axios.get($host + "/Medicos/" + id, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }).then(res => {
-        obj = res.data;
+        detail = res.data;
       }).catch(err => {
         console.error(err);
       });
@@ -145,19 +163,27 @@
         console.error(err);
       });
   }
+  function cargarPerfiles() {
+    axios.get($host + "/Perfiles/GetAll", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        perfiles = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
 
   function buscarDisponibilidadHorario() {
-    let hoy = moment();
-    let unDia = moment().add(moment.duration(1, 'd'));
-    
     if (fecha == "" || tandaID <= 0) {
       horasDisponibles = [];
       return;
     }
 
-    if (fecha == hoy.format('YYYY-MM-DD')) {
+    if (fecha == moment().format('YYYY-MM-DD')) {
       btnFechaDisponibilidad = 'h';
-    } else if (fecha == unDia.format('YYYY-MM-DD')) {
+    } else if (fecha == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
       btnFechaDisponibilidad = 'm';
     } else {
       btnFechaDisponibilidad = ''
@@ -192,18 +218,13 @@
   }
 
   function diaSiguiente(params) {
-    let d = new Date();
-    let sumaDia = d.setDate(d.getDate() + 1);
-    let newDate = new Date(sumaDia);
-    fecha = newDate.toISOString().split('T')[0];
-
+    fecha = moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD');
     btnFechaDisponibilidad = 'm';
 
     buscarDisponibilidadHorario();
   }
   function diaDeHoy(params) {
-    let d = new Date();
-    fecha = d.toISOString().split('T')[0];
+    fecha = moment().format('YYYY-MM-DD');
     btnFechaDisponibilidad = 'h';
 
     buscarDisponibilidadHorario();
@@ -235,6 +256,34 @@
 
       citas = citasDB.filter(e => e.fecha == moment(fechaBusquedaCita).format('LL'));
     }
+  }
+
+  function editar() {
+    axios.get($host + "/User/" + id, {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }).then(res => {
+      obj = res.data;
+      jQuery('#modalUsuario').modal('show');
+    }).catch(err => {
+      console.error(err);
+    });
+  }
+  function guardar() {
+    axios.put($host + "/User/" + id, obj, {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token")
+        }
+      }).then(res => {
+        if (res.data.success) {
+          alert('Usuario actualizado con exito')
+          jQuery('#modalUsuario').modal('hide');
+          cargarDetalle();
+        }
+      }).catch(err => {
+        console.error(err);
+      });
   }
 
 </script>
@@ -285,22 +334,22 @@
                       alt="name" />
                   </div>
                 </div>
-                <h3 class="p-t-10 searchBy-name">{obj.prefix} {obj.name}</h3>
+                <h3 class="p-t-10 searchBy-name">{detail.prefix} {detail.name}</h3>
               </div>
               <div class="text-muted text-center m-b-10">
-                {obj.perfil || ""}
+                {detail.perfil || ""}
               </div>
               <p class="text-muted text-center" style="margin-bottom: 0;">
-                {obj.email}
+                {detail.email}
               </p>
-              <p class="text-muted text-center">{obj.phoneNumber}</p>
+              <p class="text-muted text-center">{detail.phoneNumber}</p>
               <div class="row text-center p-b-10">
                 <div class="col">
                   <a
                     href="#!"
                     on:click|preventDefault={() => {
                       document
-                        .querySelector('#horarioEspecialista')
+                        .querySelector('.horarioEspecialista')
                         .scrollIntoView({
                           behavior: 'smooth',
                           block: 'center'
@@ -312,7 +361,7 @@
                   </a>
                 </div>
                 <div class="col">
-                  <a href="#/">
+                  <a href="#/" on:click|preventDefault={editar}>
                     <h3 class="mdi mdi-account-edit"> </h3>
                     <div class="text-overline">Editar Perfil</div>
                   </a>
@@ -398,7 +447,7 @@
 
         </div>
 
-        <div class="col-lg-12" id="horarioEspecialista">
+        <div class="col-lg-12">
           <div class="card m-b-30">
             <div class="card-header">
               <h5 class="m-b-0">
@@ -461,8 +510,6 @@
                             <div class="text-muted">
                               <span>{h.hora}</span>
                               -
-                              <span>Mañana</span>
-                              -
                               <span>{h.observaciones} (Observaciones)</span>
                             </div>
                           </div>
@@ -479,7 +526,7 @@
             </div>
           </div>
           
-          <div class="card m-b-30">
+          <article class="card m-b-30 horarioEspecialista">
             <div class="card-header">
               <h5 class="m-b-0">
                 <i class="mdi mdi-calendar-text" />
@@ -493,10 +540,163 @@
               {/each}
 
             </div>
-          </div>
+          </article>
+
         </div>
 
       </div>
     </div>
   </section>
 </main>
+
+<form id="frmUsuario" on:submit|preventDefault={guardar}>
+  <div class="modal fade modal-slide-right"
+    id="modalUsuario"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="modalUsuarioLabel"
+    style="display: none; padding-right: 16px;"
+    aria-modal="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalUsuarioLabel">Usuario</h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body" style="height: 100% !important; top: 0; overflow: auto;">
+
+            <input type="hidden" name="IdUser" value="0" />
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="">Prefijo</label>
+                <select
+                  class="form-control"
+                  name="prefijo"
+                  bind:value={obj.prefix} required>
+                  <option value="">- Seleccionar -</option>
+                  {#each prefijos as item}
+                    <option value={item.value}>{item.name}</option>
+                  {/each}
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="">Nombre Completo</label>
+                <input
+                  type="name"
+                  class="form-control"
+                  placeholder="Ing. John Doe"
+                  bind:value={obj.name}
+                  name="Name"
+                  maxlength="200"
+                  required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group col-md-12" style="display: none;">
+                <label for="">Usuario</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  autocomplete="off"
+                  name="UserName"
+                  id=""
+                  maxlength="100" />
+              </div>
+              <div class="form-group col-md-12">
+                <label for="">Email</label>
+                <input
+                  type="email"
+                  required
+                  class="form-control"
+                  placeholder="usuario@correo.com"
+                  bind:value={obj.email}
+                  autocomplete="off"
+                  name="Email"
+                  id="txtCorreo"
+                  maxlength="100" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-12">
+                <label for="">Telefono</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  data-mask="(000) 000-0000"
+                  data-mask-clearifnotmatch="true"
+                  autocomplete="off"
+                  maxlength="14"
+                  placeholder="(809) 000-0000"
+                  bind:value={obj.phoneNumber}/>
+              </div>
+
+              <div class="form-group col-md-12" style="display: none;">
+                <label for="">exequatur</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  utocomplete="off"
+                  name="Exequatur"
+                  id="txtTelefono" />
+              </div>
+              <div class="form-group col-md-12" style="display: none;">
+                <select
+                  name="IdDepartamento"
+                  class="js-select2 select2-hidden-accessible"
+                  id="sltDepartamentos"
+                  style="width: 100%;"
+                  aria-hidden="true"
+                  tabindex="-1">
+                  <option value="" />
+                  <option value="1">Psiquiatría</option>
+                </select>
+                <span class="select2 select2-container select2-container--default"
+                  dir="ltr"
+                  style="width: 100%;">
+                  <span class="selection">
+                    <span class="select2-selection select2-selection--single"
+                      role="combobox"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                      tabindex="0"
+                      aria-labelledby="select2-sltDepartamentos-container">
+                      <span class="select2-selection__rendered"
+                        id="select2-sltDepartamentos-container"
+                        role="textbox"
+                        aria-readonly="true">
+                        <span class="select2-selection__placeholder">
+                          - Departamento -
+                        </span>
+                      </span>
+                      <span class="select2-selection__arrow" role="presentation">
+                        <b role="presentation" />
+                      </span>
+                    </span>
+                  </span>
+                  <span class="dropdown-wrapper" aria-hidden="true" />
+                </span>
+              </div>
+            </div>
+            <br />
+          </div>
+          <div class="modal-footer">
+            <button type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal">
+              Cerrar
+            </button>
+            <button type="submit" class="btn btn-success">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

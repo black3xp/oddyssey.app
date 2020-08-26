@@ -274,10 +274,10 @@
             </select>
           </div>
 
-          <button class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary">
+          <a href="#/Cita/Crear" class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary">
             <i class="mdi mdi-plus" />
             Nueva cita
-          </button>
+          </a>
         </div>
       </div>
       <div class="col-md-12 m-b-30">
@@ -285,6 +285,8 @@
         <div class="alert alert-success" role="alert">
           <h4 class="alert-heading">Consultas en turno</h4>
           <div class="table-responsive">
+            <h4 class:d-none={citasEnTurno.length > 0}>No hay cita</h4>
+            {#if citasEnTurno.length > 0}
             <table class="table align-td-middle table-card">
               <thead>
                 <tr>
@@ -314,13 +316,15 @@
                 {/each}
               </tbody>
             </table>
-  
+            {/if}
           </div>
       </div>
 
       <div class="alert alert-primary" role="alert">
         <h4 class="alert-heading">Consultas pendientes</h4>
+        <h4 class:d-none={citasPendientes.length > 0}>No hay cita</h4>
         <div class="table-responsive">
+          {#if citasPendientes.length > 0}
           <table class="table align-td-middle table-card">
             <thead>
               <tr>
@@ -362,6 +366,7 @@
               {/each}
             </tbody>
           </table>
+          {/if}
 
         </div>
     </div>
@@ -615,7 +620,7 @@
               <label class="font-secondary">Tanda</label> 
               <select class="form-control form-control-sm js-select2"
                 bind:value={tandaID} on:change={buscarDisponibilidadHorario}>
-                <option value={0} disabled="">- Seleccionar -</option>
+                <option value={0} disabled>- Seleccionar -</option>
                 <option value={1}>Matutina</option>
                 <option value={2}>Vespertina</option>
               </select>
