@@ -1,8 +1,14 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+  import { connection } from '../../store.js'
 
+  let paciente = {};
 
+  $connection.on("ReceiveMessage", (idPaciente, message) => {
+    console.log(message)
+    paciente = message;
+  });
 </script>
 
 <style>
@@ -92,11 +98,11 @@
                 <div class="row">
                   <div class="form-group col-md-6">
                     <label for="">Nombre</label> 
-                    <input type="name" class="form-control" readonly name="Name" maxlength="200">
+                    <input bind:value={paciente.nombre} type="name" class="form-control" readonly name="Name" maxlength="200">
                     </div>
                   <div class="form-group col-md-6">
                     <label for="">Apellido</label> 
-                    <input type="name" class="form-control" readonly name="Name"maxlength="200">
+                    <input bind:value={paciente.apellidos} type="name" class="form-control" readonly name="Name"maxlength="200">
                   </div>
               
               
@@ -108,7 +114,7 @@
               
                   <div class="form-group col-md-6">
                     <label for="">Telefono</label> 
-                    <input type="tel" class="form-control" readonly name="Name" maxlength="200">
+                    <input bind:value={paciente.telefono} type="tel" class="form-control" readonly name="Name" maxlength="200">
                   </div>
               
               
@@ -120,7 +126,7 @@
               
                   <div class="form-group col-md-6">
                     <label for="">Aseguradora</label> 
-                    <input type="email" class="form-control" readonly name="Name" maxlength="200">
+                    <input bind:value={paciente.nombreAseguradora} type="email" class="form-control" readonly name="Name" maxlength="200">
                   </div>
               
               
@@ -149,7 +155,7 @@
               
                   <div class="form-group col-md-12">
                     <label for="">Observaciones</label> 
-                    <textarea class="form-control" rows="3" name="Observaciones"></textarea>
+                    <textarea bind:value={paciente.observaciones} class="form-control" rows="3" name="Observaciones"></textarea>
                   </div>
                   <br>
                   

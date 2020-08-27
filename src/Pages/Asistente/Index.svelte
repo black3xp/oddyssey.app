@@ -2,7 +2,7 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import axios from "axios";
-  import { activePage, host, dataCita} from "../../store";
+  import { activePage, host, dataCita, connection} from "../../store";
   import { onMount } from "svelte";
   import moment from 'moment';
 
@@ -195,6 +195,12 @@
       }).catch(err => {
         console.error(err);
       })
+  }
+
+  function enviarPaciente(id) {
+    console.log('Invoke')
+    $connection.invoke("SendMessage", id, 'My message')
+    .catch(err => console.error(err));
   }
 </script>
 
@@ -570,7 +576,8 @@
               Guardar
               <i class="mdi mdi-content-save-outline" />
             </button>
-            <button type="submit" class="btn btn-success" title="Guardar y enviar">
+            <button type="button" class="btn btn-success" title="Guardar y enviar"
+              on:click={() => { enviarPaciente(paciente.id) }}>
               Enviar paciente
               <i class="mdi mdi-send" />
             </button>
@@ -595,7 +602,7 @@
       <div class="modal-header">
         <h5 class="modal-title" id="modalCrearCitaLabel">
           <i class="mdi mdi-calendar-plus"></i>
-          Crear cita
+          Reprogramacion de cita
         </h5>
         <button
           type="button"

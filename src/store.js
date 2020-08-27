@@ -1,4 +1,10 @@
 import { writable, readable } from "svelte/store"
+import { HubConnectionBuilder } from '@microsoft/signalr'
+
+export const connection = readable(new HubConnectionBuilder()
+    .withUrl("https://localhost:5001/hub", {
+      accessTokenFactory: () => localStorage.getItem('token')
+    }).build());
 
 export const activePage = writable("home.index");
 export const dataCita = writable({});
