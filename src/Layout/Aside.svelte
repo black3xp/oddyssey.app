@@ -68,6 +68,22 @@
         </a>
       </li>
       <!--list item ends-->
+
+      <!--list item begins-->
+      <li class="menu-item " class:active={$activePage.includes('espacioMedico')}>
+        <a href="/Medico/EspacioTrabajo" use:link class="menu-link">
+          <span class="menu-label">
+            <span class="menu-name">Espacio del medico</span>
+          </span>
+          <span class="menu-icon">
+
+            <i class="icon-placeholder mdi mdi-doctor" />
+
+          </span>
+        </a>
+      </li>
+      <!--list item ends-->
+
       <!--list item begins-->
       <li
         class="menu-item "

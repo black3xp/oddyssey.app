@@ -126,8 +126,9 @@
       console.error(err); 
     })
   }
-  function cargarDatosPaciente(id) {
-    axios.get($host + "/Pacientes?id=" + id, {
+  function cargarDatosPaciente(item) {
+    cita = item
+    axios.get($host + "/Pacientes?id=" + item.pacienteID, {
       headers: {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
@@ -181,10 +182,8 @@
     })
   }
   function cambiarEstadoCita(item) {
-    cita = item;
-    
-    cita.estadoID = 2;
-    axios.put($host + "/Citas/" + cita.id, cita, {
+    item.estadoID = 2;
+    axios.put($host + "/Citas/" + item.id, item, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token")
         }
@@ -197,9 +196,8 @@
       })
   }
 
-  function enviarPaciente(id) {
-    console.log('Invoke')
-    $connection.invoke("SendMessage", id, 'My message')
+  function enviarPaciente() {
+    $connection.invoke("SendMessage", cita, 'My message')
     .catch(err => console.error(err));
   }
 </script>
@@ -313,7 +311,7 @@
                         class="btn btn-success btn-sm mb-1"
                         data-toggle="modal"
                         data-target="#modalPaciente"
-                        on:click={cargarDatosPaciente(i.pacienteID)}>
+                        on:click={cargarDatosPaciente(i)}>
                         <i class="mdi mdi-account-search-outline" />
                         Ver paciente
                       </button>
@@ -352,7 +350,7 @@
                       class="btn btn-success btn-sm mb-1"
                       data-toggle="modal"
                       data-target="#modalPaciente"
-                      on:click={cargarDatosPaciente(i.pacienteID)} >
+                      on:click={cargarDatosPaciente(i)} >
                       <i class="mdi mdi-account-search-outline" />
                       Ver paciente
                     </button>
@@ -577,7 +575,7 @@
               <i class="mdi mdi-content-save-outline" />
             </button>
             <button type="button" class="btn btn-success" title="Guardar y enviar"
-              on:click={() => { enviarPaciente(paciente.id) }}>
+              on:click={enviarPaciente }>
               Enviar paciente
               <i class="mdi mdi-send" />
             </button>

@@ -7,6 +7,14 @@
   import axios from "axios";
   import moment from 'moment';
 
+  let busqueda = "";
+  let dia = -1;
+  let especialidades = [];
+  let listado = [];
+  let tandas = [];
+  let horasDisponibles = [];
+  let horasCompleta = [];
+
   let filter = {
     Nombre: "",
     PerfilID: 0,
@@ -23,14 +31,6 @@
   }
 
   $activePage = "gestor"
-
-  let busqueda = "";
-  let dia = -1;
-  let especialidades = [];
-  let listado = [];
-  let tandas = [];
-  let horasDisponibles = [];
-  let horasCompleta = [];
 
   onMount(() => {
     if ($dataCita.fechaCita != undefined) {
@@ -85,9 +85,9 @@
     });
   }
   function elegirTiempo(e) {
-    let dia = parseInt(e.target.value);
+    let countDia = parseInt(e.target.value);
     let date = moment();
-    date.add(moment.duration(dia, 'd'));
+    date.add(moment.duration(countDia, 'd'));
 
     filter.FechaCita = date.format('YYYY-MM-DD');
     cargarMedicos();
@@ -135,22 +135,18 @@
       }
     }
 
-
     cargarMedicos();
   }
   function limpiarFiltro() {
-    filter = {
-      Nombre: "",
-      PerfilID: 0,
-      FechaCita: "",
-      TandaID: 0
-    }
+    filter.Nombre = "";
+    filter.PerfilID = 0;
+    filter.FechaCita = "";
+    filter.TandaID = 0;
 
     jQuery("#sltEspecialidad").val(0).trigger('change');
     filtrar('limpiar');
   }
   function buscarDisponibilidadHorario(idMedico) {
-
     if (typeof idMedico === 'string') {
       filterCita.MedicoId = idMedico;
     }

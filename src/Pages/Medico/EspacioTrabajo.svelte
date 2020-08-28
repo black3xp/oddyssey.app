@@ -1,13 +1,15 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection } from '../../store.js'
+  import { connection, activePage } from '../../store.js'
 
+  $activePage = "espacioMedico";
   let paciente = {};
+  let cita = {};
 
   $connection.on("ReceiveMessage", (idPaciente, message) => {
-    console.log(message)
-    paciente = message;
+    paciente = message.paciente;
+    cita = message.cita;
   });
 </script>
 
