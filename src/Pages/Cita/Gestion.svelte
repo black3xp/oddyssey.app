@@ -120,8 +120,10 @@
   }
 
   function filtrar(tipo) {
+    console.log(tipo)
     if (tipo == 'limpiar') {
       dia = -1;
+      console.log(dia)
     }
     if (tipo == 'fecha') {
       if (filter.FechaCita == moment().format('YYYY-MM-DD')) {
@@ -142,6 +144,8 @@
     filter.PerfilID = 0;
     filter.FechaCita = "";
     filter.TandaID = 0;
+
+    console.log(filter.FechaCita)
 
     jQuery("#sltEspecialidad").val(0).trigger('change');
     filtrar('limpiar');

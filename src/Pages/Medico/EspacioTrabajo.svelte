@@ -5,11 +5,8 @@
 
   $activePage = "espacioMedico";
   let paciente = {};
-  let cita = {};
-
   $connection.on("ReceiveMessage", (idPaciente, message) => {
-    paciente = message.paciente;
-    cita = message.cita;
+    paciente = message;
   });
 </script>
 

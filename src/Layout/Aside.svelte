@@ -104,7 +104,7 @@
         <ul class="sub-menu">
           <li
             class="menu-item"
-            class:active={$activePage.includes('usuario.index')}>
+            class:active={$activePage.includes('mantenimiento.usuarios.index')}>
             <a href="/Usuario/Index" use:link class=" menu-link">
               <span class="menu-label">
                 <span class="menu-name">Usuarios</span>
