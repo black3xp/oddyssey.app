@@ -1,15 +1,14 @@
 <script>
+  import { session } from '../store.js';
+  import { push } from 'svelte-spa-router'
   import jwt from "jwt-decode";
+  
   let name = '';
   jQuery('.modal-backdrop').hide();
 
-  if (localStorage.length > 0 && localStorage.getItem('token').length > 0) {
-    let obj = jwt(localStorage.getItem('token'));
-    name = obj.unique_name;
-  }
-
-  function cerrarSesion() {
-    localStorage.clear()
+  const logOut = function () {
+    $session.invalidate();
+    push('/Home/Login');
   }
 
 </script>
@@ -107,14 +106,14 @@
           aria-haspopup="true"
           aria-expanded="false">
           <div class="avatar avatar-sm avatar-online">
-            <span class="avatar-title rounded-circle bg-dark">{name[0].toUpperCase()}</span>
+            <span class="avatar-title rounded-circle bg-dark">L</span>
 
           </div>
         </a>
         <div class="dropdown-menu dropdown-menu-right">
           <a class="dropdown-item" href="#!">Resetear contraseña</a>
           <div class="dropdown-divider" />
-          <a class="dropdown-item" href="#/Home/Login" on:click={cerrarSesion}>Cerrar sesion</a>
+          <a class="dropdown-item" href="#!" on:click|preventDefault={logOut}>Cerrar sesion</a>
         </div>
       </li>
 

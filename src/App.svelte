@@ -1,7 +1,7 @@
 <script>
   import Home from "./Pages/Home/Index.svelte";
   import Router from "svelte-spa-router";
-  import {replace} from "svelte-spa-router";
+  import { push } from "svelte-spa-router";
   import { connection } from './store.js'
   import routes from "./routes";
   import { onMount } from "svelte";
@@ -11,4 +11,6 @@
   })
 </script>
 
-<Router {routes}/>
+<Router on:conditionsFailed={() =>{
+  push('/Home/Login')
+}} {routes}/>

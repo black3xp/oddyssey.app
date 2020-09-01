@@ -1,8 +1,16 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { activePage } from "../../store";
+  import { activePage, session } from "../../store";
   import { onDestroy } from "svelte";
+  import { push } from 'svelte-spa-router';
+  import { UserManager } from '../../util.js';
+
+  let user = new UserManager($session.authorizationHeader.Authorization);
+
+  if (!user.isAny(['admin'])) {
+    push('/Home/Login')
+  }
 
   $activePage = "home.index";
   onDestroy(() => {

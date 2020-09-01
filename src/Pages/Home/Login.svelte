@@ -1,24 +1,27 @@
 <script>
-  import { host } from "../../store";
+  import { host, session } from "../../store";
   import { push } from "svelte-spa-router";
   import axios from "axios";
+  import { Session, login } from "svelte-session-manager"
 
-  jQuery('.modal-backdrop').hide();
-  let obj = {
-    username: "",
-    password: ""
-  };
+  let loginFail = false;
+  let username = "";
+  let password = "";
 
-  function iniciar() {
-    axios.post($host + "/User/Login", obj)
+  // jQuery('.modal-backdrop').hide();
+
+  const iniciar = function() {
+    let _session = new Session(localStorage);
+
+    login(_session, $host + "/User/LogIn", username, password)
       .then(x => {
-        if (x.data.success) {
-            localStorage.setItem('token', x.data.access_token);
-            push('/Home/Index');
+        if (x) {
+          loginFail = true;
+        } else {
+          $session = _session;
+          push("/");
         }
-      }).catch(e => {
-        console.log(e);
-      });
+      })
   }
 </script>
 
@@ -46,7 +49,7 @@
                     required
                     class="form-control"
                     placeholder="Correo electronico"
-                    bind:value={obj.username} />
+                    bind:value={username} />
                 </div>
                 <div class="form-group floating-label col-md-12">
                   <label>Contraseña</label>
@@ -55,13 +58,18 @@
                     required
                     placeholder="Contraseña"
                     class="form-control "
-                    bind:value={obj.password} />
+                    bind:value={password} />
                 </div>
               </div>
 
               <button type="submit" class="btn btn-primary btn-block btn-lg">
                 Iniciar sesión
               </button>
+              {#if loginFail}
+                <div class="alert alert-danger mt-2" role="alert">
+                  Usuario y contraseña no coinciden
+                </div>
+              {/if}
 
             </form>
           </div>
