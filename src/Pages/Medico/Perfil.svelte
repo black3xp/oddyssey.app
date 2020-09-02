@@ -3,9 +3,9 @@
   import Header from "../../Layout/Header.svelte";
   import DiaSemana from "../../Components/DiaSemana.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita, host } from "../../store";
+  import { activePage, dataCita } from "../../store";
   import { onMount } from "svelte";
-  import axios from "axios";
+  import axios from "../../util.js";
   import moment from 'moment';
   
   $activePage = "mantenimiento.peril";
@@ -60,11 +60,10 @@
   ];
 
   onMount(() => {
-    let d = new Date();
     btnFechaCita = 's';
 
     if ($dataCita.fechaCita == "" || $dataCita.fechaCita == undefined) {
-      fecha = d.toISOString().split('T')[0];
+      fecha = moment().format('YYYY-MM-DD');
       tandaID = 1;
     } else {
       fecha = $dataCita.fechaCita;
@@ -80,33 +79,24 @@
   });
 
   function cargarDetalle() {
-    axios.get($host + "/Medicos/" + id, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Medicos/" + id)
+    .then(res => {
         detail = res.data;
       }).catch(err => {
         console.error(err);
       });
   }
   function cargarTandas() {
-    axios.get($host + "/Tandas/GetAll", {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Tandas/GetAll")
+    .then(res => {
         tandas = res.data;
       }).catch(err => {
         console.error(err);
       });
   }
   function cargarHorarios() {
-    axios.get($host + "/Medicos/Horarios/" + id, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Medicos/Horarios/" + id)
+    .then(res => {
         horarios = res.data;
 
         diasSemana = diasSemana.map(e => {
@@ -121,11 +111,8 @@
       });
   }
   function cargarCitas() {
-    axios.get($host + "/Medicos/Citas/" + id, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Medicos/Citas/" + id)
+    .then(res => {
         let datos = res.data.map(x => {
           return {
             fecha: moment(x.fecha).format('LL'),
@@ -164,11 +151,8 @@
       });
   }
   function cargarPerfiles() {
-    axios.get($host + "/Perfiles/GetAll", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.get("/Perfiles/GetAll")
+    .then(res => {
         perfiles = res.data;
       }).catch(err => {
         console.error(err);
@@ -190,11 +174,8 @@
     }
 
     let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
-    axios.get($host + "/Medicos/HorasDisponibles/" + id + "?" + params, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Medicos/HorasDisponibles/" + id + "?" + params)
+    .then(res => {
       horasDisponibles = res.data.map(e => {
         return {
           time : e,
@@ -259,11 +240,8 @@
   }
 
   function editar() {
-    axios.get($host + "/User/" + id, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Users/" + id)
+    .then(res => {
       obj = res.data;
       jQuery('#modalUsuario').modal('show');
     }).catch(err => {
@@ -271,13 +249,10 @@
     });
   }
   function guardar() {
-    axios.put($host + "/User/" + id, obj, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.put("/Users/" + id, obj)
+    .then(res => {
         if (res.data.success) {
-          alert('Usuario actualizado con exito')
+          alert('Medico actualizado con exito')
           jQuery('#modalUsuario').modal('hide');
           cargarDetalle();
         }

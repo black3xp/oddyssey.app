@@ -2,11 +2,14 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import axios from "../../util.js";
-  import { activePage, host, dataCita, connection } from "../../store";
+  import { UserManager } from "../../util.js";
+  import { session, activePage, host, dataCita, connection } from "../../store";
   import { onMount } from "svelte";
   import moment from "moment";
 
   $activePage = "asistente.index";
+
+  let userManager = {};
 
   let busqueda = "";
   let medicos = [];
@@ -27,6 +30,7 @@
     { id: 5, nombre: "FUTURO" }
   ];
   let idMedico = "";
+  let userNameMedico = "";
   let fecha = "";
   let tandaID = 0;
 
@@ -55,42 +59,32 @@
   };
 
   onMount(() => {
+    userManager = new UserManager($session.authorizationHeader.Authorization)
+
     jQuery("#sltMedicos").select2();
     jQuery("#sltMedicos").on("select2:select", e => {
       let data = e.params.data;
-      idMedico = data.id;
+      idMedico = data.id.split('=')[0];
+      userNameMedico = data.id.split('=')[1];
       cargarCitas();
     });
 
     cargarMedicos();
   });
 
-  function cargarProvincias() {
-    axios
-      .get("/User/Query")
-      .then(res => {
-        medicos = res.data.filter(x => x.isDoctor);
-      })
-      .catch(err => {
-        console.error(err);
-      });
-  }
   function cargarMedicos() {
-    axios
-      .get("/User/Query")
+    axios.get("/MedicosAsistentes/" + userManager.nameid + "/Medicos")
       .then(res => {
-        medicos = res.data.filter(x => x.isDoctor);
+        medicos = res.data;
       })
       .catch(err => {
         console.error(err);
       });
   }
   function cargarCitas() {
-    axios
-      .get("/Medicos/Citas/" + idMedico)
+    axios.get("/Medicos/Citas/" + idMedico)
       .then(res => {
-        let array = res.data.filter(
-          e =>
+        let array = res.data.filter (e =>
             moment(e.fecha).format("YYYY-MM-DD") ==
             moment().format("YYYY-MM-DD")
         );
@@ -109,8 +103,7 @@
     }
 
     let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
-    axios
-      .get("/Medicos/HorasDisponibles/" + idMedico + "?" + params)
+    axios.get("/Medicos/HorasDisponibles/" + idMedico + "?" + params)
       .then(res => {
         horasDisponibles = res.data.map(x => {
           return {
@@ -126,8 +119,7 @@
   }
   function cargarDatosPaciente(item) {
     cita = item;
-    axios
-      .get("/Pacientes?id=" + item.pacienteID)
+    axios.get("/Pacientes/" + item.pacienteID)
       .then(res => {
         paciente = res.data;
       })
@@ -149,8 +141,7 @@
       e => e.id == paciente.aseguradoraID
     ).nombre;
 
-    axios
-      .put("/Pacientes/" + paciente.id, paciente)
+    axios.put("/Pacientes/" + paciente.id, paciente)
       .then(res => {
         if (res.data.success) {
           alert("Paciente actualizado con exito");
@@ -166,8 +157,7 @@
   function cambiarFechaCita(hora) {
     cita.fecha = fecha + "T" + hora;
 
-    axios
-      .put("/Citas/" + cita.id, cita)
+    axios.put("/Citas/" + cita.id, cita)
       .then(res => {
         if (res.data.success) {
           alert("Fecha de cita actualizada con exito");
@@ -182,8 +172,7 @@
   }
   function cambiarEstadoCita(item) {
     item.estadoID = 2;
-    axios
-      .put("/Citas/" + item.id, item)
+    axios.put("/Citas/" + item.id, item)
       .then(res => {
         if (res.data.success) {
           cargarCitas();
@@ -195,12 +184,11 @@
   }
 
   function enviarPaciente() {
-    axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID
-    ).then(res => {
-      if (!res.data.errors) {
-        $connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID)
-          .catch(err => console.error(err));
-      }
+    axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID)
+    .then(res => {
+      console.log(res.data)
+      $connection.invoke("EnviarPaciente", userNameMedico, cita.pacienteID)
+        .catch(err => console.error(err));
     }).catch(err => {
       console.error(err);
     });
@@ -278,7 +266,7 @@
             <select class="form-control" id="sltMedicos" style="width: 100%">
               <option value={0} disabled selected>- Seleccionar -</option>
               {#each medicos as item}
-                <option value={item.id}>{item.name}</option>
+                <option value={item.medicoID + "=" + item.userName}>{item.name}</option>
               {/each}
             </select>
           </div>
@@ -594,6 +582,7 @@
               Guardar
               <i class="mdi mdi-content-save-outline" />
             </button>
+            {#if cita.estadoID == 2}
             <button
               type="button"
               class="btn btn-success"
@@ -602,6 +591,7 @@
               Enviar paciente
               <i class="mdi mdi-send" />
             </button>
+            {/if}
           </div>
         </form>
 

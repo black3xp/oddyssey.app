@@ -3,7 +3,7 @@
   import Header from "../../Layout/Header.svelte";
   import { activePage, host } from "../../store";
   import { onMount } from "svelte";
-  import axios from "axios";
+  import axios from "../../util.js";
   $activePage = "mantenimiento.usuarios.index";
 
   let perfiles = [];
@@ -32,22 +32,16 @@
   });
 
   function cargar() {
-    axios.get($host + "/User/Query", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.get("/Users/Query")
+    .then(res => {
         list = res.data;
       }).catch(err => {
         console.error(err);
       });
   }
   function cargarDetalle(id) {
-    axios.get($host + "/User/" + id, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.get("/Users/" + id)
+    .then(res => {
         userID = id
         obj = res.data;
       }).catch(err => {
@@ -55,11 +49,7 @@
       });
   }
   function cargarPerfil() {
-    axios.get($host + "/Perfiles/GetAll", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.get("/Perfiles/GetAll").then(res => {
         perfiles = res.data;
       }).catch(err => {
         console.error(err);
@@ -68,11 +58,8 @@
 
   function guardar() {
     if (userID == "") {
-      axios.post($host + "/User", obj, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+      axios.post("/Users", obj)
+      .then(res => {
         if (res.data.success) {
           alert('Usuario guardado con exito')
           jQuery('#modalUsuario').modal('hide');
@@ -82,11 +69,8 @@
         console.error(err);
       });
     } else {
-      axios.put($host + "/User/" + userID, obj, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+      axios.put("/Users/" + userID, obj)
+      .then(res => {
         if (res.data.success) {
           alert('Usuario actualizado con exito')
           jQuery('#modalUsuario').modal('hide');

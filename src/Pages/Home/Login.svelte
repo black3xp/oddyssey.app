@@ -8,12 +8,12 @@
   let username = "";
   let password = "";
 
-  // jQuery('.modal-backdrop').hide();
+  jQuery('.modal-backdrop').hide();
 
   const iniciar = function() {
     let _session = new Session(localStorage);
 
-    login(_session, $host + "/User/LogIn", username, password)
+    login(_session, $host + "/Users/LogIn", username, password)
       .then(x => {
         if (x) {
           loginFail = true;

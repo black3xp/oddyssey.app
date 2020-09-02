@@ -1,7 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { host } from "../store";
-  import axios from "axios";
+  import axios from "../util.js";
 
   export let i = {};
   export let horarios = {};
@@ -35,21 +34,15 @@
       }
 
       if (horarios.some(x => x.dia == dia && x.tandaID == i.id)) { // Si existe horario en ese dia y tanda
-        axios.put($host + "/Horarios", hr, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token")
-          }
-        }).then(res => {
+        axios.put("/Horarios", hr)
+        .then(res => {
           dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);
         });
       } else { // Si no existe horario en ese dia y tanda
-        axios.post($host + "/Horarios", hr, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token")
-          }
-        }).then(res => {
+        axios.post("/Horarios", hr)
+        .then(res => {
           dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);
@@ -66,11 +59,8 @@
         Inactivo: true
       }
 
-      axios.put($host + "/Horarios", hr, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token")
-          }
-        }).then(res => {
+      axios.put("/Horarios", hr)
+      .then(res => {
           dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);

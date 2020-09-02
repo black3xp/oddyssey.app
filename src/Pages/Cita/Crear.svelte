@@ -2,9 +2,9 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita, host } from "../../store";
+  import { activePage, dataCita } from "../../store";
   import { onMount } from "svelte";
-  import axios from "axios";
+  import axios from "../../util.js";
   import moment from 'moment';
 
   $activePage = "citas.crear";
@@ -49,11 +49,8 @@
   let busquedaPacientes = "";
 
   function cargarMedicos() {
-    axios.get($host + "/Medicos/Query", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.get("/Medicos/Query")
+    .then(res => {
         medicos = res.data;
         setTimeout(x => jQuery("#sltMedicos").val(obj.MedicoID).trigger('change'), 10);
       }).catch(err => {
@@ -62,22 +59,16 @@
   }
   function cargarPacientes() {
     let qs = busquedaPacientes != "" ? "?keyword=" + busquedaPacientes : "";
-    axios.get($host + "/Pacientes/Query" + qs, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.get("/Pacientes/Query" + qs)
+    .then(res => {
         pacientes = res.data;
       }).catch(err => {
         console.error(err);
       });
   }
   function cargarTandas() {
-    axios.get($host + "/Tandas/GetAll", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      }).then(res => {
+    axios.get("/Tandas/GetAll")
+    .then(res => {
         tandas = res.data;
         obj.tandaID = $dataCita.tandaID || 0;
       }).catch(err => {
@@ -92,11 +83,8 @@
       return;  
     }
 
-    axios.get($host + "/Medicos/HorasDisponibles/" + obj.MedicoID + params, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Medicos/HorasDisponibles/" + obj.MedicoID + params)
+    .then(res => {
       console.log($dataCita.hora);
 
       horas = res.data.map(x => {
@@ -126,11 +114,7 @@
     let method = ''
 
     if (obj.PacienteID == "") {
-      axios.post($host + "/Pacientes", obj , {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      })
+      axios.post("/Pacientes", obj)
       .then(res => {
         obj.PacienteID = res.data.data;
         crearCita();
@@ -139,11 +123,7 @@
         console.error(err); 
       })
     } else {
-      axios.put($host + "/Pacientes/" + obj.PacienteID, obj, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token")
-        }
-      })
+      axios.put("/Pacientes/" + obj.PacienteID, obj)
       .then(res => {
         if (res.data.success) {
           obj.PacienteID = res.data.data;
@@ -160,9 +140,8 @@
   function crearCita() {
     obj.Fecha = obj.Fecha + "T" + obj.hora;
 
-    axios.post($host + "/Citas", obj, {
-      headers: {Authorization: "Bearer " + localStorage.getItem("token")}
-    }).then(res => {
+    axios.post("/Citas", obj)
+    .then(res => {
       if (res.data.success) {
         push('/Cita/Gestionar');
       } else {

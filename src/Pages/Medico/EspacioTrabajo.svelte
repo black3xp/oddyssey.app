@@ -1,12 +1,20 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection, activePage } from '../../store.js'
+  import { connection, activePage } from '../../store.js';
+  import axios from '../../util.js';
 
   $activePage = "espacioMedico";
   let paciente = {};
-  $connection.on("ReceiveMessage", (idPaciente, message) => {
-    paciente = message;
+  $connection.on("RecibirPaciente", (idPaciente) => {
+    console.log(idPaciente)
+    axios.get("/Pacientes/" + idPaciente)
+      .then(res => {
+        paciente = res.data;
+      })
+      .catch(err => {
+        console.error(err);
+      });
   });
 </script>
 

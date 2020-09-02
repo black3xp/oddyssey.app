@@ -3,8 +3,8 @@
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
   import { onMount } from "svelte";
-  import { activePage, host, dataCita } from "../../store";
-  import axios from "axios";
+  import { activePage, dataCita } from "../../store";
+  import axios from "../../util.js";
   import moment from 'moment';
 
   let busqueda = "";
@@ -52,33 +52,24 @@
 
   function cargarMedicos() {
     var qs = Object.keys(filter).map(i => i + '=' + filter[i]).join('&');
-    axios.get($host + "/Medicos/Query?" + qs, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Medicos/Query?" + qs)
+    .then(res => {
       listado = res.data;
     }).catch(err => {
       console.error(err);
     });
   }
   function cargarEspecialidades() {
-    axios.get($host + "/Perfiles/GetAll", {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Perfiles/GetAll")
+    .then(res => {
       especialidades = res.data;
     }).catch(err => {
       console.error(err);
     });
   }
   function cargarTandas() {
-    axios.get($host + "/Tandas/GetAll", {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Tandas/GetAll")
+    .then(res => {
       tandas = res.data;
     }).catch(err => {
       console.error(err);
@@ -161,11 +152,8 @@
     }
 
     let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + filterCita.TandaID;
-    axios.get($host + "/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token")
-      }
-    }).then(res => {
+    axios.get("/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params)
+    .then(res => {
       horasDisponibles = res.data.map(e => {
         return {
           time : e,

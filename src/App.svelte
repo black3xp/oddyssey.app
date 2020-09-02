@@ -5,9 +5,12 @@
   import { connection } from './store.js'
   import routes from "./routes";
   import { onMount } from "svelte";
+  import { session } from "./store";
 
   onMount( () => {
-    $connection.start().catch(e => console.error(e))
+    if ($session.isValid) {
+      $connection.start().catch(e => console.error(e))
+    }
   })
 </script>
 
