@@ -2,10 +2,13 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita } from "../../store";
+  import { activePage, dataCita, axios, session } from "../../store";
   import { onMount } from "svelte";
-  import axios from "../../util.js";
   import moment from 'moment';
+
+  $axios.defaults.headers.common = {
+    Authorization: $session.authorizationHeader.Authorization
+  };
 
   $activePage = "citas.crear";
 
@@ -49,7 +52,7 @@
   let busquedaPacientes = "";
 
   function cargarMedicos() {
-    axios.get("/Medicos/Query")
+    $axios.get("/Medicos/Query")
     .then(res => {
         medicos = res.data;
         setTimeout(x => jQuery("#sltMedicos").val(obj.MedicoID).trigger('change'), 10);
@@ -59,7 +62,7 @@
   }
   function cargarPacientes() {
     let qs = busquedaPacientes != "" ? "?keyword=" + busquedaPacientes : "";
-    axios.get("/Pacientes/Query" + qs)
+    $axios.get("/Pacientes/Query" + qs)
     .then(res => {
         pacientes = res.data;
       }).catch(err => {
@@ -67,7 +70,7 @@
       });
   }
   function cargarTandas() {
-    axios.get("/Tandas/GetAll")
+    $axios.get("/Tandas/GetAll")
     .then(res => {
         tandas = res.data;
         obj.tandaID = $dataCita.tandaID || 0;
@@ -83,7 +86,7 @@
       return;  
     }
 
-    axios.get("/Medicos/HorasDisponibles/" + obj.MedicoID + params)
+    $axios.get("/Medicos/HorasDisponibles/" + obj.MedicoID + params)
     .then(res => {
       console.log($dataCita.hora);
 
@@ -114,7 +117,7 @@
     let method = ''
 
     if (obj.PacienteID == "") {
-      axios.post("/Pacientes", obj)
+      $axios.post("/Pacientes", obj)
       .then(res => {
         obj.PacienteID = res.data.data;
         crearCita();
@@ -123,7 +126,7 @@
         console.error(err); 
       })
     } else {
-      axios.put("/Pacientes/" + obj.PacienteID, obj)
+      $axios.put("/Pacientes/" + obj.PacienteID, obj)
       .then(res => {
         if (res.data.success) {
           obj.PacienteID = res.data.data;
@@ -140,7 +143,7 @@
   function crearCita() {
     obj.Fecha = obj.Fecha + "T" + obj.hora;
 
-    axios.post("/Citas", obj)
+    $axios.post("/Citas", obj)
     .then(res => {
       if (res.data.success) {
         push('/Cita/Gestionar');

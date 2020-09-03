@@ -1,5 +1,5 @@
 <script>
-  import { session } from '../store.js';
+  import { session, connection } from '../store.js';
   import { push } from 'svelte-spa-router'
   import jwt from "jwt-decode";
   
@@ -7,7 +7,10 @@
   jQuery('.modal-backdrop').hide();
 
   const logOut = function () {
+    $session.clear();
     $session.invalidate();
+    $connection.stop();
+
     push('/Home/Login');
   }
 

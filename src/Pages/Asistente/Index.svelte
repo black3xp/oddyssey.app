@@ -1,11 +1,14 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import axios from "../../util.js";
   import { UserManager } from "../../util.js";
-  import { session, activePage, host, dataCita, connection } from "../../store";
+  import { session, activePage, host, dataCita, connection, axios } from "../../store";
   import { onMount } from "svelte";
   import moment from "moment";
+
+  $axios.defaults.headers.common = {
+    Authorization: $session.authorizationHeader.Authorization
+  };
 
   $activePage = "asistente.index";
 
@@ -73,7 +76,7 @@
   });
 
   function cargarMedicos() {
-    axios.get("/MedicosAsistentes/" + userManager.nameid + "/Medicos")
+    $axios.get("/MedicosAsistentes/" + userManager.nameid + "/Medicos")
       .then(res => {
         medicos = res.data;
       })
@@ -82,7 +85,7 @@
       });
   }
   function cargarCitas() {
-    axios.get("/Medicos/Citas/" + idMedico)
+    $axios.get("/Medicos/Citas/" + idMedico)
       .then(res => {
         let array = res.data.filter (e =>
             moment(e.fecha).format("YYYY-MM-DD") ==
@@ -103,7 +106,7 @@
     }
 
     let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
-    axios.get("/Medicos/HorasDisponibles/" + idMedico + "?" + params)
+    $axios.get("/Medicos/HorasDisponibles/" + idMedico + "?" + params)
       .then(res => {
         horasDisponibles = res.data.map(x => {
           return {
@@ -119,7 +122,7 @@
   }
   function cargarDatosPaciente(item) {
     cita = item;
-    axios.get("/Pacientes/" + item.pacienteID)
+    $axios.get("/Pacientes/" + item.pacienteID)
       .then(res => {
         paciente = res.data;
       })
@@ -141,7 +144,7 @@
       e => e.id == paciente.aseguradoraID
     ).nombre;
 
-    axios.put("/Pacientes/" + paciente.id, paciente)
+    $axios.put("/Pacientes/" + paciente.id, paciente)
       .then(res => {
         if (res.data.success) {
           alert("Paciente actualizado con exito");
@@ -157,7 +160,7 @@
   function cambiarFechaCita(hora) {
     cita.fecha = fecha + "T" + hora;
 
-    axios.put("/Citas/" + cita.id, cita)
+    $axios.put("/Citas/" + cita.id, cita)
       .then(res => {
         if (res.data.success) {
           alert("Fecha de cita actualizada con exito");
@@ -172,7 +175,7 @@
   }
   function cambiarEstadoCita(item) {
     item.estadoID = 2;
-    axios.put("/Citas/" + item.id, item)
+    $axios.put("/Citas/" + item.id, item)
       .then(res => {
         if (res.data.success) {
           cargarCitas();
@@ -184,10 +187,11 @@
   }
 
   function enviarPaciente() {
-    axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID)
+    $axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID)
     .then(res => {
       console.log(res.data)
-      $connection.invoke("EnviarPaciente", userNameMedico, cita.pacienteID)
+      
+      $connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID)
         .catch(err => console.error(err));
     }).catch(err => {
       console.error(err);

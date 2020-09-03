@@ -1,9 +1,13 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { activePage, host } from "../../store";
+  import { activePage, host, axios, session } from "../../store";
   import { onMount } from "svelte";
-  import axios from "../../util.js";
+
+  $axios.defaults.headers.common = {
+    Authorization: $session.authorizationHeader.Authorization
+  };
+
   $activePage = "mantenimiento.usuarios.index";
 
   let perfiles = [];
@@ -32,7 +36,7 @@
   });
 
   function cargar() {
-    axios.get("/Users/Query")
+    $axios.get("/Users/Query")
     .then(res => {
         list = res.data;
       }).catch(err => {
@@ -40,7 +44,7 @@
       });
   }
   function cargarDetalle(id) {
-    axios.get("/Users/" + id)
+    $axios.get("/Users/" + id)
     .then(res => {
         userID = id
         obj = res.data;
@@ -49,7 +53,7 @@
       });
   }
   function cargarPerfil() {
-    axios.get("/Perfiles/GetAll").then(res => {
+    $axios.get("/Perfiles/GetAll").then(res => {
         perfiles = res.data;
       }).catch(err => {
         console.error(err);
@@ -58,7 +62,7 @@
 
   function guardar() {
     if (userID == "") {
-      axios.post("/Users", obj)
+      $axios.post("/Users", obj)
       .then(res => {
         if (res.data.success) {
           alert('Usuario guardado con exito')
@@ -69,7 +73,7 @@
         console.error(err);
       });
     } else {
-      axios.put("/Users/" + userID, obj)
+      $axios.put("/Users/" + userID, obj)
       .then(res => {
         if (res.data.success) {
           alert('Usuario actualizado con exito')

@@ -3,9 +3,12 @@
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
   import { onMount } from "svelte";
-  import { activePage, dataCita } from "../../store";
-  import axios from "../../util.js";
+  import { activePage, dataCita, axios, session } from "../../store";
   import moment from 'moment';
+
+  $axios.defaults.headers.common = {
+    Authorization: $session.authorizationHeader.Authorization
+  };
 
   let busqueda = "";
   let dia = -1;
@@ -52,7 +55,7 @@
 
   function cargarMedicos() {
     var qs = Object.keys(filter).map(i => i + '=' + filter[i]).join('&');
-    axios.get("/Medicos/Query?" + qs)
+    $axios.get("/Medicos/Query?" + qs)
     .then(res => {
       listado = res.data;
     }).catch(err => {
@@ -60,7 +63,7 @@
     });
   }
   function cargarEspecialidades() {
-    axios.get("/Perfiles/GetAll")
+    $axios.get("/Perfiles/GetAll")
     .then(res => {
       especialidades = res.data;
     }).catch(err => {
@@ -68,7 +71,7 @@
     });
   }
   function cargarTandas() {
-    axios.get("/Tandas/GetAll")
+    $axios.get("/Tandas/GetAll")
     .then(res => {
       tandas = res.data;
     }).catch(err => {
@@ -152,7 +155,7 @@
     }
 
     let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + filterCita.TandaID;
-    axios.get("/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params)
+    $axios.get("/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params)
     .then(res => {
       horasDisponibles = res.data.map(e => {
         return {

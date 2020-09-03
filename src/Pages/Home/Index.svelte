@@ -4,14 +4,6 @@
   import { activePage, session } from "../../store.js";
   import { onDestroy } from "svelte";
   import { push } from 'svelte-spa-router';
-  // import { UserManager } from '../../util.js';
-
-  // let user = new UserManager($session.authorizationHeader.Authorization);
-
-  // if (!user.isAny(['admin'])) {
-  //   push('/Home/Login')
-  // }
-
   $activePage = "home.index";
   onDestroy(() => {
     $activePage = "";

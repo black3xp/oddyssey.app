@@ -1,8 +1,8 @@
 <script>
-  import { host, session } from "../../store";
+  import { host, session, connection, axios } from "../../store";
   import { push } from "svelte-spa-router";
-  import axios from "axios";
   import { Session, login } from "svelte-session-manager"
+  import { HubConnectionState } from '@microsoft/signalr'
 
   let loginFail = false;
   let username = "";
@@ -19,7 +19,13 @@
           loginFail = true;
         } else {
           $session = _session;
-          push("/");
+
+          if ($session.isValid) {
+            if ($connection.state === HubConnectionState.Disconnected) {
+              $connection.start().catch(e => console.error(e))
+            }
+            push("/");
+          }
         }
       })
   }

@@ -3,10 +3,13 @@
   import Header from "../../Layout/Header.svelte";
   import DiaSemana from "../../Components/DiaSemana.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita } from "../../store";
+  import { activePage, dataCita, axios, session } from "../../store";
   import { onMount } from "svelte";
-  import axios from "../../util.js";
   import moment from 'moment';
+
+  $axios.defaults.headers.common = {
+    Authorization: $session.authorizationHeader.Authorization
+  };
   
   $activePage = "mantenimiento.peril";
   export let params = {};
@@ -79,7 +82,7 @@
   });
 
   function cargarDetalle() {
-    axios.get("/Medicos/" + id)
+    $axios.get("/Medicos/" + id)
     .then(res => {
         detail = res.data;
       }).catch(err => {
@@ -87,7 +90,7 @@
       });
   }
   function cargarTandas() {
-    axios.get("/Tandas/GetAll")
+    $axios.get("/Tandas/GetAll")
     .then(res => {
         tandas = res.data;
       }).catch(err => {
@@ -95,7 +98,7 @@
       });
   }
   function cargarHorarios() {
-    axios.get("/Medicos/Horarios/" + id)
+    $axios.get("/Medicos/Horarios/" + id)
     .then(res => {
         horarios = res.data;
 
@@ -111,7 +114,7 @@
       });
   }
   function cargarCitas() {
-    axios.get("/Medicos/Citas/" + id)
+    $axios.get("/Medicos/Citas/" + id)
     .then(res => {
         let datos = res.data.map(x => {
           return {
@@ -151,7 +154,7 @@
       });
   }
   function cargarPerfiles() {
-    axios.get("/Perfiles/GetAll")
+    $axios.get("/Perfiles/GetAll")
     .then(res => {
         perfiles = res.data;
       }).catch(err => {
@@ -174,7 +177,7 @@
     }
 
     let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
-    axios.get("/Medicos/HorasDisponibles/" + id + "?" + params)
+    $axios.get("/Medicos/HorasDisponibles/" + id + "?" + params)
     .then(res => {
       horasDisponibles = res.data.map(e => {
         return {
@@ -240,7 +243,7 @@
   }
 
   function editar() {
-    axios.get("/Users/" + id)
+    $axios.get("/Users/" + id)
     .then(res => {
       obj = res.data;
       jQuery('#modalUsuario').modal('show');
@@ -249,7 +252,7 @@
     });
   }
   function guardar() {
-    axios.put("/Users/" + id, obj)
+    $axios.put("/Users/" + id, obj)
     .then(res => {
         if (res.data.success) {
           alert('Medico actualizado con exito')
