@@ -1,15 +1,4 @@
-import axios from "axios";
 import jwt from 'jwt-decode';
-
-axios.defaults.headers.common = {
-    Authorization: "Bearer " + localStorage.getItem("access_token")
-};
-
-// axios.defaults.baseURL= "http://192.168.1.101:92/api"
-axios.defaults.baseURL= "http://192.168.1.104:93/api"
-
-export default axios;
-
 export class UserManager {
     constructor(token) {
         let obj = jwt(token);

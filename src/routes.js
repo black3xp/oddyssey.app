@@ -10,6 +10,7 @@ import UsuarioIndex from './Pages/Usuario/Index.svelte'
 import MedicoPerfil from './Pages/Medico/Perfil.svelte'
 import MedicoEspacioTrabajo from "./Pages/Medico/EspacioTrabajo.svelte"
 import Error404 from './Pages/Home/Error404.svelte'
+import Unauthorized from './Pages/Home/Unauthorized.svelte'
 import { UserManager } from './util.js';
 
 let $session = null;
@@ -26,6 +27,7 @@ const routes = {
     "/Cita/Crear": wrap(CitaCrear, x => $session.isValid),
     "/Medico/Perfil/:id": wrap(MedicoPerfil, x => $session.isValid),
     "/Medico/EspacioTrabajo": wrap(MedicoEspacioTrabajo, x => $session.isValid),
+    "/Home/Unauthorized": wrap(Unauthorized, x => $session.isValid),
     "*": Error404
 }
 

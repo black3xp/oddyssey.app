@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import axios from "../util.js";
+  import { axios } from "../store.js";
 
   export let i = {};
   export let horarios = {};
@@ -34,14 +34,14 @@
       }
 
       if (horarios.some(x => x.dia == dia && x.tandaID == i.id)) { // Si existe horario en ese dia y tanda
-        axios.put("/Horarios", hr)
+        $axios.put("/Horarios", hr)
         .then(res => {
           dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);
         });
       } else { // Si no existe horario en ese dia y tanda
-        axios.post("/Horarios", hr)
+        $axios.post("/Horarios", hr)
         .then(res => {
           dispatch('cambioHorario')
         }).catch(err => {
@@ -59,7 +59,7 @@
         Inactivo: true
       }
 
-      axios.put("/Horarios", hr)
+      $axios.put("/Horarios", hr)
       .then(res => {
           dispatch('cambioHorario')
         }).catch(err => {

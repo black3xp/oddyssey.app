@@ -4,7 +4,14 @@
   import { connection, activePage, session, axios } from "../../store.js";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
+  import { push } from "svelte-spa-router";
   import moment from "moment";
+  
+  let user = {};
+  user = new UserManager($session.authorizationHeader.Authorization)
+  if (!user.isAny(['doctor', 'admin'])) {
+    push('/Home/Unauthorized');
+  }
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
@@ -13,11 +20,9 @@
   $activePage = "espacioMedico";
   let paciente = {};
   let pacienteActual = "";
-  let user = {};
   let citas = [];
 
   onMount(() => {
-    user = new UserManager($session.authorizationHeader.Authorization)
 
     $axios.get('/Medicos/' + user.nameid + "/PacientesActivos")
     .then(res => {

@@ -2,17 +2,22 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import { UserManager } from "../../util.js";
+  import { push } from "svelte-spa-router";
   import { session, activePage, host, dataCita, connection, axios } from "../../store";
   import { onMount } from "svelte";
   import moment from "moment";
+
+  let user = {};
+  user = new UserManager($session.authorizationHeader.Authorization)
+  if (!user.isAny(['assistant', 'admin'])) {
+    push('/Home/Unauthorized');
+  }
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
   };
 
   $activePage = "asistente.index";
-
-  let userManager = {};
 
   let busqueda = "";
   let medicos = [];
@@ -62,8 +67,6 @@
   };
 
   onMount(() => {
-    userManager = new UserManager($session.authorizationHeader.Authorization)
-
     jQuery("#sltMedicos").select2();
     jQuery("#sltMedicos").on("select2:select", e => {
       let data = e.params.data;
@@ -76,7 +79,7 @@
   });
 
   function cargarMedicos() {
-    $axios.get("/MedicosAsistentes/" + userManager.nameid + "/Medicos")
+    $axios.get("/MedicosAsistentes/" + user.nameid + "/Medicos")
       .then(res => {
         medicos = res.data;
       })

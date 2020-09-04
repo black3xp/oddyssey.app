@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import axios from "../util.js";
+  import { axios } from "../store.js";
   import moment from 'moment';
 
   export let horario = {};
@@ -26,7 +26,7 @@
         console.log('hora inicio mayor que hora fin')
       }
       
-      axios.put("/Horarios", obj)
+      $axios.put("/Horarios", obj)
       .then(res => {
         dispatch('cambioHorario')
       }).catch(err => {

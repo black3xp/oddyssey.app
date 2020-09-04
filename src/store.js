@@ -4,7 +4,8 @@ import { HubConnectionBuilder } from '@microsoft/signalr'
 import Axios from "axios";
 
 const axiosInstance = Axios.create({
-  baseURL: "http://192.168.1.104:93/api",
+  // baseURL: "http://192.168.1.101:92/api",
+  baseURL: "http://192.168.1.104:93/api"
 });
 
 export const axios = writable(axiosInstance);

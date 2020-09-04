@@ -1,16 +1,36 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
+  import { push } from "svelte-spa-router";
   import { activePage, host, axios, session } from "../../store";
+  import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
+
+  let user = {};
+  user = new UserManager($session.authorizationHeader.Authorization)
+  if (!user.isAny(['admin'])) {
+    push('/Home/Unauthorized');
+  }
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
   };
 
   $activePage = "mantenimiento.usuarios.index";
+  $: filterRoles = roles.map(x => {
+    return {
+      id : x.id,
+      name : x.name,
+      displayName: x.displayName,
+      checked: rolesUser.some(y => y == x.name)
+    }
+  });
 
+  let asistentesAsignado = [];
+  let asistentes = [];
   let perfiles = [];
+  let roles = [];
+  let rolesUser = [];
   let list = [];
   let prefijos = [
     {value: 'dr', name: 'Dr.'},
@@ -20,7 +40,6 @@
     {value: 'sr', name: 'Sr.'},
     {value: 'sra', name: 'Sra.'},
   ]
-  let userID = "";
   let obj = {
     prefix: "",
     name: "",
@@ -28,15 +47,21 @@
     phoneNumber: "",
     passwordHash: "",
     isDoctor: false,
-    perfilID: 0
+    perfilID: null
   };
+  let userID = "";
+  let busqueda = "";
+  let asistenteID = "";
+
   onMount(() => {
     cargar();
+    cargarAsistentes();
     cargarPerfil();
+    cargarRoles()
   });
 
   function cargar() {
-    $axios.get("/Users/Query")
+    $axios.get("/Users?keyword=" + busqueda)
     .then(res => {
         list = res.data;
       }).catch(err => {
@@ -44,10 +69,12 @@
       });
   }
   function cargarDetalle(id) {
+    userID = id;
     $axios.get("/Users/" + id)
     .then(res => {
         userID = id
         obj = res.data;
+        cargarAsistentesAsignado();
       }).catch(err => {
         console.error(err);
       });
@@ -55,6 +82,39 @@
   function cargarPerfil() {
     $axios.get("/Perfiles/GetAll").then(res => {
         perfiles = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarAsistentesAsignado() {
+    $axios.get("/Medicos/" + userID + "/Asistentes")
+    .then(res => {
+        asistentesAsignado = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarAsistentes() {
+    $axios.get("/Users/assistant/All")
+    .then(res => {
+        asistentes = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarRoles() {
+    $axios.get("/Roles")
+    .then(res => {
+        roles = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarRolesUser(id) {
+    userID = id;
+    $axios.get("Users/" + userID + "/Roles")
+    .then(res => {
+        rolesUser = res.data;
       }).catch(err => {
         console.error(err);
       });
@@ -85,6 +145,54 @@
       });
     }
   }
+  function agregarRol(rol, checked) {
+    checked = Boolean(checked)
+    if (checked) {
+      $axios.post('/Users/' + userID + "/RemoveFrom?role=" + rol)
+      .then(res => {
+        cargarRolesUser(userID)
+      }).catch(err => {
+        console.error(err); 
+      })
+    } else {
+      $axios.post('/Users/' + userID + "/AddTo?role=" + rol)
+      .then(res => {
+        cargarRolesUser(userID)
+      }).catch(err => {
+        console.error(err); 
+      })
+    }
+  }
+  function agregarAsistente() {
+    let obj = {
+      AsistenteID: asistenteID,
+      MedicoID: userID
+    }
+    $axios.post('/MedicosAsistentes', obj)
+    .then(res => {
+      if (res.data.success) {
+        cargarAsistentesAsignado();
+      }
+    }).catch(err => {
+      console.error(err); 
+    })
+  }
+  function eliminarAsistente(item) {
+    let obj = {
+      AsistenteID: item.asistenteID,
+      MedicoID: item.medicoID
+    }
+    let qs = Object.entries(obj).map(e => e.join('=')).join('&');
+
+    $axios.delete('/MedicosAsistentes?' + qs)
+    .then(res => {
+      if (res.data.success) {
+        cargarAsistentesAsignado();
+      }
+    }).catch(err => {
+      console.error(err); 
+    })
+  }
 
   function agregarNuevo() {
     userID = "";
@@ -95,7 +203,7 @@
       phoneNumber: "",
       passwordHash: "",
       isDoctor: false,
-      perfilID: 0
+      perfilID: null
     }
   }
 
@@ -122,8 +230,9 @@
                 <input
                   type="search"
                   class="form-control form-control-appended"
-                  data-bind="textInput: busqueda"
-                  placeholder="Buscar" />
+                  placeholder="Buscar"
+                  bind:value={busqueda}
+                  on:input={cargar} />
                 <div class="input-group-append">
                   <div class="input-group-text">
                     <span class="mdi mdi-magnify" />
@@ -189,6 +298,7 @@
                                 <i class=" mdi-24px mdi mdi-circle-edit-outline" />
                               </a>
                               <a href="#!"
+                                on:click={() => cargarRolesUser(i.id)}
                                 data-toggle="modal"
                                 data-target="#modalRoles"
                                 data-placement="bottom"
@@ -348,13 +458,21 @@
                   <select
                     class="form-control"
                     name="asistentes"
+                    bind:value={asistenteID}
+                    on:change={agregarAsistente}
                     required>
-                    <option value="">- Seleccionar -</option>
-                    <option value="Henry">HEnry</option>
+                    <option value="" disabled>- Seleccionar -</option>
+                    {#each asistentes as item}
+                    <option value={item.id}>{item.name}</option>
+                    {/each}
                   </select>
                 </div>
                 <div class="agregados col-lg-12">
-                  <button type="button" class="btn btn-primary btn-block">Joel Mena</button>
+                  {#each asistentesAsignado as item}
+                  <button type="button" 
+                    class="btn btn-primary btn-block"
+                    on:click={ () => eliminarAsistente(item) }>{item.nombreAsistente}</button>
+                  {/each}
                 </div>
               {/if}
 
@@ -455,48 +573,23 @@
               placeholder="Buscar roles" />
           </div>
           <div class="roles">
-
+            {#each filterRoles as item}
             <div class="lista-rol m-b-10">
               <label class="cstm-switch d-flex bd-highlight">
                 <span class="cstm-switch-description mr-auto bd-highlight">
-                  Administrador
+                  {item.displayName}
                 </span>
                 <input
                   type="checkbox"
                   name="option"
-                  value="1"
+                  value={item.id}
+                  bind:checked={item.checked}
+                  on:click={() => agregarRol(item.name, item.checked)}
                   class="cstm-switch-input" />
                 <span class="cstm-switch-indicator bg-success bd-highlight" />
               </label>
             </div>
-
-            <div class="lista-rol m-b-10">
-              <label class="cstm-switch d-flex bd-highlight">
-                <span class="cstm-switch-description mr-auto bd-highlight">
-                  Especialista
-                </span>
-                <input
-                  type="checkbox"
-                  name="option"
-                  value="1"
-                  class="cstm-switch-input" />
-                <span class="cstm-switch-indicator bg-success bd-highlight" />
-              </label>
-            </div>
-
-            <div class="lista-rol m-b-10">
-              <label class="cstm-switch d-flex bd-highlight">
-                <span class="cstm-switch-description mr-auto bd-highlight">
-                  Medico de planta
-                </span>
-                <input
-                  type="checkbox"
-                  name="option"
-                  value="1"
-                  class="cstm-switch-input" />
-                <span class="cstm-switch-indicator bg-success bd-highlight" />
-              </label>
-            </div>
+            {/each}
 
           </div>
         </form>
