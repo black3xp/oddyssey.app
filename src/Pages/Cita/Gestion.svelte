@@ -3,8 +3,15 @@
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
   import { onMount } from "svelte";
+  import { UserManager } from "../../util.js";
   import { activePage, dataCita, axios, session } from "../../store";
   import moment from 'moment';
+
+  let user = {};
+  user = new UserManager($session.authorizationHeader.Authorization)
+  if (!user.isAny(['assistant', 'admin'])) {
+    push('/Home/Unauthorized');
+  }
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
@@ -54,7 +61,8 @@
   });
 
   function cargarMedicos() {
-    var qs = Object.keys(filter).map(i => i + '=' + filter[i]).join('&');
+    // var qs = Object.keys(filter).map(i => i + '=' + filter[i]).join('&');
+    var qs = new URLSearchParams(filter).toString()
     $axios.get("/Medicos/Query?" + qs)
     .then(res => {
       listado = res.data;
@@ -88,7 +96,7 @@
   }
   function crearCita(id) {
     filterCita.TandaID = filter.TandaID;
-    filterCita.FechaCita = filter.FechaCita;
+    filterCita.FechaCita = filter.FechaCita || moment().format('YYYY-MM-DD');
     buscarDisponibilidadHorario(id)
 
     jQuery('#modalCrearCita').modal('show')
@@ -114,10 +122,8 @@
   }
 
   function filtrar(tipo) {
-    console.log(tipo)
     if (tipo == 'limpiar') {
       dia = -1;
-      console.log(dia)
     }
     if (tipo == 'fecha') {
       if (filter.FechaCita == moment().format('YYYY-MM-DD')) {
@@ -138,8 +144,6 @@
     filter.PerfilID = 0;
     filter.FechaCita = "";
     filter.TandaID = 0;
-
-    console.log(filter.FechaCita)
 
     jQuery("#sltEspecialidad").val(0).trigger('change');
     filtrar('limpiar');

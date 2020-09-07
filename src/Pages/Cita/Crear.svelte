@@ -88,8 +88,6 @@
 
     $axios.get("/Medicos/HorasDisponibles/" + obj.MedicoID + params)
     .then(res => {
-      console.log($dataCita.hora);
-
       horas = res.data.map(x => {
         return {
           time: x,
@@ -146,6 +144,7 @@
     $axios.post("/Citas", obj)
     .then(res => {
       if (res.data.success) {
+        $dataCita = {};
         push('/Cita/Gestionar');
       } else {
         console.log(res);

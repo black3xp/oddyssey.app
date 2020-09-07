@@ -459,8 +459,7 @@
                     class="form-control"
                     name="asistentes"
                     bind:value={asistenteID}
-                    on:change={agregarAsistente}
-                    required>
+                    on:change={agregarAsistente}>
                     <option value="" disabled>- Seleccionar -</option>
                     {#each asistentes as item}
                     <option value={item.id}>{item.name}</option>

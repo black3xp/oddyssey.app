@@ -19,34 +19,59 @@
 
   $activePage = "espacioMedico";
   let paciente = {};
-  let pacienteActual = "";
+  let citaActual = {};
   let citas = [];
 
   onMount(() => {
+    cargarPacientesActivos()
+  })
 
+  $connection.on("RecibirPaciente", cita => {
+    citaActual = cita
+    cargarPacientesActivos();
+  });
+
+  function cargarPacientesActivos() {
     $axios.get('/Medicos/' + user.nameid + "/PacientesActivos")
     .then(res => {
       citas = res.data.filter (e =>
         moment(e.fecha).format("YYYY-MM-DD") ==
         moment().format("YYYY-MM-DD")
       );
+      if (Object.entries(citaActual).length != 0) {
+        getPaciente(citaActual)
+      }
     }).catch(err => {
       console.error(err);
     })
-  })
-
-  $connection.on("RecibirPaciente", idPaciente => {
-    getPaciente(idPaciente)
-  });
-
-  function getPaciente(id) {
-    pacienteActual = id;
-    $axios.get("/Pacientes/" + pacienteActual)
+  }
+  function getPaciente(cita) {
+    citaActual = cita
+    $axios.get("/Pacientes/" + cita.pacienteID)
       .then(res => {
         paciente = res.data;
       }).catch(err => {
         console.error(err);
       });
+  }
+  function terminarCita() {
+    if (Object.entries(citaActual).length > 0) {
+      citaActual.estadoID = 3;
+      $axios.put("/Citas/" + citaActual.id, citaActual)
+      .then(res => {
+        if (res.data.success) {
+          citaActual = {}
+          paciente = {}
+          cargarPacientesActivos();
+
+          $connection.invoke("EnviarAvisoDelPaciente", user.nameid)
+            .catch(err => console.error(err));
+        }
+      })
+      .catch(err => {
+        console.error(err);
+      });
+    }
   }
 </script>
 
@@ -75,13 +100,14 @@
     <div class="container mt-3">
       <div class="row">
         <div class="col-lg-12 mb-3" style="text-align: right;">
-          <button type="submit" class="btn btn-primary">
+          <!-- <button type="submit" class="btn btn-primary">
             <i class="mdi mdi-bell-ring-outline" />
             Llamar asistente
-          </button>
-          <button type="submit" class="btn btn-success">
+          </button> -->
+          <button class:d-none={Object.entries(citaActual).length == 0} class="btn btn-success"
+            on:click={terminarCita}>
             <i class="mdi mdi-check-all" />
-            Pasar nuevo paciente
+            Terminar cita
           </button>
         </div>
         <div class="col-lg-5">
@@ -94,9 +120,9 @@
                 {#each citas as item}
                 <div
                   class="list-group-item d-flex align-items-center
-                  link-pacientes svelte-1p1f2vm" class:activo={pacienteActual == item.pacienteID}
+                  link-pacientes svelte-1p1f2vm" class:activo={citaActual.pacienteID == item.pacienteID}
                   style="cursor: pointer;"
-                  on:click={() => { getPaciente(item.pacienteID) }}>
+                  on:click={() => { getPaciente(item) }}>
                   <div class="row">
                     <div class="">
                       <div class="name">

@@ -23,6 +23,7 @@
   let medicos = [];
   let citasPendientes = [];
   let citasEnTurno = [];
+  let citasRealizadas = [];
 
   let horasDisponibles = [];
   let provincias = [
@@ -78,6 +79,10 @@
     cargarMedicos();
   });
 
+  $connection.on("RecibirAvisoDelPaciente", data => {
+    cargarCitas()
+  });
+
   function cargarMedicos() {
     $axios.get("/MedicosAsistentes/" + user.nameid + "/Medicos")
       .then(res => {
@@ -97,6 +102,7 @@
 
         citasPendientes = array.filter(e => e.estadoID == 1);
         citasEnTurno = array.filter(e => e.estadoID == 2);
+        citasRealizadas = array.filter(e => e.estadoID == 3);
       })
       .catch(err => {
         console.error(err);
@@ -162,11 +168,13 @@
   }
   function cambiarFechaCita(hora) {
     cita.fecha = fecha + "T" + hora;
+    cita.estadoID = 1;
 
     $axios.put("/Citas/" + cita.id, cita)
       .then(res => {
         if (res.data.success) {
           alert("Fecha de cita actualizada con exito");
+          cargarCitas();
           jQuery("#modalCrearCita").modal("hide");
         } else {
           console.log(res);
@@ -192,10 +200,11 @@
   function enviarPaciente() {
     $axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID)
     .then(res => {
-      console.log(res.data)
-      
-      $connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID)
+      if (!res.data.errors) {
+        $connection.invoke("EnviarPaciente", cita)
         .catch(err => console.error(err));
+      }
+
     }).catch(err => {
       console.error(err);
     });
@@ -311,7 +320,7 @@
                           class="btn btn-success btn-sm mb-1"
                           data-toggle="modal"
                           data-target="#modalPaciente"
-                          on:click={cargarDatosPaciente(i)}>
+                          on:click={() => cargarDatosPaciente(i)}>
                           <i class="mdi mdi-account-search-outline" />
                           Ver paciente
                         </button>
@@ -350,7 +359,7 @@
                           class="btn btn-success btn-sm mb-1"
                           data-toggle="modal"
                           data-target="#modalPaciente"
-                          on:click={cargarDatosPaciente(i)}>
+                          on:click={() => cargarDatosPaciente(i)}>
                           <i class="mdi mdi-account-search-outline" />
                           Ver paciente
                         </button>
@@ -358,7 +367,7 @@
                           class="btn btn-success btn-sm mb-1"
                           data-toggle="modal"
                           data-target="#modalCrearCita"
-                          on:click={reprogramarCita(i)}>
+                          on:click={() => reprogramarCita(i)}>
                           <i class="mdi mdi-calendar-remove" />
                           Reprogramar
                         </button>
@@ -380,42 +389,48 @@
 
         <div class="alert alert-secondary" role="alert">
           <h4 class="alert-heading">Consultas realizadas</h4>
+          <h4 class:d-none={citasRealizadas.length > 0}>No hay cita</h4>
           <div class="table-responsive">
-            <table class="table align-td-middle table-card">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Celular</th>
-                  <th>Observacion</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-
-                <tr class="cursor-table">
-                  <td>Paciente</td>
-                  <td>8095881717</td>
-                  <td>Observaciones</td>
-                  <td style="text-align: right;">
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalPaciente">
-                      <i class="mdi mdi-account-search-outline" />
-                      Ver paciente
-                    </button>
-                    <button
-                      class="btn btn-success btn-sm mb-1"
-                      data-toggle="modal"
-                      data-target="#modalCrearCita">
-                      <i class="mdi mdi-calendar-plus" />
-                      Crear cita
-                    </button>
-                  </td>
-                </tr>
-
-              </tbody>
-            </table>
+            {#if citasRealizadas.length > 0}
+              <table class="table align-td-middle table-card">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Celular</th>
+                    <th>Observacion</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each citasRealizadas as i}
+                    <tr class="cursor-table">
+                      <td>{i.nombrePaciente}</td>
+                      <td />
+                      <td>{i.observaciones}</td>
+                      <td />
+                      <td style="text-align: right;">
+                        <button
+                          class="btn btn-success btn-sm mb-1"
+                          data-toggle="modal"
+                          data-target="#modalPaciente"
+                          on:click={() => cargarDatosPaciente(i)}>
+                          <i class="mdi mdi-account-search-outline" />
+                          Ver paciente
+                        </button>
+                        <button
+                          class="btn btn-success btn-sm mb-1"
+                          data-toggle="modal"
+                          data-target="#modalCrearCita"
+                          on:click={() => reprogramarCita(i)}>
+                          <i class="mdi mdi-calendar-remove" />
+                          Reprogramar
+                        </button>
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            {/if}
 
           </div>
         </div>
