@@ -120,7 +120,7 @@
                 {#each citas as item}
                 <div
                   class="list-group-item d-flex align-items-center
-                  link-pacientes svelte-1p1f2vm" class:activo={citaActual.pacienteID == item.pacienteID}
+                  link-pacientes svelte-1p1f2vm" class:activo={citaActual.id == item.id}
                   style="cursor: pointer;"
                   on:click={() => { getPaciente(item) }}>
                   <div class="row">
@@ -176,7 +176,7 @@
                       type="name"
                       class="form-control"
                       readonly
-                      name="Name"
+                      value={paciente.cedula || ""}
                       maxlength="200" />
                   </div>
 
@@ -208,7 +208,6 @@
                       type="email"
                       class="form-control"
                       readonly
-                      name="Name"
                       maxlength="200" />
                   </div>
 
@@ -218,8 +217,8 @@
                       type="text"
                       class="form-control"
                       readonly
-                      name="Name"
-                      maxlength="200" />
+                      maxlength="200"
+                      value={paciente.noAfiliado || ""} />
                   </div>
 
                   <div class="form-group col-md-6">
@@ -228,7 +227,6 @@
                       type="email"
                       class="form-control"
                       readonly
-                      name="Name"
                       maxlength="200" />
                   </div>
 
@@ -238,7 +236,6 @@
                       type="email"
                       class="form-control"
                       readonly
-                      name="Name"
                       maxlength="200" />
                   </div>
 
@@ -248,7 +245,7 @@
                       class="form-control"
                       rows="2"
                       readonly
-                      name="Observaciones" />
+                      value={paciente.direccion || ""} />
                   </div>
 
                   <div class="form-group col-md-12">

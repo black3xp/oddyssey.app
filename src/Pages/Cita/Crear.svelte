@@ -5,6 +5,7 @@
   import { activePage, dataCita, axios, session } from "../../store";
   import { onMount } from "svelte";
   import moment from 'moment';
+  import Swal from 'sweetalert2';
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
@@ -145,6 +146,11 @@
     .then(res => {
       if (res.data.success) {
         $dataCita = {};
+        Swal.fire({
+          title: 'Correcto',
+          text: 'La cita fue creada con exito',
+          icon: 'success'
+        });
         push('/Cita/Gestionar');
       } else {
         console.log(res);

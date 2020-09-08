@@ -1,3 +1,3 @@
-<h2>Unathorized 401</h2>
+<h2 class="ml-2 mt-2">Unathorized 401</h2>
 
-<a href="#/">Ir a inicio</a>
+<a class="ml-2 mt-2" href="#/">Ir a inicio</a>

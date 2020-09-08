@@ -5,6 +5,7 @@
   import { activePage, host, axios, session } from "../../store";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
+  import Swal from 'sweetalert2';
 
   let user = {};
   user = new UserManager($session.authorizationHeader.Authorization)
@@ -51,6 +52,7 @@
   };
   let userID = "";
   let busqueda = "";
+  let busquedaRoles = "";
   let asistenteID = "";
 
   onMount(() => {
@@ -125,7 +127,11 @@
       $axios.post("/Users", obj)
       .then(res => {
         if (res.data.success) {
-          alert('Usuario guardado con exito')
+          Swal.fire({
+            title: 'Guardado',
+            text: 'Usuario guardado con exito',
+            icon: 'success'
+          });
           jQuery('#modalUsuario').modal('hide');
           cargar();
         }
@@ -136,7 +142,11 @@
       $axios.put("/Users/" + userID, obj)
       .then(res => {
         if (res.data.success) {
-          alert('Usuario actualizado con exito')
+          Swal.fire({
+            title: 'Guardado',
+            text: 'Usuario guardado con exito',
+            icon: 'success'
+          });
           jQuery('#modalUsuario').modal('hide');
           cargar();
         }
@@ -152,7 +162,7 @@
       .then(res => {
         cargarRolesUser(userID)
       }).catch(err => {
-        console.error(err); 
+        console.error(err);
       })
     } else {
       $axios.post('/Users/' + userID + "/AddTo?role=" + rol)
@@ -288,7 +298,7 @@
                               </a>
                               {/if}
                               <a href="#!"
-                                on:click={cargarDetalle(i.id)}
+                                on:click={() => cargarDetalle(i.id)}
                                 data-toggle="modal"
                                 style="cursor: pointer;"
                                 data-placement="top"
@@ -357,7 +367,7 @@
                   class="form-control"
                   name="prefijo"
                   bind:value={obj.prefix} required>
-                  <option value="">- Seleccionar -</option>
+                  <option value="" disabled>- Seleccionar -</option>
                   {#each prefijos as item}
                     <option value={item.value}>{item.name}</option>
                   {/each}
@@ -447,7 +457,7 @@
                   <label for="">Perfil</label>
                   <select class="form-control" name="perfil"
                     bind:value={obj.perfilID} required>
-                    <option value="">- Seleccionar -</option>
+                    <option value="" disabled>- Seleccionar -</option>
                     {#each perfiles as item}
                       <option value={item.id}>{item.nombre}</option>
                     {/each}
@@ -460,7 +470,7 @@
                     name="asistentes"
                     bind:value={asistenteID}
                     on:change={agregarAsistente}>
-                    <option value="" disabled>- Seleccionar -</option>
+                    <option value="" disabled>- Agregar -</option>
                     {#each asistentes as item}
                     <option value={item.id}>{item.name}</option>
                     {/each}
@@ -569,6 +579,7 @@
             <input
               type="text"
               class="form-control"
+              bind:value={busquedaRoles}
               placeholder="Buscar roles" />
           </div>
           <div class="roles">

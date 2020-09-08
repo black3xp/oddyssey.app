@@ -6,6 +6,7 @@
   import { session, activePage, host, dataCita, connection, axios } from "../../store";
   import { onMount } from "svelte";
   import moment from "moment";
+  import Swal from 'sweetalert2';
 
   let user = {};
   user = new UserManager($session.authorizationHeader.Authorization)
@@ -80,7 +81,16 @@
   });
 
   $connection.on("RecibirAvisoDelPaciente", data => {
-    cargarCitas()
+    if ($activePage == "asistente.index") {
+      if (citasEnTurno.length > 0) {
+        cargarCitas()
+      }
+      Swal.fire({
+        title: 'Aviso',
+        text: 'El paciente ya fue atendido, favor de mandar otro',
+        icon: 'success'
+      });
+    }
   });
 
   function cargarMedicos() {
@@ -156,7 +166,12 @@
     $axios.put("/Pacientes/" + paciente.id, paciente)
       .then(res => {
         if (res.data.success) {
-          alert("Paciente actualizado con exito");
+          Swal.fire({
+            title: 'Actualizado',
+            text: 'Paciente actualizado con exito',
+            icon: 'success'
+          });
+          
           jQuery("#modalPaciente").modal("hide");
         } else {
           console.log(res);
@@ -173,7 +188,11 @@
     $axios.put("/Citas/" + cita.id, cita)
       .then(res => {
         if (res.data.success) {
-          alert("Fecha de cita actualizada con exito");
+          Swal.fire({
+            title: 'Actualizado',
+            text: 'Fecha de cita actualizada con exito',
+            icon: 'success'
+          });
           cargarCitas();
           jQuery("#modalCrearCita").modal("hide");
         } else {
@@ -190,6 +209,24 @@
       .then(res => {
         if (res.data.success) {
           cargarCitas();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
+  function anularCita() {
+    cita.estadoID = 4;
+    $axios.put("/Citas/" + cita.id, cita)
+      .then(res => {
+        if (res.data.success) {
+          Swal.fire({
+            title: 'Anulado',
+            text: 'Cita anulada con exito',
+            icon: 'success'
+          });
+          cargarCitas();
+          jQuery("#modalCrearCita").modal("hide");
         }
       })
       .catch(err => {
@@ -648,6 +685,9 @@
       <div class="modal-body" style="height: 100%; top: 0; overflow: auto;">
 
         <div class="row">
+          <div class="col-lg-12">
+            <button on:click={anularCita} type="button" class="btn btn-danger">Anular cita</button>
+          </div>
           <div class="col-lg-6">
             <div class="form-group">
               <label for="inputAddress">Fecha</label>
