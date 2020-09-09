@@ -56,6 +56,7 @@
   }
   function terminarCita() {
     if (Object.entries(citaActual).length > 0) {
+      citaActual.inactivo = true;
       citaActual.estadoID = 3;
       $axios.put("/Citas/" + citaActual.id, citaActual)
       .then(res => {

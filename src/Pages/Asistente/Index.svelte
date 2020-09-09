@@ -65,7 +65,8 @@
     aseguradoraID: 0,
     estadoID: 1,
     fecha: "",
-    observaciones: ""
+    observaciones: "",
+    inactivo: false,
   };
 
   onMount(() => {
@@ -75,6 +76,7 @@
       idMedico = data.id.split('=')[0];
       userNameMedico = data.id.split('=')[1];
       cargarCitas();
+      cargarCitasRealizadas();
     });
 
     cargarMedicos();
@@ -83,7 +85,8 @@
   $connection.on("RecibirAvisoDelPaciente", data => {
     if ($activePage == "asistente.index") {
       if (citasEnTurno.length > 0) {
-        cargarCitas()
+        cargarCitas();
+        cargarCitasRealizadas();
       }
       Swal.fire({
         title: 'Aviso',
@@ -112,7 +115,18 @@
 
         citasPendientes = array.filter(e => e.estadoID == 1);
         citasEnTurno = array.filter(e => e.estadoID == 2);
-        citasRealizadas = array.filter(e => e.estadoID == 3);
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
+  function cargarCitasRealizadas() {
+    $axios.get("/Medicos/CitasRealizadas/" + idMedico)
+      .then(res => {
+        citasRealizadas = res.data.filter (e =>
+            moment(e.fecha).format("YYYY-MM-DD") ==
+            moment().format("YYYY-MM-DD")
+        );
       })
       .catch(err => {
         console.error(err);
@@ -194,6 +208,7 @@
             icon: 'success'
           });
           cargarCitas();
+          cargarCitasRealizadas();
           jQuery("#modalCrearCita").modal("hide");
         } else {
           console.log(res);
@@ -216,22 +231,35 @@
       });
   }
   function anularCita() {
-    cita.estadoID = 4;
-    $axios.put("/Citas/" + cita.id, cita)
-      .then(res => {
-        if (res.data.success) {
-          Swal.fire({
-            title: 'Anulado',
-            text: 'Cita anulada con exito',
-            icon: 'success'
+    Swal.fire({
+      title: 'Estas seguro que deseas anular la cita?',
+      text: "Este cambio no se puede deshacer!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      cancelButtonText: 'No',
+      confirmButtonText: 'Si'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        cita.inactivo = true;
+        $axios.put("/Citas/" + cita.id, cita)
+          .then(res => {
+            if (res.data.success) {
+              Swal.fire({
+                title: 'Anulado',
+                text: 'Cita anulada con exito',
+                icon: 'success'
+              });
+              cargarCitas();
+              jQuery("#modalCrearCita").modal("hide");
+            }
+          })
+          .catch(err => {
+            console.error(err);
           });
-          cargarCitas();
-          jQuery("#modalCrearCita").modal("hide");
-        }
-      })
-      .catch(err => {
-        console.error(err);
-      });
+      }
+    })
   }
 
   function enviarPaciente() {
@@ -501,7 +529,6 @@
         </button>
       </div>
       <div class="modal-body">
-
         <form id="frmPaciente" on:submit|preventDefault={guardarPaciente}>
           <input type="hidden" name="IdUser" value="0" />
           <div class="form-row">
@@ -653,8 +680,8 @@
             {/if}
           </div>
         </form>
-
       </div>
+      
     </div>
   </div>
 </div>
@@ -685,9 +712,6 @@
       <div class="modal-body" style="height: 100%; top: 0; overflow: auto;">
 
         <div class="row">
-          <div class="col-lg-12">
-            <button on:click={anularCita} type="button" class="btn btn-danger">Anular cita</button>
-          </div>
           <div class="col-lg-6">
             <div class="form-group">
               <label for="inputAddress">Fecha</label>
@@ -730,6 +754,12 @@
           {/each}
         </div>
 
+      </div>
+      <div class="modal-footer" class:d-none={cita.estadoID == 3}>
+        <button on:click={anularCita}
+          type="button" class="btn btn-danger">
+          Anular cita
+        </button>
       </div>
     </div>
   </div>

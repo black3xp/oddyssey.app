@@ -25,7 +25,7 @@
       displayName: x.displayName,
       checked: rolesUser.some(y => y == x.name)
     }
-  });
+  }).filter(x => x.displayName.toLowerCase().includes(busquedaRoles.toLowerCase()));
 
   let asistentesAsignado = [];
   let asistentes = [];
