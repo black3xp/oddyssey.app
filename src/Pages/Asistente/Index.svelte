@@ -263,14 +263,42 @@
   }
 
   function enviarPaciente() {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 5000,
+      timerProgressBar: true,
+      onOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      }
+    })
+
     $axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID)
     .then(res => {
       if (!res.data.errors) {
         $connection.invoke("EnviarPaciente", cita)
-        .catch(err => console.error(err));
+          .catch(err => console.error(err));
+
+        Toast.fire({
+          icon: 'success',
+          title: 'Se ha enviado correctamente'
+        })
+
+        jQuery("#modalPaciente").modal("hide");
+      } else {
+        Toast.fire({
+          icon: 'error',
+          title: 'Error de conexion'
+        })
       }
 
     }).catch(err => {
+      Toast.fire({
+        icon: 'error',
+        title: 'Error de conexion'
+      })
       console.error(err);
     });
   }

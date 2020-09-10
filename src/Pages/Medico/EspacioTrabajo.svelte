@@ -20,6 +20,7 @@
   $activePage = "espacioMedico";
   let paciente = {};
   let citaActual = {};
+  let envioCitaActual = {};
   let citas = [];
 
   onMount(() => {
@@ -28,6 +29,7 @@
 
   $connection.on("RecibirPaciente", cita => {
     citaActual = cita
+    envioCitaActual = cita
     cargarPacientesActivos();
   });
 
@@ -35,8 +37,7 @@
     $axios.get('/Medicos/' + user.nameid + "/PacientesActivos")
     .then(res => {
       citas = res.data.filter (e =>
-        moment(e.fecha).format("YYYY-MM-DD") ==
-        moment().format("YYYY-MM-DD")
+        moment(e.fecha).format("YYYY-MM-DD") == moment().format("YYYY-MM-DD")
       );
       if (Object.entries(citaActual).length != 0) {
         getPaciente(citaActual)
@@ -121,7 +122,7 @@
                 {#each citas as item}
                 <div
                   class="list-group-item d-flex align-items-center
-                  link-pacientes svelte-1p1f2vm" class:activo={citaActual.id == item.id}
+                  link-pacientes svelte-1p1f2vm" class:activo={envioCitaActual.id == item.id}
                   style="cursor: pointer;"
                   on:click={() => { getPaciente(item) }}>
                   <div class="row">

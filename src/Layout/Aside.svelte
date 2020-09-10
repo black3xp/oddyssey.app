@@ -1,6 +1,9 @@
 <script>
   import { link } from "svelte-spa-router";
-  import { activePage } from "../store.js";
+  import { activePage, session } from "../store.js";
+  import { UserManager } from "../util.js";
+
+  let user = new UserManager($session.authorizationHeader.Authorization);
 </script>
 
 <aside class="admin-sidebar">
@@ -42,7 +45,8 @@
       </li>
       <!--list item ends-->
       <!--list item begins-->
-      <li class="menu-item " class:active={$activePage.includes('asistente')}>
+      <li class="menu-item " class:active={$activePage.includes('asistente')}
+        class:d-none={!user.isAny(['assistant', 'admin'])}>
         <a href="/Asistente/Index" use:link class="menu-link">
           <span class="menu-label">
             <span class="menu-name">Asistente</span>
@@ -55,7 +59,8 @@
       </li>
       <!--list item ends-->
       <!--list item begins-->
-      <li class="menu-item " class:active={$activePage.includes('gestor')}>
+      <li class="menu-item " class:active={$activePage.includes('gestor')}
+        class:d-none={!user.isAny(['assistant', 'admin'])}>
         <a href="/Cita/Gestionar" use:link class="menu-link">
           <span class="menu-label">
             <span class="menu-name">Gestor de Citas</span>
@@ -70,7 +75,8 @@
       <!--list item ends-->
 
       <!--list item begins-->
-      <li class="menu-item " class:active={$activePage.includes('espacioMedico')}>
+      <li class="menu-item " class:active={$activePage.includes('espacioMedico')}
+        class:d-none={!user.isAny(['doctor', 'admin'])}>
         <a href="/Medico/EspacioTrabajo" use:link class="menu-link">
           <span class="menu-label">
             <span class="menu-name">Espacio del medico</span>
@@ -86,8 +92,8 @@
 
       <!--list item begins-->
       <li
-        class="menu-item "
-        class:opened={$activePage.includes('mantenimiento')}>
+        class="menu-item " class:opened={$activePage.includes('mantenimiento')}
+        class:d-none={!user.isAny(['admin'])}>
         <a href="#!" class="open-dropdown menu-link">
           <span class="menu-label">
             <span class="menu-name">
