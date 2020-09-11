@@ -16,21 +16,31 @@
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
   };
-
   $activePage = "espacioMedico";
+
+  let citaPacienteActual = {};
+
+  let interval = window.setInterval(() => {
+    if (citaPacienteActual != undefined) {
+      citaPacienteActual = citas.find(x => x.pacienteID == envioPacienteActual)
+      console.log(citaPacienteActual)
+      clearInterval(interval)
+    }
+  }, 250)
+
   let paciente = {};
-  let citaActual = {};
-  let envioCitaActual = {};
+  let envioPacienteActual = "";
   let citas = [];
 
   onMount(() => {
     cargarPacientesActivos()
+    buscarPacientePendiente();
   })
 
   $connection.on("RecibirPaciente", cita => {
-    citaActual = cita
-    envioCitaActual = cita
+    envioPacienteActual = cita.pacienteID
     cargarPacientesActivos();
+    getPaciente(envioPacienteActual)
   });
 
   function cargarPacientesActivos() {
@@ -39,16 +49,12 @@
       citas = res.data.filter (e =>
         moment(e.fecha).format("YYYY-MM-DD") == moment().format("YYYY-MM-DD")
       );
-      if (Object.entries(citaActual).length != 0) {
-        getPaciente(citaActual)
-      }
     }).catch(err => {
       console.error(err);
     })
   }
-  function getPaciente(cita) {
-    citaActual = cita
-    $axios.get("/Pacientes/" + cita.pacienteID)
+  function getPaciente(id) {
+    $axios.get("/Pacientes/" + id)
       .then(res => {
         paciente = res.data;
       }).catch(err => {
@@ -56,14 +62,15 @@
       });
   }
   function terminarCita() {
-    if (Object.entries(citaActual).length > 0) {
-      citaActual.inactivo = true;
-      citaActual.estadoID = 3;
-      $axios.put("/Citas/" + citaActual.id, citaActual)
+    if (Object.entries(citaPacienteActual).length > 0) {
+      citaPacienteActual.inactivo = true;
+      citaPacienteActual.estadoID = 3;
+      $axios.put("/Citas/" + citaPacienteActual.id, citaPacienteActual)
       .then(res => {
         if (res.data.success) {
-          citaActual = {}
+          citaPacienteActual = {}
           paciente = {}
+          envioPacienteActual = "";
           cargarPacientesActivos();
 
           $connection.invoke("EnviarAvisoDelPaciente", user.nameid)
@@ -74,6 +81,16 @@
         console.error(err);
       });
     }
+  }
+
+  function buscarPacientePendiente() {
+    $axios.get("/Medicos/" + user.nameid + "/PacientePendiente")
+      .then(res => {
+        envioPacienteActual = res.data.data;
+        getPaciente(envioPacienteActual)
+      }).catch(err => {
+        console.error(err);
+      });
   }
 </script>
 
@@ -106,7 +123,7 @@
             <i class="mdi mdi-bell-ring-outline" />
             Llamar asistente
           </button> -->
-          <button class:d-none={Object.entries(citaActual).length == 0} class="btn btn-success"
+          <button class:d-none={envioPacienteActual == ""} class="btn btn-success"
             on:click={terminarCita}>
             <i class="mdi mdi-check-all" />
             Terminar cita
@@ -122,9 +139,9 @@
                 {#each citas as item}
                 <div
                   class="list-group-item d-flex align-items-center
-                  link-pacientes svelte-1p1f2vm" class:activo={envioCitaActual.id == item.id}
+                  link-pacientes svelte-1p1f2vm" class:activo={envioPacienteActual == item.pacienteID}
                   style="cursor: pointer;"
-                  on:click={() => { getPaciente(item) }}>
+                  on:click={() => { getPaciente(item.pacienteID) }}>
                   <div class="row">
                     <div class="">
                       <div class="name">
