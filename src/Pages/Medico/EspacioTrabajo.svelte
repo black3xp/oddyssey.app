@@ -20,14 +20,6 @@
 
   let citaPacienteActual = {};
 
-  let interval = window.setInterval(() => {
-    if (citaPacienteActual != undefined) {
-      citaPacienteActual = citas.find(x => x.pacienteID == envioPacienteActual)
-      console.log(citaPacienteActual)
-      clearInterval(interval)
-    }
-  }, 250)
-
   let paciente = {};
   let envioPacienteActual = "";
   let citas = [];
@@ -40,7 +32,7 @@
   $connection.on("RecibirPaciente", cita => {
     envioPacienteActual = cita.pacienteID
     cargarPacientesActivos();
-    getPaciente(envioPacienteActual)
+    getPaciente(envioPacienteActual, 'asistente')
   });
 
   function cargarPacientesActivos() {
@@ -53,16 +45,24 @@
       console.error(err);
     })
   }
-  function getPaciente(id) {
+  function getPaciente(id, via) {
     $axios.get("/Pacientes/" + id)
       .then(res => {
-        paciente = res.data;
+        if (via == 'asistente' || via == 'carga') {
+          citaPacienteActual = citas.find(x => x.pacienteID == envioPacienteActual)
+          if (citas.some(x => x.pacienteID == envioPacienteActual)) {
+            paciente = res.data;
+          }
+        }
+        if (via == 'seleccion') {
+          paciente = res.data;
+        }
       }).catch(err => {
         console.error(err);
       });
   }
   function terminarCita() {
-    if (Object.entries(citaPacienteActual).length > 0) {
+    if (Object.entries(citaPacienteActual).length > 0 && citaPacienteActual != undefined) {
       citaPacienteActual.inactivo = true;
       citaPacienteActual.estadoID = 3;
       $axios.put("/Citas/" + citaPacienteActual.id, citaPacienteActual)
@@ -87,7 +87,7 @@
     $axios.get("/Medicos/" + user.nameid + "/PacientePendiente")
       .then(res => {
         envioPacienteActual = res.data.data;
-        getPaciente(envioPacienteActual)
+        getPaciente(envioPacienteActual, 'carga')
       }).catch(err => {
         console.error(err);
       });
@@ -123,8 +123,8 @@
             <i class="mdi mdi-bell-ring-outline" />
             Llamar asistente
           </button> -->
-          <button class:d-none={envioPacienteActual == ""} class="btn btn-success"
-            on:click={terminarCita}>
+          <button class:d-none={envioPacienteActual == "" || citaPacienteActual == undefined} 
+            class="btn btn-success" on:click={terminarCita}>
             <i class="mdi mdi-check-all" />
             Terminar cita
           </button>
@@ -141,7 +141,7 @@
                   class="list-group-item d-flex align-items-center
                   link-pacientes svelte-1p1f2vm" class:activo={envioPacienteActual == item.pacienteID}
                   style="cursor: pointer;"
-                  on:click={() => { getPaciente(item.pacienteID) }}>
+                  on:click={() => { getPaciente(item.pacienteID, 'seleccion') }}>
                   <div class="row">
                     <div class="">
                       <div class="name">

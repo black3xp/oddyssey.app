@@ -6,6 +6,7 @@
   import { activePage, dataCita, axios, session } from "../../store";
   import { onMount } from "svelte";
   import moment from 'moment';
+  import Swal from 'sweetalert2';
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
@@ -255,7 +256,11 @@
     $axios.put("/Users/" + id, obj)
     .then(res => {
         if (res.data.success) {
-          alert('Medico actualizado con exito')
+          Swal.fire({
+            title: 'Actualizado',
+            text: 'Medico actualizado con exito',
+            icon: 'success'
+          });
           jQuery('#modalUsuario').modal('hide');
           cargarDetalle();
         }

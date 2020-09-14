@@ -46,6 +46,7 @@
     if ($dataCita.fechaCita != undefined) {
       filter.FechaCita = $dataCita.fechaCita;
       filter.TandaID = $dataCita.tandaID
+      console.log(filter.TandaID)
     }
 
     jQuery("#sltEspecialidad").select2();
@@ -55,13 +56,13 @@
       filtrar('general');
     });
 
+    marcarFecha();
     cargarMedicos();
     cargarEspecialidades();
     cargarTandas();
   });
 
   function cargarMedicos() {
-    // var qs = Object.keys(filter).map(i => i + '=' + filter[i]).join('&');
     var qs = new URLSearchParams(filter).toString()
     $axios.get("/Medicos/Query?" + qs)
     .then(res => {
@@ -126,19 +127,23 @@
       dia = -1;
     }
     if (tipo == 'fecha') {
-      if (filter.FechaCita == moment().format('YYYY-MM-DD')) {
-        dia = 0;
-      } else if (filter.FechaCita == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
-        dia = 1;
-      } else if (filter.FechaCita == moment().add(moment.duration(2, 'd')).format('YYYY-MM-DD')) {
-        dia = 2;
-      } else {
-        dia = -1;
-      }
+      marcarFecha()
     }
 
     cargarMedicos();
   }
+  function marcarFecha() {
+    if (filter.FechaCita == moment().format('YYYY-MM-DD')) {
+      dia = 0;
+    } else if (filter.FechaCita == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
+      dia = 1;
+    } else if (filter.FechaCita == moment().add(moment.duration(2, 'd')).format('YYYY-MM-DD')) {
+      dia = 2;
+    } else {
+      dia = -1;
+    }
+  }
+
   function limpiarFiltro() {
     filter.Nombre = "";
     filter.PerfilID = 0;
