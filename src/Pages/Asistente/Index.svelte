@@ -17,8 +17,19 @@
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
   };
-
   $activePage = "asistente.index";
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 5000,
+    timerProgressBar: true,
+    onOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  })
 
   let busqueda = "";
   let medicos = [];
@@ -49,10 +60,12 @@
     nombre: "",
     apellido: "",
     cedula: "",
+    correo: "",
     telefono: "",
     aseguradoraID: 0,
     nombreAseguradora: "",
     provinciaID: 0,
+    nacionalidad: "",
     noAfiliado: "",
     sexo: "",
     direccion: "",
@@ -173,6 +186,7 @@
     buscarDisponibilidadHorario();
   }
   function guardarPaciente() {
+    console.log(paciente)
     paciente.nombreAseguradora = aseguradoras.find(
       e => e.id == paciente.aseguradoraID
     ).nombre;
@@ -190,8 +204,28 @@
         } else {
           console.log(res);
         }
-      })
-      .catch(err => {
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function guardarEnviarPaciente() {
+    paciente.nombreAseguradora = aseguradoras.find(
+      e => e.id == paciente.aseguradoraID
+    ).nombre;
+
+    $axios.put("/Pacientes/" + paciente.id, paciente)
+      .then(res => {
+        if (res.data.success) {
+          Toast.fire({
+            icon: 'success',
+            title: 'Se ha enviado correctamente'
+          })
+
+          jQuery("#modalPaciente").modal("hide");
+        } else {
+          console.log(res);
+        }
+      }).catch(err => {
         console.error(err);
       });
   }
@@ -224,6 +258,8 @@
       .then(res => {
         if (res.data.success) {
           cargarCitas();
+          $connection.invoke("EnviarPaciente", item.medicoID, item.pacienteID, "encolar")
+          .catch(err => console.error(err));
         }
       })
       .catch(err => {
@@ -263,30 +299,12 @@
   }
 
   function enviarPaciente() {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 5000,
-      timerProgressBar: true,
-      onOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer)
-        toast.addEventListener('mouseleave', Swal.resumeTimer)
-      }
-    })
-
     $axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID)
     .then(res => {
       if (!res.data.errors) {
-        $connection.invoke("EnviarPaciente", cita)
+        $connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID, "asignar")
           .catch(err => console.error(err));
-
-        Toast.fire({
-          icon: 'success',
-          title: 'Se ha enviado correctamente'
-        })
-
-        jQuery("#modalPaciente").modal("hide");
+        guardarEnviarPaciente()
       } else {
         Toast.fire({
           icon: 'error',
@@ -614,7 +632,7 @@
                 class="form-control"
                 name="Name"
                 maxlength="200"
-                required="" />
+                bind:value={paciente.correo}/>
             </div>
           </div>
           <div class="form-row">
@@ -644,11 +662,11 @@
           <div class="form-row">
             <div class="form-group col-md-12">
               <label for="">Pais</label>
-              <select class="form-control js-select2">
+              <select class="form-control js-select2" bind:value={paciente.nacionalidad}>
                 <option value="0" disabled selected>- Seleccionar -</option>
-                <option>Rep. Dom.</option>
-                <option>Haiti</option>
-                <option>Venezuela</option>
+                <option value={"Rep. Dom."}>Rep. Dom.</option>
+                <option value={"Haiti"}>Haiti</option>
+                <option value={"Venezuela"}>Venezuela</option>
               </select>
             </div>
           </div>

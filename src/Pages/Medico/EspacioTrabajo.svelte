@@ -29,10 +29,12 @@
     buscarPacientePendiente();
   })
 
-  $connection.on("RecibirPaciente", cita => {
-    envioPacienteActual = cita.pacienteID
+  $connection.on("RecibirPaciente", (pacienteID, tipo) => {
     cargarPacientesActivos();
-    getPaciente(envioPacienteActual, 'asistente')
+    if (tipo == "asignar") {
+      envioPacienteActual = pacienteID || ""
+      getPaciente(envioPacienteActual, 'asistente')
+    }
   });
 
   function cargarPacientesActivos() {
@@ -56,6 +58,7 @@
         }
         if (via == 'seleccion') {
           paciente = res.data;
+          console.log(paciente)
         }
       }).catch(err => {
         console.error(err);
@@ -171,7 +174,7 @@
                   <div class="form-group col-md-6">
                     <label for="">Nombre</label>
                     <input
-                      bind:value={paciente.nombre}
+                      value={paciente.nombre}
                       type="name"
                       class="form-control"
                       readonly
@@ -181,7 +184,7 @@
                   <div class="form-group col-md-6">
                     <label for="">Apellido</label>
                     <input
-                      bind:value={paciente.apellidos}
+                      value={paciente.apellidos}
                       type="name"
                       class="form-control"
                       readonly
@@ -202,7 +205,7 @@
                   <div class="form-group col-md-6">
                     <label for="">Telefono</label>
                     <input
-                      bind:value={paciente.telefono}
+                      value={paciente.telefono}
                       type="tel"
                       class="form-control"
                       readonly
@@ -216,14 +219,14 @@
                       type="email"
                       class="form-control"
                       readonly
-                      name="Name"
+                      value={paciente.correo}
                       maxlength="200" />
                   </div>
 
                   <div class="form-group col-md-6">
                     <label for="">Aseguradora</label>
                     <input
-                      bind:value={paciente.nombreAseguradora}
+                      value={paciente.nombreAseguradora}
                       type="email"
                       class="form-control"
                       readonly
@@ -246,6 +249,7 @@
                       type="email"
                       class="form-control"
                       readonly
+                      value={paciente.nacionalidad || ""}
                       maxlength="200" />
                   </div>
 
@@ -255,7 +259,8 @@
                       type="email"
                       class="form-control"
                       readonly
-                      maxlength="200" />
+                      maxlength="200" 
+                      value={paciente.provincia || ""}/>
                   </div>
 
                   <div class="form-group col-md-12">
@@ -270,7 +275,7 @@
                   <div class="form-group col-md-12">
                     <label for="">Observaciones</label>
                     <textarea
-                      bind:value={paciente.observaciones}
+                      value={paciente.observaciones}
                       class="form-control"
                       rows="3"
                       name="Observaciones" />
