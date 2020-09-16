@@ -372,6 +372,11 @@
           </div>
         </div>  
         <div class="list-group list">
+          {#if horasDisponibles.length <= 0}
+            <div class="alert alert-success" role="alert">
+              No hay disponibilidad con este horario
+            </div>
+          {/if}
           {#each horasDisponibles as i}
           <div class="list-group-item d-flex align-items-center svelte-1nu1nbu">
             <div class="">

@@ -18,6 +18,19 @@
   };
 
   $activePage = "mantenimiento.usuarios.index";
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 5000,
+    timerProgressBar: true,
+    onOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  })
+
   $: filterRoles = roles.map(x => {
     return {
       id : x.id,
@@ -127,11 +140,10 @@
       $axios.post("/Users", obj)
       .then(res => {
         if (res.data.success) {
-          Swal.fire({
-            title: 'Guardado',
-            text: 'Usuario guardado con exito',
-            icon: 'success'
-          });
+          Toast.fire({
+            icon: 'success',
+            title: 'Usuario guardado con exito'
+          })
           jQuery('#modalUsuario').modal('hide');
           cargar();
         }
@@ -142,11 +154,10 @@
       $axios.put("/Users/" + userID, obj)
       .then(res => {
         if (res.data.success) {
-          Swal.fire({
-            title: 'Guardado',
-            text: 'Usuario guardado con exito',
-            icon: 'success'
-          });
+          Toast.fire({
+            icon: 'success',
+            title: 'Usuario guardado con exito'
+          })
           jQuery('#modalUsuario').modal('hide');
           cargar();
         }

@@ -22,6 +22,7 @@
 
   let paciente = {};
   let envioPacienteActual = "";
+  let pacienteSeleccionado = "";
   let citas = [];
 
   onMount(() => {
@@ -54,11 +55,12 @@
           citaPacienteActual = citas.find(x => x.pacienteID == envioPacienteActual)
           if (citas.some(x => x.pacienteID == envioPacienteActual)) {
             paciente = res.data;
+            pacienteSeleccionado = paciente.id
           }
         }
         if (via == 'seleccion') {
           paciente = res.data;
-          console.log(paciente)
+          pacienteSeleccionado = paciente.id
         }
       }).catch(err => {
         console.error(err);
@@ -142,12 +144,15 @@
                 {#each citas as item}
                 <div
                   class="list-group-item d-flex align-items-center
-                  link-pacientes svelte-1p1f2vm" class:activo={envioPacienteActual == item.pacienteID}
+                  link-pacientes svelte-1p1f2vm" 
+                  class:activo={envioPacienteActual == item.pacienteID}
                   style="cursor: pointer;"
-                  on:click={() => { getPaciente(item.pacienteID, 'seleccion') }}>
+                  on:click={() => { getPaciente(item.pacienteID, 'seleccion') }}
+                  on:dblclick={() => alert('Alert')}>
                   <div class="row">
                     <div class="">
                       <div class="name">
+                        <span class:d-none={pacienteSeleccionado != item.pacienteID}>[*]</span>
                         <span style="font-weight: bold;">{item.nombrePaciente}</span>
                         »
                         <span>Ced.: {item.cedula || ""}</span>

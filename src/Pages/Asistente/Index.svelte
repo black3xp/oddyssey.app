@@ -51,6 +51,7 @@
     { id: 5, nombre: "FUTURO" }
   ];
   let idMedico = "";
+  let pacienteEnviado = "";
   let userNameMedico = "";
   let fecha = "";
   let tandaID = 0;
@@ -88,6 +89,8 @@
       let data = e.params.data;
       idMedico = data.id.split('=')[0];
       userNameMedico = data.id.split('=')[1];
+      
+      cargarPacienteEnviado();
       cargarCitas();
       cargarCitasRealizadas();
     });
@@ -98,6 +101,7 @@
   $connection.on("RecibirAvisoDelPaciente", data => {
     if ($activePage == "asistente.index") {
       if (citasEnTurno.length > 0) {
+        pacienteEnviado = ""
         cargarCitas();
         cargarCitasRealizadas();
       }
@@ -186,10 +190,9 @@
     buscarDisponibilidadHorario();
   }
   function guardarPaciente() {
-    console.log(paciente)
-    paciente.nombreAseguradora = aseguradoras.find(
-      e => e.id == paciente.aseguradoraID
-    ).nombre;
+    if (paciente.aseguradoraID > 0) {
+      paciente.nombreAseguradora = aseguradoras.find(e => e.id == paciente.aseguradoraID).nombre;
+    }
 
     $axios.put("/Pacientes/" + paciente.id, paciente)
       .then(res => {
@@ -209,18 +212,18 @@
       });
   }
   function guardarEnviarPaciente() {
-    paciente.nombreAseguradora = aseguradoras.find(
-      e => e.id == paciente.aseguradoraID
-    ).nombre;
+    if (paciente.aseguradoraID > 0) {
+      paciente.nombreAseguradora = aseguradoras.find(e => e.id == paciente.aseguradoraID).nombre;
+    }
 
     $axios.put("/Pacientes/" + paciente.id, paciente)
       .then(res => {
         if (res.data.success) {
+          pacienteEnviado = paciente.id;
           Toast.fire({
             icon: 'success',
             title: 'Se ha enviado correctamente'
           })
-
           jQuery("#modalPaciente").modal("hide");
         } else {
           console.log(res);
@@ -296,6 +299,14 @@
           });
       }
     })
+  }
+  function cargarPacienteEnviado() {
+    $axios.get("/Medicos/" + idMedico + "/PacientePendiente")
+      .then(res => {
+        pacienteEnviado = res.data.data || "";
+      }).catch(err => {
+        console.error(err);
+      });
   }
 
   function enviarPaciente() {
@@ -423,7 +434,9 @@
                 <tbody>
                   {#each citasEnTurno as i}
                     <tr class="cursor-table">
-                      <td>{i.nombrePaciente}</td>
+                      <td>
+                        <span class:d-none={pacienteEnviado != i.pacienteID}>[Color cambiado]</span>{i.nombrePaciente}
+                      </td>
                       <td />
                       <td>{i.observaciones}</td>
                       <td style="text-align: right;">
@@ -783,6 +796,11 @@
           </div>
         </div>
         <div class="list-group list">
+          {#if horasDisponibles.length <= 0}
+            <div class="alert alert-success" role="alert">
+              No hay disponibilidad con este horario
+            </div>
+          {/if}
           {#each horasDisponibles as i}
             <div
               class="list-group-item d-flex align-items-center svelte-1nu1nbu">

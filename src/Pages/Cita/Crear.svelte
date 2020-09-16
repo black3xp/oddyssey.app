@@ -13,6 +13,18 @@
 
   $activePage = "citas.crear";
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 5000,
+    timerProgressBar: true,
+    onOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  })
+
   onMount(() => {
     jQuery("#sltMedicos").select2();
     jQuery("#sltMedicos").on("select2:select", e => {
@@ -146,11 +158,10 @@
     .then(res => {
       if (res.data.success) {
         $dataCita = {};
-        Swal.fire({
-          title: 'Correcto',
-          text: 'La cita fue creada con exito',
-          icon: 'success'
-        });
+        Toast.fire({
+            icon: 'success',
+            title: 'La cita fue creada con exito'
+          })
         push('/Cita/Gestionar');
       } else {
         console.log(res);
