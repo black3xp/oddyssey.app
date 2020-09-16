@@ -6,6 +6,7 @@
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
   import moment from "moment";
+  import Swal from 'sweetalert2';
   
   let user = {};
   user = new UserManager($session.authorizationHeader.Authorization)
@@ -18,8 +19,19 @@
   };
   $activePage = "espacioMedico";
 
-  let citaPacienteActual = {};
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 5000,
+    timerProgressBar: true,
+    onOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  })
 
+  let citaPacienteActual = {};
   let paciente = {};
   let envioPacienteActual = "";
   let pacienteSeleccionado = "";
@@ -87,6 +99,43 @@
       });
     }
   }
+  function cambiarDePaciente(id) {
+    Swal.fire({
+      title: 'Cambio de paciente',
+      text: "Estas seguro que deseas cambiar de paciente?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      cancelButtonText: 'No',
+      confirmButtonText: 'Si'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        $axios.post("/Medicos/" + user.nameid + "/AsignarPaciente?pacienteId=" + id)
+        .then(res => {
+          if (!res.data.errors) {
+            envioPacienteActual = id;
+            Toast.fire({
+              icon: 'success',
+              title: 'Cambio realizado con exito'
+            })
+          } else {
+            Toast.fire({
+              icon: 'error',
+              title: 'Problema al cambiar paciente'
+            })
+          }
+
+        }).catch(err => {
+          Toast.fire({
+            icon: 'error',
+            title: 'Error de conexion'
+          })
+          console.error(err);
+        });
+      }
+    })
+  }
 
   function buscarPacientePendiente() {
     $axios.get("/Medicos/" + user.nameid + "/PacientePendiente")
@@ -148,7 +197,7 @@
                   class:activo={envioPacienteActual == item.pacienteID}
                   style="cursor: pointer;"
                   on:click={() => { getPaciente(item.pacienteID, 'seleccion') }}
-                  on:dblclick={() => alert('Alert')}>
+                  on:dblclick={() => cambiarDePaciente(item.pacienteID)}>
                   <div class="row">
                     <div class="">
                       <div class="name">
