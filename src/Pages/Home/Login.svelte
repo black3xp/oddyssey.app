@@ -3,6 +3,7 @@
   import { push } from "svelte-spa-router";
   import { Session, login } from "svelte-session-manager"
   import { HubConnectionState } from '@microsoft/signalr'
+  import Swal from 'sweetalert2';
 
   let loginFail = false;
   let username = "";
@@ -27,7 +28,13 @@
             push("/");
           }
         }
-      })
+      }).catch(e => {
+        Swal.fire({
+            title: 'Error de conexion',
+            text: 'Hubo un problema al conectar al servidor!',
+            icon: 'error'
+          });
+      }) 
   }
 </script>
 
