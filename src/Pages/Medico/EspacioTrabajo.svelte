@@ -228,7 +228,7 @@
                   <div class="form-group col-md-6">
                     <label for="">Nombre</label>
                     <input
-                      value={paciente.nombre}
+                      value={paciente.nombre || ""}
                       type="name"
                       class="form-control"
                       readonly
@@ -238,7 +238,7 @@
                   <div class="form-group col-md-6">
                     <label for="">Apellido</label>
                     <input
-                      value={paciente.apellidos}
+                      value={paciente.apellidos || ""}
                       type="name"
                       class="form-control"
                       readonly
@@ -259,7 +259,7 @@
                   <div class="form-group col-md-6">
                     <label for="">Telefono</label>
                     <input
-                      value={paciente.telefono}
+                      value={paciente.telefono || ""}
                       type="tel"
                       class="form-control"
                       readonly
@@ -273,14 +273,14 @@
                       type="email"
                       class="form-control"
                       readonly
-                      value={paciente.correo}
+                      value={paciente.correo || ""}
                       maxlength="200" />
                   </div>
 
                   <div class="form-group col-md-6">
                     <label for="">Aseguradora</label>
                     <input
-                      value={paciente.nombreAseguradora}
+                      value={paciente.nombreAseguradora || ""}
                       type="email"
                       class="form-control"
                       readonly

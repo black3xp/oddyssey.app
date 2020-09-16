@@ -435,7 +435,7 @@
                   {#each citasEnTurno as i}
                     <tr class="cursor-table">
                       <td>
-                        <span class:d-none={pacienteEnviado != i.pacienteID}>[Color cambiado]</span>{i.nombrePaciente}
+                        <span class:d-none={pacienteEnviado != i.pacienteID}>[*]</span> {i.nombrePaciente}
                       </td>
                       <td />
                       <td>{i.observaciones}</td>
