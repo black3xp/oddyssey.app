@@ -57,6 +57,18 @@
           </span>
         </a>
       </li>
+      <li class="menu-item " class:active={$activePage.includes('citasProgramadas')}
+        class:d-none={!user.isAny(['assistant', 'admin'])}>
+        <a href="/Asistente/CitasProgramadas" use:link class="menu-link">
+          <span class="menu-label">
+            <span class="menu-name">Citas programadas</span>
+          </span>
+          <span class="menu-icon">
+
+            <i class="icon-placeholder mdi mdi-calendar-check" />
+          </span>
+        </a>
+      </li>
       <!--list item ends-->
       <!--list item begins-->
       <li class="menu-item " class:active={$activePage.includes('gestor')}

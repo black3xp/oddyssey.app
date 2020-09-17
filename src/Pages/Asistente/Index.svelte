@@ -98,18 +98,24 @@
     cargarMedicos();
   });
 
-  $connection.on("RecibirAvisoDelPaciente", data => {
+  $connection.on("RecibirAvisoDelPaciente", (data, paciente) => {
     if ($activePage == "asistente.index") {
       if (citasEnTurno.length > 0) {
-        pacienteEnviado = ""
-        cargarCitas();
-        cargarCitasRealizadas();
+        pacienteEnviado = paciente
+
+        if (pacienteEnviado == "") {
+          cargarCitas();
+          cargarCitasRealizadas();
+        }
       }
-      Swal.fire({
-        title: 'Aviso',
-        text: 'El paciente ya fue atendido, favor de mandar otro',
-        icon: 'success'
-      });
+
+      if (pacienteEnviado == "") {
+        Swal.fire({
+          title: 'Aviso',
+          text: 'El paciente ya fue atendido, favor de mandar otro',
+          icon: 'success'
+        });
+      }
     }
   });
 
@@ -239,13 +245,10 @@
     $axios.put("/Citas/" + cita.id, cita)
       .then(res => {
         if (res.data.success) {
-          Swal.fire({
-            title: 'Actualizado',
-            text: 'Fecha de cita actualizada con exito',
-            icon: 'success'
-          });
-          cargarCitas();
-          cargarCitasRealizadas();
+          Toast.fire({
+            icon: 'success',
+            title: 'Cambio de cita realizado con exito'
+          })
           jQuery("#modalCrearCita").modal("hide");
         } else {
           console.log(res);
@@ -300,6 +303,16 @@
       }
     })
   }
+  function irACita(time) {
+    $dataCita = {
+      fechaCita: fecha,
+      tandaID: tandaID,
+      hora: time,
+      medicoId: idMedico
+    };
+    push('/Cita/Crear');
+  }
+
   function cargarPacienteEnviado() {
     $axios.get("/Medicos/" + idMedico + "/PacientePendiente")
       .then(res => {
@@ -375,6 +388,11 @@
     top: 0;
     overflow: auto;
   }
+  tbody tr.active-turno{
+    -webkit-box-shadow: 0px 0px 0px 3px #0c9;
+-moz-box-shadow: 0px 0px 0px 3px#0c9;
+box-shadow: 0px 0px 0px 3px #0c9;
+  }
 </style>
 
 <Aside />
@@ -433,9 +451,9 @@
                 </thead>
                 <tbody>
                   {#each citasEnTurno as i}
-                    <tr class="cursor-table">
+                    <tr class:active-turno={pacienteEnviado == i.pacienteID}>
                       <td>
-                        <span class:d-none={pacienteEnviado != i.pacienteID}>[*]</span> {i.nombrePaciente}
+                       {i.nombrePaciente}
                       </td>
                       <td />
                       <td>{i.observaciones}</td>
@@ -507,7 +525,6 @@
                 </tbody>
               </table>
             {/if}
-
           </div>
         </div>
 
@@ -544,10 +561,10 @@
                         <button
                           class="btn btn-success btn-sm mb-1"
                           data-toggle="modal"
-                          data-target="#modalCrearCita"
+                          data-target="#modalNuevaCita"
                           on:click={() => reprogramarCita(i)}>
                           <i class="mdi mdi-calendar-remove" />
-                          Reprogramar
+                          Crear cita
                         </button>
                       </td>
                     </tr>
@@ -810,6 +827,90 @@
               <div class="ml-auto">
                 <button
                   on:click={cambiarFechaCita(i.time)}
+                  class="btn btn-outline-success btn-sm">
+                  Seleccionar
+                </button>
+              </div>
+            </div>
+          {/each}
+        </div>
+
+      </div>
+      <div class="modal-footer" class:d-none={cita.estadoID == 3}>
+        <button on:click={anularCita}
+          type="button" class="btn btn-danger">
+          Anular cita
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade modal-slide-right"
+  id="modalNuevaCita"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalNuevaCitaLabel"
+  style="display: none; padding-right: 16px;"
+  aria-modal="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalNuevaCitaLabel">
+          <i class="mdi mdi-calendar-plus" />
+          Creacion de cita
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body" style="height: 100%; top: 0; overflow: auto;">
+
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label for="inputAddress">Fecha</label>
+              <input
+                type="date"
+                class="form-control form-control-sm"
+                bind:value={fecha}
+                on:change={buscarDisponibilidadHorario} />
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="form-group ">
+              <label class="font-secondary">Tanda</label>
+              <select
+                class="form-control form-control-sm js-select2"
+                bind:value={tandaID}
+                on:change={buscarDisponibilidadHorario}>
+                <option value={0} disabled>- Seleccionar -</option>
+                <option value={1}>Matutina</option>
+                <option value={2}>Vespertina</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="list-group list">
+          {#if horasDisponibles.length <= 0}
+            <div class="alert alert-success" role="alert">
+              No hay disponibilidad con este horario
+            </div>
+          {/if}
+          {#each horasDisponibles as i}
+            <div
+              class="list-group-item d-flex align-items-center svelte-1nu1nbu">
+              <div class="">
+                <div class="name">{i.hora}</div>
+              </div>
+              <div class="ml-auto">
+                <button
+                  on:click={() => irACita(i.time)}
                   class="btn btn-outline-success btn-sm">
                   Seleccionar
                 </button>

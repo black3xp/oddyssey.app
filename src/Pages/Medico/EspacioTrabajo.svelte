@@ -90,7 +90,7 @@
           envioPacienteActual = "";
           cargarPacientesActivos();
 
-          $connection.invoke("EnviarAvisoDelPaciente", user.nameid)
+          $connection.invoke("EnviarAvisoDelPaciente", user.nameid, "")
             .catch(err => console.error(err));
         }
       })
@@ -115,6 +115,10 @@
         .then(res => {
           if (!res.data.errors) {
             envioPacienteActual = id;
+            citaPacienteActual = citas.find(x => x.pacienteID == id)
+            $connection.invoke("EnviarAvisoDelPaciente", user.nameid, id)
+            .catch(err => console.error(err));
+
             Toast.fire({
               icon: 'success',
               title: 'Cambio realizado con exito'
@@ -163,6 +167,9 @@
   .list-group-item.activo .text-muted {
     color: white !important;
   }
+  .active-select{
+    background-color: rgba(216, 216, 216, 0.205);
+  }
 </style>
 
 <Aside />
@@ -193,15 +200,15 @@
                 {#each citas as item}
                 <div
                   class="list-group-item d-flex align-items-center
-                  link-pacientes svelte-1p1f2vm" 
+                  link-pacientes svelte-1p1f2vm active-select" 
                   class:activo={envioPacienteActual == item.pacienteID}
+                  class:active-select={pacienteSeleccionado == item.pacienteID}
                   style="cursor: pointer;"
                   on:click={() => { getPaciente(item.pacienteID, 'seleccion') }}
                   on:dblclick={() => cambiarDePaciente(item.pacienteID)}>
                   <div class="row">
                     <div class="">
                       <div class="name">
-                        <span class:d-none={pacienteSeleccionado != item.pacienteID}>[*]</span>
                         <span style="font-weight: bold;">{item.nombrePaciente}</span>
                         »
                         <span>Ced.: {item.cedula || ""}</span>
@@ -329,7 +336,7 @@
                   <div class="form-group col-md-12">
                     <label for="">Observaciones</label>
                     <textarea
-                      value={paciente.observaciones}
+                      value={paciente.observaciones || ""}
                       class="form-control"
                       rows="3"
                       name="Observaciones" />
