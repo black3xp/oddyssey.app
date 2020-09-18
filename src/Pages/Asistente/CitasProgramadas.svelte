@@ -1,7 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection, activePage, session, axios } from "../../store.js";
+  import { connection, activePage, session, axios, dataCita } from "../../store.js";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
@@ -19,6 +19,18 @@
   };
   $activePage = "citasProgramadas";
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 5000,
+    timerProgressBar: true,
+    onOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  })
+
   onMount(() => {
     jQuery("#sltMedicos").select2();
     jQuery("#sltMedicos").on("select2:select", e => {
@@ -26,16 +38,20 @@
       idMedico = data.id;
       
       cargarCitas();
-      cargarCitasRealizadas();
     });
 
+    cargarEstados();
     cargarMedicos();
   });
 
+  let horasDisponibles = [];
   let citasPendientes = [];
   let citasRealizadas = [];
   let medicos = [];
+  let estados = [];
   let idMedico = "";
+  let fecha = "";
+  let tandaID = 0;
   let paciente = {
     id: "",
     nombre: "",
@@ -52,6 +68,22 @@
     direccion: "",
     observaciones: ""
   };
+  let cita = {
+    id: 0,
+    medicoID: "",
+    pacienteID: "",
+    aseguradoraID: 0,
+    estadoID: 1,
+    fecha: "",
+    observaciones: "",
+    inactivo: false,
+  };
+  let filter = {
+    medicoID: "",
+    fechaInicio : "",
+    fechaFin : "",
+    estadoID : ""
+  }
   let provincias = [
     { id: 1, nombre: "Duarte" },
     { id: 2, nombre: "Santiago" },
@@ -64,6 +96,20 @@
     { id: 4, nombre: "PALIC" },
     { id: 5, nombre: "FUTURO" }
   ];
+  function colorEstado(code) {
+    if (code == 'p') {
+      return 'badge-secondary';
+    }
+    if (code == 't') {
+      return 'badge-primary';
+    }
+    if (code == 'r') {
+      return 'badge-success';
+    }
+    if (code == 'a') {
+      return 'badge-danger';
+    }
+  }
 
   function cargarMedicos() {
     $axios.get("/MedicosAsistentes/" + user.nameid + "/Medicos")
@@ -73,30 +119,127 @@
         console.error(err);
       });
   }
+  function cargarEstados() {
+    $axios.get("/Citas/Estados")
+      .then(res => {
+        estados = res.data;
+      }).catch(err => {
+        console.error(err);
+      });
+  }
 
   function cargarCitas() {
-    $axios.get("/Medicos/Citas/" + idMedico)
+    filter.medicoID = idMedico;
+
+    let qs = new URLSearchParams(filter).toString()
+    $axios.get("/Medicos/CitasFiltrada?" + qs)
       .then(res => {
-        citasPendientes = res.data.filter(e => e.estadoID == 1);
+        citasPendientes = res.data;
       })
       .catch(err => {
         console.error(err);
       });
   }
-  function cargarCitasRealizadas() {
-    $axios.get("/Medicos/CitasRealizadas/" + idMedico)
+  function cargarDatosPaciente(item) {
+    $axios.get("/Pacientes/" + item.pacienteID)
       .then(res => {
-        citasRealizadas = res.data;
+        paciente = res.data;
       })
       .catch(err => {
         console.error(err);
       });
+  }
+  function buscarDisponibilidadHorario() {
+    if (fecha == "" || tandaID <= 0) {
+      horasDisponibles = [];
+      return;
+    }
+
+    let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
+    $axios.get("/Medicos/HorasDisponibles/" + idMedico + "?" + params)
+      .then(res => {
+        horasDisponibles = res.data.map(x => {
+          return {
+            time: x,
+            hora: moment(x, "LT").format("LT")
+          };
+        });
+      })
+      .catch(err => {
+        horasDisponibles = [];
+        console.error(err);
+      });
+  }
+  function reprogramarCita(item) {
+    cita = item;
+    if (fecha == "" || tandaID <= 0) {
+      fecha = moment().format("YYYY-MM-DD");
+      tandaID = 1;
+    }
+
+    buscarDisponibilidadHorario();
   }
 
+  function guardarPaciente() {
+    if (paciente.aseguradoraID > 0) {
+      paciente.nombreAseguradora = aseguradoras.find(e => e.id == paciente.aseguradoraID).nombre;
+    }
+
+    $axios.put("/Pacientes/" + paciente.id, paciente)
+      .then(res => {
+        if (res.data.success) {
+          Toast.fire({
+            icon: 'success',
+            title: 'Paciente actualizado con exito'
+          })
+          
+          jQuery("#modalPaciente").modal("hide");
+        } else {
+          console.log(res);
+        }
+      }).catch(err => {
+        console.error(err);
+      });
+  }
+  function cambiarFechaCita(hora) {
+    cita.fecha = fecha + "T" + hora;
+    cita.estadoID = 1;
+
+    $axios.put("/Citas/" + cita.id, cita)
+      .then(res => {
+        if (res.data.success) {
+          Toast.fire({
+            icon: 'success',
+            title: 'Cambio de cita realizado con exito'
+          })
+          jQuery("#modalCrearCita").modal("hide");
+        } else {
+          console.log(res);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  }
 </script>
 
 <style>
+  .modal-slide-right {
+    top: 0;
+    bottom: 0;
+  }
 
+  .modal-slide-right .modal-dialog {
+    height: 100% !important;
+    top: 0;
+    position: fixed !important;
+  }
+
+  .modal-slide-right .modal-body {
+    height: 100% !important;
+    top: 0;
+    overflow: auto;
+  }
 </style>
 
 <Aside />
@@ -108,7 +251,7 @@
       <div class="col-md-12">
         <div class="row">
 
-          <div class="col-md-12">
+          <div class="col-md-4">
             <select class="form-control" id="sltMedicos" style="width: 100%">
               <option value={0} disabled selected>- Seleccionar -</option>
               {#each medicos as item}
@@ -116,10 +259,26 @@
               {/each}
             </select>
           </div>
+          <div class="col-md-4">
+            <input type="date" class="form-control" bind:value={filter.fechaInicio} on:input={cargarCitas}>
+          </div>
+          <div class="col-md-4">
+            <input type="date" class="form-control" bind:value={filter.fechaFin} on:input={cargarCitas}>
+          </div>
 
           <div class="col-md-12 mt-2">
             <div class="alert alert-primary" role="alert">
-              <h4 class="alert-heading">Consultas pendientes</h4>
+              <div class="row">
+                <div class="col-md-4">
+                  <select class="form-control" bind:value={filter.estadoID} on:change={cargarCitas}>
+                    <option value="" disabled selected>- Buscar por estado -</option>
+                    <option value={0}>Todos</option>
+                    {#each estados as item}
+                      <option value={item.id}>{item.nombre}</option>
+                    {/each}
+                  </select>
+                </div>
+              </div>
               <h4 class:d-none={citasPendientes.length > 0}>No hay cita</h4>
               <div class="table-responsive">
                 {#if citasPendientes.length > 0}
@@ -127,8 +286,8 @@
                     <thead>
                       <tr>
                         <th>Nombre</th>
-                        <th>Celular</th>
-                        <th>Observacion</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
                         <th />
                       </tr>
                     </thead>
@@ -136,21 +295,25 @@
                       {#each citasPendientes as i}
                         <tr class="cursor-table">
                           <td>{i.nombrePaciente}</td>
-                          <td />
-                          <td>{i.observaciones}</td>
+                          <td>
+                            <span class="badge {colorEstado(i.codigoEstado)}">{i.nombreEstado}</span>
+                          </td>
+                          <td>{moment(i.fecha).format('LL')}</td>
                           <td />
                           <td style="text-align: right;">
                             <button
                               class="btn btn-success btn-sm mb-1"
                               data-toggle="modal"
-                              data-target="#modalPaciente">
+                              data-target="#modalPaciente"
+                              on:click={() => cargarDatosPaciente(i)}>
                               <i class="mdi mdi-account-search-outline" />
                               Ver paciente
                             </button>
                             <button
                               class="btn btn-success btn-sm mb-1"
                               data-toggle="modal"
-                              data-target="#modalCrearCita">
+                              data-target="#modalCrearCita"
+                              on:click={() => reprogramarCita(i)}>
                               <i class="mdi mdi-calendar-remove" />
                               Reprogramar
                             </button>
@@ -163,53 +326,6 @@
               </div>
             </div>
           </div>
-          <div class="col-md-12">
-            <div class="alert alert-secondary" role="alert">
-              <h4 class="alert-heading">Consultas realizadas</h4>
-              <h4 class:d-none={citasRealizadas.length > 0}>No hay cita</h4>
-              <div class="table-responsive">
-                {#if citasRealizadas.length > 0}
-                  <table class="table align-td-middle table-card">
-                    <thead>
-                      <tr>
-                        <th>Nombre</th>
-                        <th>Celular</th>
-                        <th>Observacion</th>
-                        <th />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {#each citasRealizadas as i}
-                        <tr class="cursor-table">
-                          <td>{i.nombrePaciente}</td>
-                          <td />
-                          <td>{i.observaciones}</td>
-                          <td />
-                          <td style="text-align: right;">
-                            <button
-                              class="btn btn-success btn-sm mb-1"
-                              data-toggle="modal"
-                              data-target="#modalPaciente">
-                              <i class="mdi mdi-account-search-outline" />
-                              Ver paciente
-                            </button>
-                            <button
-                              class="btn btn-success btn-sm mb-1"
-                              data-toggle="modal"
-                              data-target="#modalNuevaCita">
-                              <i class="mdi mdi-calendar-remove" />
-                              Crear cita
-                            </button>
-                          </td>
-                        </tr>
-                      {/each}
-                    </tbody>
-                  </table>
-                {/if}
-
-              </div>
-            </div>
-          </div>
 
         </div>
       </div>
@@ -217,6 +333,7 @@
   </section>
 </main>
 
+<form id="frmPaciente" on:submit|preventDefault={guardarPaciente}>
 <div
   class="modal fade modal-slide-right"
   id="modalPaciente"
@@ -241,7 +358,6 @@
         </button>
       </div>
       <div class="modal-body">
-        <form id="frmPaciente">
           <input type="hidden" name="IdUser" value="0" />
           <div class="form-row">
             <div class="form-group col-md-12">
@@ -369,21 +485,99 @@
           </div>
 
           <br />
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-outline-danger"
-              data-dismiss="modal">
-              Cerrar
-            </button>
-            <button type="submit" class="btn btn-outline-primary">
-              Guardar
-              <i class="mdi mdi-content-save-outline" />
-            </button>
-          </div>
-        </form>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            data-dismiss="modal">
+            Cerrar
+          </button>
+          <button type="submit" class="btn btn-outline-primary">
+            Guardar
+            <i class="mdi mdi-content-save-outline" />
+          </button>
+        </div>
+        
       </div>
-      
+    </div>
+  </div>
+</form>
+
+<div
+  class="modal fade modal-slide-right"
+  id="modalCrearCita"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalCrearCitaLabel"
+  style="display: none; padding-right: 16px;"
+  aria-modal="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCrearCitaLabel">
+          <i class="mdi mdi-calendar-plus" />
+          Reprogramacion de cita
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body" style="height: 100%; top: 0; overflow: auto;">
+
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label for="inputAddress">Fecha</label>
+              <input
+                type="date"
+                class="form-control form-control-sm"
+                bind:value={fecha}
+                on:change={buscarDisponibilidadHorario} />
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="form-group ">
+              <label class="font-secondary">Tanda</label>
+              <select
+                class="form-control form-control-sm js-select2"
+                bind:value={tandaID}
+                on:change={buscarDisponibilidadHorario}>
+                <option value={0} disabled>- Seleccionar -</option>
+                <option value={1}>Matutina</option>
+                <option value={2}>Vespertina</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="list-group list">
+          {#if horasDisponibles.length <= 0}
+            <div class="alert alert-success" role="alert">
+              No hay disponibilidad con este horario
+            </div>
+          {/if}
+          {#each horasDisponibles as i}
+            <div
+              class="list-group-item d-flex align-items-center svelte-1nu1nbu">
+              <div class="">
+                <div class="name">{i.hora}</div>
+              </div>
+              <div class="ml-auto">
+                <button
+                  on:click={cambiarFechaCita(i.time)}
+                  class="btn btn-outline-success btn-sm">
+                  Seleccionar
+                </button>
+              </div>
+            </div>
+          {/each}
+        </div>
+
+      </div>
     </div>
   </div>
 </div>
