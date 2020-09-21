@@ -8,8 +8,7 @@
   import moment from "moment";
   import Swal from "sweetalert2";
 
-  let user = {};
-  user = new UserManager($session.authorizationHeader.Authorization)
+  let user = new UserManager($session.authorizationHeader.Authorization)
   if (!user.isAny(['assistant', 'admin'])) {
     push('/Home/Unauthorized');
   }
@@ -43,6 +42,7 @@
 
     cargarEstados();
     cargarMedicos();
+    cargarCitas();
   });
 
   let horasDisponibles = [];
@@ -234,6 +234,11 @@
     };
     push('/Cita/Crear');
   }
+  
+  function btnFiltro() {
+    jQuery("#filtroAvanzado").slideToggle(500);
+  }
+
 </script>
 
 <style>
@@ -264,39 +269,50 @@
       <div class="col-md-12">
         <div class="row">
 
-          <div class="col-md-6">
+          <div class="col-lg-6 mt-2">
+            <input type="text" class="form-control" placeholder="Buscar paciente"
+             bind:value={filter.nombrePaciente} on:input={cargarCitas}>
+          </div>
+          <div class="col-lg-4 mt-2">
             <select class="form-control" id="sltMedicos" style="width: 100%">
               <option value={0} disabled selected>- Seleccionar medico -</option>
+              <option value={""}>Todos</option>
               {#each medicos as item}
                 <option value={item.medicoID}>{item.name}</option>
               {/each}
             </select>
           </div>
-          <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Buscar paciente"
-             bind:value={filter.nombrePaciente} on:input={cargarCitas}>
+          <div class="col-lg-2">
+            <button class="btn btn-primary" id="btnFiltro" on:click={btnFiltro} style="margin-top: 8px;">Filtros</button>
           </div>
-
-          <div class="col-md-6">
-            <input type="date" class="form-control" bind:value={filter.fechaInicio} on:input={cargarCitas}>
-          </div>
-          <div class="col-md-6">
-            <input type="date" class="form-control" bind:value={filter.fechaFin} on:input={cargarCitas}>
+          <div id="filtroAvanzado" class="col-lg-12 mt-2" style="display: none;">
+              <div class="alert alert-secondary">
+                <div class="row">
+                  <div class="col-lg-6 col-md-6">
+                    <label>Estados</label>
+                    <select class="form-control" bind:value={filter.estadoID} on:change={cargarCitas}>
+                      <option value="" disabled selected>- Buscar por estado -</option>
+                      <option value={0}>Todos</option>
+                      {#each estados as item}
+                        <option value={item.id}>{item.nombre}</option>
+                      {/each}
+                    </select>
+                  </div>
+                  <div class="col-lg-3 col-md-3">
+                    <label>Desde</label>
+                    <input type="date" class="form-control" bind:value={filter.fechaInicio} on:input={cargarCitas}>
+                  </div>
+                  <div class="col-lg-3 col-md-3">
+                    <label>Hasta</label>
+                    <input type="date" class="form-control" bind:value={filter.fechaFin} on:input={cargarCitas}>
+                  </div>
+                </div>
+              </div>
           </div>
 
           <div class="col-md-12 mt-2">
             <div class="alert alert-primary" role="alert">
-              <div class="row">
-                <div class="col-md-4">
-                  <select class="form-control" bind:value={filter.estadoID} on:change={cargarCitas}>
-                    <option value="" disabled selected>- Buscar por estado -</option>
-                    <option value={0}>Todos</option>
-                    {#each estados as item}
-                      <option value={item.id}>{item.nombre}</option>
-                    {/each}
-                  </select>
-                </div>
-              </div>
+                
               <h4 class:d-none={citasPendientes.length > 0}>No hay cita</h4>
               <div class="table-responsive">
                 {#if citasPendientes.length > 0}

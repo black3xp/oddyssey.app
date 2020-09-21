@@ -4,9 +4,12 @@
   import DiaSemana from "../../Components/DiaSemana.svelte";
   import { push } from "svelte-spa-router";
   import { activePage, dataCita, axios, session } from "../../store";
+  import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import moment from 'moment';
   import Swal from 'sweetalert2';
+
+  let user = new UserManager($session.authorizationHeader.Authorization)
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
@@ -509,6 +512,7 @@
             </div>
           </div>
           
+          {#if user.isAny(['admin', 'doctor'])}
           <article class="card m-b-30 horarioEspecialista">
             <div class="card-header">
               <h5 class="m-b-0">
@@ -521,10 +525,9 @@
               <DiaSemana on:cambioHorario={cargarHorarios} on:cambioHorario={buscarDisponibilidadHorario}
                 {item} {tandas} {horarios} medicoID={id} />
               {/each}
-
             </div>
           </article>
-
+          {/if}
         </div>
 
       </div>
