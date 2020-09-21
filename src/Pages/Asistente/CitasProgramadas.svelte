@@ -32,6 +32,7 @@
   })
 
   onMount(() => {
+    moment.locale('es-DO');
     jQuery("#sltMedicos").select2();
     jQuery("#sltMedicos").on("select2:select", e => {
       let data = e.params.data;
@@ -82,7 +83,8 @@
     medicoID: "",
     fechaInicio : "",
     fechaFin : "",
-    estadoID : ""
+    estadoID : "",
+    nombrePaciente : ""
   }
   let provincias = [
     { id: 1, nombre: "Duarte" },
@@ -221,6 +223,17 @@
         console.error(err);
       });
   }
+
+  function irACita(time) {
+    $dataCita = {
+      fechaCita: fecha,
+      tandaID: tandaID,
+      hora: time,
+      medicoId: idMedico,
+      pacienteId: cita.pacienteID
+    };
+    push('/Cita/Crear');
+  }
 </script>
 
 <style>
@@ -251,18 +264,23 @@
       <div class="col-md-12">
         <div class="row">
 
-          <div class="col-md-4">
+          <div class="col-md-6">
             <select class="form-control" id="sltMedicos" style="width: 100%">
-              <option value={0} disabled selected>- Seleccionar -</option>
+              <option value={0} disabled selected>- Seleccionar medico -</option>
               {#each medicos as item}
                 <option value={item.medicoID}>{item.name}</option>
               {/each}
             </select>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Buscar paciente"
+             bind:value={filter.nombrePaciente} on:input={cargarCitas}>
+          </div>
+
+          <div class="col-md-6">
             <input type="date" class="form-control" bind:value={filter.fechaInicio} on:input={cargarCitas}>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <input type="date" class="form-control" bind:value={filter.fechaFin} on:input={cargarCitas}>
           </div>
 
@@ -298,7 +316,7 @@
                           <td>
                             <span class="badge {colorEstado(i.codigoEstado)}">{i.nombreEstado}</span>
                           </td>
-                          <td>{moment(i.fecha).format('LL')}</td>
+                          <td>{moment(i.fecha).format('LLL')}</td>
                           <td />
                           <td style="text-align: right;">
                             <button
@@ -312,10 +330,10 @@
                             <button
                               class="btn btn-success btn-sm mb-1"
                               data-toggle="modal"
-                              data-target="#modalCrearCita"
+                              data-target={i.codigoEstado == 'r' ? '#modalNuevaCita' : '#modalCrearCita'}
                               on:click={() => reprogramarCita(i)}>
                               <i class="mdi mdi-calendar-remove" />
-                              Reprogramar
+                              {i.codigoEstado == 'r' ? 'Crear cita' : 'Reprogramar'}
                             </button>
                           </td>
                         </tr>
@@ -569,6 +587,84 @@
               <div class="ml-auto">
                 <button
                   on:click={cambiarFechaCita(i.time)}
+                  class="btn btn-outline-success btn-sm">
+                  Seleccionar
+                </button>
+              </div>
+            </div>
+          {/each}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade modal-slide-right"
+  id="modalNuevaCita"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalNuevaCitaLabel"
+  style="display: none; padding-right: 16px;"
+  aria-modal="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalNuevaCitaLabel">
+          <i class="mdi mdi-calendar-plus" />
+          Creacion de cita
+        </h5>
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body" style="height: 100%; top: 0; overflow: auto;">
+
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label for="inputAddress">Fecha</label>
+              <input
+                type="date"
+                class="form-control form-control-sm"
+                bind:value={fecha}
+                on:change={buscarDisponibilidadHorario} />
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="form-group ">
+              <label class="font-secondary">Tanda</label>
+              <select
+                class="form-control form-control-sm js-select2"
+                bind:value={tandaID}
+                on:change={buscarDisponibilidadHorario}>
+                <option value={0} disabled>- Seleccionar -</option>
+                <option value={1}>Matutina</option>
+                <option value={2}>Vespertina</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="list-group list">
+          {#if horasDisponibles.length <= 0}
+            <div class="alert alert-success" role="alert">
+              No hay disponibilidad con este horario
+            </div>
+          {/if}
+          {#each horasDisponibles as i}
+            <div
+              class="list-group-item d-flex align-items-center svelte-1nu1nbu">
+              <div class="">
+                <div class="name">{i.hora}</div>
+              </div>
+              <div class="ml-auto">
+                <button
+                  on:click={() => irACita(i.time)}
                   class="btn btn-outline-success btn-sm">
                   Seleccionar
                 </button>

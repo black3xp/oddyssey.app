@@ -44,7 +44,7 @@
     Observaciones: "",
     Fecha: data.fechaCita || "",
     MedicoID: data.medicoId,
-    PacienteID: "",
+    PacienteID: data.pacienteId,
     AseguradoraID: 1,
     EstadoID: 1,
     Nombre: "",
@@ -78,6 +78,11 @@
     $axios.get("/Pacientes/Query" + qs)
     .then(res => {
         pacientes = res.data;
+
+        if (obj.PacienteID != "") {
+          let select = pacientes.find(x => x.id == obj.PacienteID)
+          seleccionarPaciente(select)
+        }
       }).catch(err => {
         console.error(err);
       });

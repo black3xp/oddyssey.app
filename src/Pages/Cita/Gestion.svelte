@@ -46,7 +46,6 @@
     if ($dataCita.fechaCita != undefined) {
       filter.FechaCita = $dataCita.fechaCita;
       filter.TandaID = $dataCita.tandaID
-      console.log(filter.TandaID)
     }
 
     jQuery("#sltEspecialidad").select2();
@@ -107,7 +106,8 @@
       fechaCita: filterCita.FechaCita,
       tandaID: filterCita.TandaID,
       hora: time,
-      medicoId: filterCita.MedicoId
+      medicoId: filterCita.MedicoId,
+      pacienteId: ""
     };
     push('/Cita/Crear');
   }
@@ -117,7 +117,8 @@
       fechaCita: filter.FechaCita,
       tandaID: filter.TandaID,
       hora: "",
-      medicoId: id
+      medicoId: id,
+      pacienteId: ""
     };
     push('/Medico/Perfil/' + id);
   }
