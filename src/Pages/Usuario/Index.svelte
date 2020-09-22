@@ -47,12 +47,12 @@
   let rolesUser = [];
   let list = [];
   let prefijos = [
-    {value: 'dr', name: 'Dr.'},
-    {value: 'dra', name: 'Dra.'},
-    {value: 'lic', name: 'Lic.'},
-    {value: 'lida', name: 'Lida.'},
-    {value: 'sr', name: 'Sr.'},
-    {value: 'sra', name: 'Sra.'},
+    {value: 'Dr', name: 'Dr.'},
+    {value: 'Dra', name: 'Dra.'},
+    {value: 'Lic', name: 'Lic.'},
+    {value: 'Lida', name: 'Lida.'},
+    {value: 'Sr', name: 'Sr.'},
+    {value: 'Sra', name: 'Sra.'},
   ]
   let obj = {
     prefix: "",
@@ -211,7 +211,7 @@
         cargarAsistentesAsignado();
       }
     }).catch(err => {
-      console.error(err); 
+      console.error(err);
     })
   }
 
@@ -468,7 +468,7 @@
                   <label for="">Perfil</label>
                   <select class="form-control" name="perfil"
                     bind:value={obj.perfilID} required>
-                    <option value="" disabled>- Seleccionar -</option>
+                    <option value="" disabled selected>- Seleccionar -</option>
                     {#each perfiles as item}
                       <option value={item.id}>{item.nombre}</option>
                     {/each}

@@ -2,13 +2,65 @@
   import { createEventDispatcher } from 'svelte';
   import { axios } from "../store.js";
   import moment from 'moment';
+  import Swal from 'sweetalert2';
 
   export let horario = {};
   $: invisible = horario.inactivo;
 
   const dispatch = createEventDispatcher();
 
+  function validarHora(hora, tanda) {
+    if (tanda == 1) {
+      let time = hora.split(':')
+      let hours = parseInt(time[0]) - 12
+      return (hours < 10 ? '0' + hours : hours) + ':' + time[1]
+    } else {
+      let time = hora.split(':')
+      let hours = parseInt(time[0]) + 12
+      return hours + ':' + time[1]
+    }
+  }
+  function mensajeTanda(tanda, texto) {
+    if (tanda == 1) {
+      Swal.fire({
+        title: 'Información',
+        text: 'Hora '+ texto +' de la tanda matutina incorrecta!',
+        icon: 'info'
+      });
+    } else {
+      Swal.fire({
+        title: 'Información',
+        text: 'Hora '+ texto +' de la tanda vespertina incorrecta!',
+        icon: 'info'
+      });
+    }
+  }
+
   function cambiarHorario(e) {
+    if (horario.tandaID == 1) {
+      if (horario.horaInicio > '11:59') {
+        mensajeTanda(1, 'inicio')
+        horario.horaInicio = validarHora(horario.horaInicio, 1)
+        return;
+      }
+      if (horario.horaFin > '11:59') {
+        mensajeTanda(1, 'fin')
+        horario.horaFin = validarHora(horario.horaFin, 1)
+        return;
+      }
+    } else {
+      if (horario.horaInicio < '12:00') {
+        mensajeTanda(2, 'inicio')
+        return;
+        horario.horaInicio = validarHora(horario.horaInicio, 2)
+      }
+      if (horario.horaFin < '12:00') {
+        mensajeTanda(2, 'fin')
+        horario.horaFin = validarHora(horario.horaFin, 2)
+        return;
+      }
+    }
+
     let obj = {
       MedicoID: horario.medicoID,
       Dia: horario.dia,
@@ -19,12 +71,12 @@
     };
 
     if (!isNaN(horario.intervalo)) {
-      let hora = moment(obj.HoraInicio, 'HH:mm');
-      hora.add(obj.Intervalo, 'minutes');
+      // let hora = moment(obj.HoraInicio, 'HH:mm');
+      // hora.add(obj.Intervalo, 'minutes');
 
-      if (hora.format('HH:mm') > obj.HoraFin) {
-        console.log('hora inicio mayor que hora fin')
-      }
+      // if (hora.format('HH:mm') > obj.HoraFin) {
+      //   console.log('hora inicio mayor que hora fin')
+      // }
       
       $axios.put("/Horarios", obj)
       .then(res => {

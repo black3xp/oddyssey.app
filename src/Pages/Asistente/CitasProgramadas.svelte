@@ -114,7 +114,7 @@
   }
 
   function cargarMedicos() {
-    $axios.get("/MedicosAsistentes/" + user.nameid + "/Medicos")
+    $axios.get("/Medicos/Query?")
       .then(res => {
         medicos = res.data;
       }).catch(err => {
@@ -278,7 +278,7 @@
               <option value={0} disabled selected>- Seleccionar medico -</option>
               <option value={""}>Todos</option>
               {#each medicos as item}
-                <option value={item.medicoID}>{item.name}</option>
+                <option value={item.id}>{item.name}</option>
               {/each}
             </select>
           </div>
