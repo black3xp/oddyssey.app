@@ -4,8 +4,9 @@
   import { push } from "svelte-spa-router";
   import { onMount } from "svelte";
   import { UserManager } from "../../util.js";
-  import { activePage, dataCita, axios, session } from "../../store";
+  import { activePage, dataCita, axios, session, errorConexion } from "../../store";
   import moment from 'moment';
+  import Swal from 'sweetalert2';
 
   let user = {};
   user = new UserManager($session.authorizationHeader.Authorization)
@@ -68,6 +69,7 @@
       listado = res.data;
     }).catch(err => {
       console.error(err);
+      $errorConexion()
     });
   }
   function cargarEspecialidades() {
@@ -76,6 +78,7 @@
       especialidades = res.data;
     }).catch(err => {
       console.error(err);
+      $errorConexion()
     });
   }
   function cargarTandas() {
@@ -84,6 +87,7 @@
       tandas = res.data;
     }).catch(err => {
       console.error(err);
+      $errorConexion()
     });
   }
   function elegirTiempo(e) {
@@ -150,6 +154,7 @@
     filter.PerfilID = 0;
     filter.FechaCita = "";
     filter.TandaID = 0;
+    $dataCita = {}
 
     jQuery("#sltEspecialidad").val(0).trigger('change');
     filtrar('limpiar');
@@ -176,6 +181,7 @@
     }).catch(err => {
       horasDisponibles = [];
       console.error(err);
+      $errorConexion()
     })
   }
 </script>

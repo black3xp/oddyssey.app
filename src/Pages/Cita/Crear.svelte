@@ -2,7 +2,7 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita, axios, session } from "../../store";
+  import { activePage, dataCita, axios, session, errorConexion } from "../../store";
   import { onMount } from "svelte";
   import moment from 'moment';
   import Swal from 'sweetalert2';
@@ -44,7 +44,7 @@
     Observaciones: "",
     Fecha: data.fechaCita || "",
     MedicoID: data.medicoId,
-    PacienteID: data.pacienteId,
+    PacienteID: data.pacienteId || "",
     AseguradoraID: 1,
     EstadoID: 1,
     Nombre: "",
@@ -56,7 +56,6 @@
     tandaID: data.tandaID,
     hora: ""
   };
-  let sexos = ['M', 'F'];
   let tandas = [];
   let horas = [];
   let pacientes = [];
@@ -71,6 +70,7 @@
         setTimeout(x => jQuery("#sltMedicos").val(obj.MedicoID).trigger('change'), 10);
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarPacientes() {
@@ -85,6 +85,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarTandas() {
@@ -94,6 +95,7 @@
         obj.tandaID = $dataCita.tandaID || 0;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarHoras() {
@@ -116,6 +118,7 @@
     }).catch(err => {
       horas = [];
       console.error(err);
+      $errorConexion()
     })
   }
 
@@ -139,7 +142,8 @@
         crearCita();
       })
       .catch(err => {
-        console.error(err); 
+        console.error(err);
+        $errorConexion()
       })
     } else {
       $axios.put("/Pacientes/" + obj.PacienteID, obj)
@@ -151,7 +155,8 @@
           console.log(res);
         }
       }).catch(err => {
-        console.error(err); 
+        console.error(err);
+        $errorConexion()
       })
     }
   }
@@ -170,9 +175,15 @@
         push('/Cita/Gestionar');
       } else {
         console.log(res);
+        Swal.fire({
+          title: 'Error',
+          text: 'Ocurrio un error al crear la cita, intente de nuevo',
+          icon: 'error'
+        });
       }
     }).catch(err => {
-      console.error(err); 
+      console.error(err);
+      $errorConexion()
     })
   }
 </script>

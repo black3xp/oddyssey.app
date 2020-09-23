@@ -1,7 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection, activePage, session, axios } from "../../store.js";
+  import { connection, activePage, session, axios, errorConexion } from "../../store.js";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
@@ -58,6 +58,7 @@
       );
     }).catch(err => {
       console.error(err);
+      $errorConexion()
     })
   }
   function getPaciente(id, via) {
@@ -76,6 +77,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function terminarCita() {
@@ -96,6 +98,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
     }
   }
@@ -131,11 +134,8 @@
           }
 
         }).catch(err => {
-          Toast.fire({
-            icon: 'error',
-            title: 'Error de conexion'
-          })
           console.error(err);
+          $errorConexion()
         });
       }
     })
@@ -148,6 +148,7 @@
         getPaciente(envioPacienteActual, 'carga')
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
 </script>

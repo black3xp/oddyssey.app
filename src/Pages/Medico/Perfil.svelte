@@ -3,7 +3,7 @@
   import Header from "../../Layout/Header.svelte";
   import DiaSemana from "../../Components/DiaSemana.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita, axios, session } from "../../store";
+  import { activePage, dataCita, axios, session, errorConexion } from "../../store";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import moment from 'moment';
@@ -91,6 +91,7 @@
         detail = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarTandas() {
@@ -99,6 +100,7 @@
         tandas = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarHorarios() {
@@ -115,6 +117,7 @@
         });
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarCitas() {
@@ -155,6 +158,7 @@
         buscarCitas('s');
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarPerfiles() {
@@ -163,6 +167,7 @@
         perfiles = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
 
@@ -192,6 +197,7 @@
     }).catch(err => {
       horasDisponibles = [];
       console.error(err); 
+      $errorConexion()
     })
   }
 
@@ -253,6 +259,7 @@
       jQuery('#modalUsuario').modal('show');
     }).catch(err => {
       console.error(err);
+      $errorConexion()
     });
   }
   function guardar() {
@@ -269,6 +276,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
 

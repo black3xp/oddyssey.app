@@ -3,7 +3,7 @@
   import Header from "../../Layout/Header.svelte";
   import { UserManager } from "../../util.js";
   import { push } from "svelte-spa-router";
-  import { session, activePage, host, dataCita, connection, axios } from "../../store";
+  import { session, activePage, host, dataCita, connection, axios, errorConexion } from "../../store";
   import { onMount } from "svelte";
   import moment from "moment";
   import Swal from 'sweetalert2';
@@ -109,7 +109,7 @@
         }
       }
 
-      if (pacienteEnviado == "") {
+      if (paciente == "") {
         Swal.fire({
           title: 'Aviso',
           text: 'El paciente ya fue atendido, favor de mandar otro',
@@ -126,6 +126,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion();
       });
   }
   function cargarCitas() {
@@ -141,6 +142,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarCitasRealizadas() {
@@ -153,6 +155,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function buscarDisponibilidadHorario() {
@@ -174,6 +177,7 @@
       .catch(err => {
         horasDisponibles = [];
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarDatosPaciente(item) {
@@ -184,6 +188,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function reprogramarCita(item) {
@@ -215,6 +220,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function guardarEnviarPaciente() {
@@ -236,6 +242,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cambiarFechaCita(hora) {
@@ -256,6 +263,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cambiarEstadoCita(item) {
@@ -270,6 +278,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function anularCita() {
@@ -299,6 +308,7 @@
           })
           .catch(err => {
             console.error(err);
+            $errorConexion()
           });
       }
     })
@@ -308,7 +318,8 @@
       fechaCita: fecha,
       tandaID: tandaID,
       hora: time,
-      medicoId: idMedico
+      medicoId: idMedico,
+      pacienteId: cita.pacienteID,
     };
     push('/Cita/Crear');
   }
@@ -319,6 +330,7 @@
         pacienteEnviado = res.data.data || "";
       }).catch(err => {
         console.error(err);
+        $errorConexion();
       });
   }
 
@@ -337,11 +349,8 @@
       }
 
     }).catch(err => {
-      Toast.fire({
-        icon: 'error',
-        title: 'Error de conexion'
-      })
       console.error(err);
+      $errorConexion()
     });
   }
 </script>

@@ -2,6 +2,7 @@ import { writable, readable } from "svelte/store"
 import { Session } from "svelte-session-manager"
 import { HubConnectionBuilder } from '@microsoft/signalr'
 import Axios from "axios";
+import Swal from 'sweetalert2';
 
 const axiosInstance = Axios.create({
   baseURL: "http://192.168.1.104:93/api"
@@ -21,3 +22,13 @@ export const session = writable(new Session(window.localStorage));
 export const activePage = writable("home.index");
 export const dataCita = writable({});
 export const host = readable(_host + "/api");
+
+const errorConn = () => {
+  Swal.fire({
+    title: 'Error',
+    text: 'Ocurrio un problema al intentar conectar, intente de nuevo',
+    icon: 'error'
+  });
+}
+
+export const errorConexion = readable(errorConn)

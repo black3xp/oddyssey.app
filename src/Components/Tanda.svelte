@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { axios } from "../store.js";
+  import { axios, errorConexion } from "../store.js";
 
   export let i = {};
   export let horarios = {};
@@ -39,6 +39,7 @@
           dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);
+          $errorConexion()
         });
       } else { // Si no existe horario en ese dia y tanda
         $axios.post("/Horarios", hr)
@@ -46,6 +47,7 @@
           dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);
+          $errorConexion()
         });
       }
     } else { // Si la tanda se desmarca
@@ -64,6 +66,7 @@
           dispatch('cambioHorario')
         }).catch(err => {
           console.error(err);
+          $errorConexion()
         });
     }
   }

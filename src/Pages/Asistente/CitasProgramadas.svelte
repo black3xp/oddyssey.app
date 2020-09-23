@@ -1,7 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection, activePage, session, axios, dataCita } from "../../store.js";
+  import { connection, activePage, session, axios, dataCita, errorConexion } from "../../store.js";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
@@ -36,8 +36,7 @@
     jQuery("#sltMedicos").on("select2:select", e => {
       let data = e.params.data;
       idMedico = data.id;
-      
-      cargarCitas();
+      cargarCitas()
     });
 
     cargarEstados();
@@ -119,6 +118,7 @@
         medicos = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarEstados() {
@@ -127,6 +127,7 @@
         estados = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
 
@@ -140,6 +141,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarDatosPaciente(item) {
@@ -149,6 +151,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function buscarDisponibilidadHorario() {
@@ -170,6 +173,7 @@
       .catch(err => {
         horasDisponibles = [];
         console.error(err);
+        $errorConexion()
       });
   }
   function reprogramarCita(item) {
@@ -201,6 +205,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cambiarFechaCita(hora) {
@@ -221,6 +226,7 @@
       })
       .catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
 
@@ -343,6 +349,7 @@
                               <i class="mdi mdi-account-search-outline" />
                               Ver paciente
                             </button>
+                            {#if idMedico != ""}
                             <button
                               class="btn btn-success btn-sm mb-1"
                               data-toggle="modal"
@@ -351,6 +358,7 @@
                               <i class="mdi mdi-calendar-remove" />
                               {i.codigoEstado == 'r' ? 'Crear cita' : 'Reprogramar'}
                             </button>
+                            {/if}
                           </td>
                         </tr>
                       {/each}

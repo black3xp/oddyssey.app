@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { axios } from "../store.js";
+  import { axios, errorConexion } from "../store.js";
   import moment from 'moment';
   import Swal from 'sweetalert2';
 
@@ -13,7 +13,7 @@
     if (tanda == 1) {
       let time = hora.split(':')
       let hours = parseInt(time[0]) - 12
-      return (hours < 10 ? '0' + hours : hours) + ':' + time[1]
+      return hours.toString().padStart(2, '0') + ':' + time[1]
     } else {
       let time = hora.split(':')
       let hours = parseInt(time[0]) + 12
@@ -83,6 +83,7 @@
         dispatch('cambioHorario')
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
     }
   }

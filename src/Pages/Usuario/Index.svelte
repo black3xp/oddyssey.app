@@ -2,7 +2,7 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, host, axios, session } from "../../store";
+  import { activePage, host, axios, session, errorConexion } from "../../store";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import Swal from 'sweetalert2';
@@ -81,6 +81,7 @@
         list = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarDetalle(id) {
@@ -92,6 +93,7 @@
         cargarAsistentesAsignado();
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarPerfil() {
@@ -99,6 +101,7 @@
         perfiles = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarAsistentesAsignado() {
@@ -107,6 +110,7 @@
         asistentesAsignado = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarAsistentes() {
@@ -115,6 +119,7 @@
         asistentes = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarRoles() {
@@ -123,6 +128,7 @@
         roles = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
   function cargarRolesUser(id) {
@@ -132,6 +138,7 @@
         rolesUser = res.data;
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
   }
 
@@ -149,6 +156,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
     } else {
       $axios.put("/Users/" + userID, obj)
@@ -163,6 +171,7 @@
         }
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       });
     }
   }
@@ -174,6 +183,7 @@
         cargarRolesUser(userID)
       }).catch(err => {
         console.error(err);
+        $errorConexion()
       })
     } else {
       $axios.post('/Users/' + userID + "/AddTo?role=" + rol)
@@ -181,6 +191,7 @@
         cargarRolesUser(userID)
       }).catch(err => {
         console.error(err); 
+        $errorConexion()
       })
     }
   }
@@ -195,7 +206,8 @@
         cargarAsistentesAsignado();
       }
     }).catch(err => {
-      console.error(err); 
+      console.error(err);
+      $errorConexion()
     })
   }
   function eliminarAsistente(item) {
@@ -212,6 +224,7 @@
       }
     }).catch(err => {
       console.error(err);
+      $errorConexion()
     })
   }
 

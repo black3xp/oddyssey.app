@@ -11,9 +11,14 @@
       $connection.start().catch(e => console.error(e));
     }
   });
+
+  function event(e) {
+    jQuery("body").removeClass('sidebar-open')
+  }
 </script>
 
 <Router
+  on:routeLoaded={event}
   on:conditionsFailed={() => {
     push('/Home/Login');
   }}
