@@ -2,7 +2,7 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita, axios, session, errorConexion } from "../../store";
+  import { activePage, dataCita, axios, session, errorConexion, toast } from "../../store";
   import { onMount } from "svelte";
   import moment from 'moment';
   import Swal from 'sweetalert2';
@@ -12,18 +12,6 @@
   };
 
   $activePage = "citas.crear";
-
-  const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 5000,
-    timerProgressBar: true,
-    onOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-  })
 
   onMount(() => {
     jQuery("#sltMedicos").select2();
@@ -168,7 +156,7 @@
     .then(res => {
       if (res.data.success) {
         $dataCita = {};
-        Toast.fire({
+        $toast(5000).fire({
             icon: 'success',
             title: 'La cita fue creada con exito'
           })

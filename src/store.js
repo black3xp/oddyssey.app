@@ -31,4 +31,19 @@ const errorConn = () => {
   });
 }
 
+const notification = (time) => {
+  return Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: time,
+    timerProgressBar: true,
+    onOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  })
+}
+
 export const errorConexion = readable(errorConn)
+export const toast = readable(notification)

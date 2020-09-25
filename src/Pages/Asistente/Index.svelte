@@ -3,7 +3,8 @@
   import Header from "../../Layout/Header.svelte";
   import { UserManager } from "../../util.js";
   import { push } from "svelte-spa-router";
-  import { session, activePage, host, dataCita, connection, axios, errorConexion } from "../../store";
+  import { session, activePage, host, dataCita, connection, axios, errorConexion, toast } 
+    from "../../store";
   import { onMount } from "svelte";
   import moment from "moment";
   import Swal from 'sweetalert2';
@@ -18,18 +19,6 @@
     Authorization: $session.authorizationHeader.Authorization
   };
   $activePage = "asistente.index";
-
-  const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 5000,
-    timerProgressBar: true,
-    onOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-  })
 
   let busqueda = "";
   let medicos = [];
@@ -232,7 +221,7 @@
       .then(res => {
         if (res.data.success) {
           pacienteEnviado = paciente.id;
-          Toast.fire({
+          $toast(5000).fire({
             icon: 'success',
             title: 'Se ha enviado correctamente'
           })
@@ -252,11 +241,12 @@
     $axios.put("/Citas/" + cita.id, cita)
       .then(res => {
         if (res.data.success) {
-          Toast.fire({
+          $toast(5000).fire({
             icon: 'success',
             title: 'Cambio de cita realizado con exito'
           })
           jQuery("#modalCrearCita").modal("hide");
+          cargarCitas()
         } else {
           console.log(res);
         }
@@ -294,12 +284,12 @@
     }).then((result) => {
       if (result.isConfirmed) {
         cita.inactivo = true;
+        cita.estadoID = 4;
         $axios.put("/Citas/" + cita.id, cita)
           .then(res => {
             if (res.data.success) {
-              Swal.fire({
-                title: 'Anulado',
-                text: 'Cita anulada con exito',
+              $toast(5000).fire({
+                title: 'Cita anulada con exito',
                 icon: 'success'
               });
               cargarCitas();
@@ -342,7 +332,7 @@
           .catch(err => console.error(err));
         guardarEnviarPaciente()
       } else {
-        Toast.fire({
+        $toast(5000).fire({
           icon: 'error',
           title: 'Error de conexion'
         })
@@ -824,7 +814,7 @@ box-shadow: 0px 0px 0px 3px #0c9;
         <div class="list-group list">
           {#if horasDisponibles.length <= 0}
             <div class="alert alert-success" role="alert">
-              No hay disponibilidad con este horario
+              No hay disponibilidad en este horario
             </div>
           {/if}
           {#each horasDisponibles as i}
@@ -908,7 +898,7 @@ box-shadow: 0px 0px 0px 3px #0c9;
         <div class="list-group list">
           {#if horasDisponibles.length <= 0}
             <div class="alert alert-success" role="alert">
-              No hay disponibilidad con este horario
+              No hay disponibilidad en este horario
             </div>
           {/if}
           {#each horasDisponibles as i}

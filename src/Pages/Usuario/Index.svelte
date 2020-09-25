@@ -2,13 +2,12 @@
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, host, axios, session, errorConexion } from "../../store";
+  import { activePage, host, axios, session, errorConexion, toast } from "../../store";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
-  import Swal from 'sweetalert2';
+  // import Swal from 'sweetalert2';
 
-  let user = {};
-  user = new UserManager($session.authorizationHeader.Authorization)
+  let user = new UserManager($session.authorizationHeader.Authorization)
   if (!user.isAny(['admin'])) {
     push('/Home/Unauthorized');
   }
@@ -18,18 +17,6 @@
   };
 
   $activePage = "mantenimiento.usuarios.index";
-
-  const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 5000,
-    timerProgressBar: true,
-    onOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-  })
 
   $: filterRoles = roles.map(x => {
     return {
@@ -147,7 +134,7 @@
       $axios.post("/Users", obj)
       .then(res => {
         if (res.data.success) {
-          Toast.fire({
+          $toast(5000).fire({
             icon: 'success',
             title: 'Usuario guardado con exito'
           })
@@ -162,7 +149,7 @@
       $axios.put("/Users/" + userID, obj)
       .then(res => {
         if (res.data.success) {
-          Toast.fire({
+          $toast(5000).fire({
             icon: 'success',
             title: 'Usuario guardado con exito'
           })

@@ -90,6 +90,32 @@
       $errorConexion()
     });
   }
+  function buscarDisponibilidadHorario(idMedico) {
+    if (typeof idMedico === 'string') {
+      filterCita.MedicoId = idMedico;
+    }
+
+    if (filterCita.FechaCita == "") {
+      horasDisponibles = [];
+      return;
+    }
+
+    let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + filterCita.TandaID;
+    $axios.get("/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params)
+    .then(res => {
+      horasDisponibles = res.data.map(e => {
+        return {
+          time : e,
+          hora : moment(e, 'LT').format('LT')
+        }
+      });
+    }).catch(err => {
+      horasDisponibles = [];
+      console.error(err);
+      $errorConexion()
+    })
+  }
+
   function elegirTiempo(e) {
     let countDia = parseInt(e.target.value);
     let date = moment();
@@ -115,7 +141,6 @@
     };
     push('/Cita/Crear');
   }
-
   function irAlPerfil(id) {
     $dataCita = {
       fechaCita: filter.FechaCita,
@@ -126,7 +151,6 @@
     };
     push('/Medico/Perfil/' + id);
   }
-
   function filtrar(tipo) {
     if (tipo == 'limpiar') {
       dia = -1;
@@ -148,7 +172,6 @@
       dia = -1;
     }
   }
-
   function limpiarFiltro() {
     filter.Nombre = "";
     filter.PerfilID = 0;
@@ -158,31 +181,6 @@
 
     jQuery("#sltEspecialidad").val(0).trigger('change');
     filtrar('limpiar');
-  }
-  function buscarDisponibilidadHorario(idMedico) {
-    if (typeof idMedico === 'string') {
-      filterCita.MedicoId = idMedico;
-    }
-
-    if (filterCita.FechaCita == "") {
-      horasDisponibles = [];
-      return;
-    }
-
-    let params = "date=" + filterCita.FechaCita + "&" + "tandiId=" + filterCita.TandaID;
-    $axios.get("/Medicos/HorasDisponibles/" + filterCita.MedicoId + "?" + params)
-    .then(res => {
-      horasDisponibles = res.data.map(e => {
-        return {
-          time : e,
-          hora : moment(e, 'LT').format('LT')
-        }
-      });
-    }).catch(err => {
-      horasDisponibles = [];
-      console.error(err);
-      $errorConexion()
-    })
   }
 </script>
 

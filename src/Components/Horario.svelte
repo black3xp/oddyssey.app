@@ -51,8 +51,8 @@
     } else {
       if (horario.horaInicio < '12:00') {
         mensajeTanda(2, 'inicio')
-        return;
         horario.horaInicio = validarHora(horario.horaInicio, 2)
+        return;
       }
       if (horario.horaFin < '12:00') {
         mensajeTanda(2, 'fin')

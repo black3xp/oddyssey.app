@@ -3,11 +3,11 @@
   import Header from "../../Layout/Header.svelte";
   import DiaSemana from "../../Components/DiaSemana.svelte";
   import { push } from "svelte-spa-router";
-  import { activePage, dataCita, axios, session, errorConexion } from "../../store";
+  import { activePage, dataCita, axios, session, errorConexion, toast } from "../../store";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import moment from 'moment';
-  import Swal from 'sweetalert2';
+  // import Swal from 'sweetalert2';
 
   let user = new UserManager($session.authorizationHeader.Authorization)
 
@@ -36,12 +36,12 @@
   };
   
   let prefijos = [
-    {value: 'dr', name: 'Dr.'},
-    {value: 'dra', name: 'Dra.'},
-    {value: 'lic', name: 'Lic.'},
-    {value: 'lida', name: 'Lida.'},
-    {value: 'sr', name: 'Sr.'},
-    {value: 'sra', name: 'Sra.'},
+    {value: 'Dr', name: 'Dr.'},
+    {value: 'Dra', name: 'Dra.'},
+    {value: 'Lic', name: 'Lic.'},
+    {value: 'Lida', name: 'Lida.'},
+    {value: 'Sr', name: 'Sr.'},
+    {value: 'Sra', name: 'Sra.'},
   ]
 
   let fecha = "";
@@ -266,11 +266,10 @@
     $axios.put("/Users/" + id, obj)
     .then(res => {
         if (res.data.success) {
-          Swal.fire({
-            title: 'Actualizado',
-            text: 'Medico actualizado con exito',
-            icon: 'success'
-          });
+          $toast(5000).fire({
+            icon: 'success',
+            title: 'Medico actualizado con exito'
+          })
           jQuery('#modalUsuario').modal('hide');
           cargarDetalle();
         }

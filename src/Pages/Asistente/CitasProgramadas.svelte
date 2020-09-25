@@ -1,12 +1,13 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection, activePage, session, axios, dataCita, errorConexion } from "../../store.js";
+  import { connection, activePage, session, axios, dataCita, errorConexion, toast }
+    from "../../store.js";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
   import moment from "moment";
-  import Swal from "sweetalert2";
+  // import Swal from "sweetalert2";
 
   let user = new UserManager($session.authorizationHeader.Authorization)
   if (!user.isAny(['assistant', 'admin'])) {
@@ -17,18 +18,6 @@
     Authorization: $session.authorizationHeader.Authorization
   };
   $activePage = "citasProgramadas";
-
-  const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 5000,
-    timerProgressBar: true,
-    onOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-  })
 
   onMount(() => {
     moment.locale('es-DO');
@@ -194,7 +183,7 @@
     $axios.put("/Pacientes/" + paciente.id, paciente)
       .then(res => {
         if (res.data.success) {
-          Toast.fire({
+          $toast(5000).fire({
             icon: 'success',
             title: 'Paciente actualizado con exito'
           })
@@ -211,14 +200,16 @@
   function cambiarFechaCita(hora) {
     cita.fecha = fecha + "T" + hora;
     cita.estadoID = 1;
+    cita.inactivo = false;
 
     $axios.put("/Citas/" + cita.id, cita)
       .then(res => {
         if (res.data.success) {
-          Toast.fire({
+          $toast(5000).fire({
             icon: 'success',
             title: 'Cambio de cita realizado con exito'
           })
+          cargarCitas()
           jQuery("#modalCrearCita").modal("hide");
         } else {
           console.log(res);
@@ -599,7 +590,7 @@
         <div class="list-group list">
           {#if horasDisponibles.length <= 0}
             <div class="alert alert-success" role="alert">
-              No hay disponibilidad con este horario
+              No hay disponibilidad en este horario
             </div>
           {/if}
           {#each horasDisponibles as i}
@@ -677,7 +668,7 @@
         <div class="list-group list">
           {#if horasDisponibles.length <= 0}
             <div class="alert alert-success" role="alert">
-              No hay disponibilidad con este horario
+              No hay disponibilidad en este horario
             </div>
           {/if}
           {#each horasDisponibles as i}

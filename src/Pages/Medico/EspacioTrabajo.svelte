@@ -1,7 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection, activePage, session, axios, errorConexion } from "../../store.js";
+  import { connection, activePage, session, axios, errorConexion, toast } from "../../store.js";
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
@@ -18,18 +18,6 @@
     Authorization: $session.authorizationHeader.Authorization
   };
   $activePage = "espacioMedico";
-
-  const Toast = Swal.mixin({
-    toast: true,
-    position: 'top-end',
-    showConfirmButton: false,
-    timer: 5000,
-    timerProgressBar: true,
-    onOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-  })
 
   let citaPacienteActual = {};
   let paciente = {};
@@ -122,15 +110,16 @@
             $connection.invoke("EnviarAvisoDelPaciente", user.nameid, id)
             .catch(err => console.error(err));
 
-            Toast.fire({
+            $toast(5000).fire({
               icon: 'success',
               title: 'Cambio realizado con exito'
             })
           } else {
-            Toast.fire({
-              icon: 'error',
-              title: 'Problema al cambiar paciente'
-            })
+            Swal.fire({
+              title: 'Error',
+              text: 'Problema al cambiar paciente',
+              icon: 'error'
+            });
           }
 
         }).catch(err => {
