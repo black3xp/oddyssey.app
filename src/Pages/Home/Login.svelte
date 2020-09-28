@@ -5,6 +5,10 @@
   import { HubConnectionState } from '@microsoft/signalr'
   import Swal from 'sweetalert2';
 
+  if ($session.isValid) {
+    push('/Home/Index');
+  }
+
   let loginFail = false;
   let username = "";
   let password = "";
@@ -30,10 +34,10 @@
         }
       }).catch(e => {
         Swal.fire({
-            title: 'Error de conexion',
-            text: 'Hubo un problema al conectar al servidor!',
-            icon: 'error'
-          });
+          title: 'Error de conexion',
+          text: 'Hubo un problema al conectar al servidor!',
+          icon: 'error'
+        });
       }) 
   }
 </script>

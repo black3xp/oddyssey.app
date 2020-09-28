@@ -10,7 +10,7 @@
   // import Swal from "sweetalert2";
 
   let user = new UserManager($session.authorizationHeader.Authorization)
-  if (!user.isAny(['assistant', 'admin'])) {
+  if (!user.isAny(['assistant', 'operator', 'admin'])) {
     push('/Home/Unauthorized');
   }
 

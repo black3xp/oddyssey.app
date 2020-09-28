@@ -10,8 +10,8 @@ const axiosInstance = Axios.create({
 });
 
 export const axios = writable(axiosInstance);
-// const _host = "http://172.20.1.12:303";
 const _host = "http://192.168.1.104:93";
+// const _host = "http://172.20.1.12:303";
 export const connection = writable(new HubConnectionBuilder()
   .withUrl(_host + "/hub", {
     accessTokenFactory: () => localStorage.getItem('access_token'),
