@@ -519,7 +519,7 @@
             </div>
           </div>
           
-          {#if user.isAny(['admin', 'operator'])}
+          {#if user.isAny(['admin', 'assistant'])}
           <article class="card m-b-30 horarioEspecialista">
             <div class="card-header">
               <h5 class="m-b-0">
