@@ -3,7 +3,7 @@
   import Header from "../../Layout/Header.svelte";
   import { activePage, session } from "../../store.js";
   import { onDestroy } from "svelte";
-  import { push } from 'svelte-spa-router';
+  import { push } from "svelte-spa-router";
   $activePage = "home.index";
   onDestroy(() => {
     $activePage = "";
@@ -16,14 +16,16 @@
   <Header />
   <section class="admin-content">
     <div class="container mt-3">
-      <div class="row" />
-      <h1>Página principal</h1>
-      Lorem ipsum dolor sit amet consectetur adipisicing elit. Quis, ipsa. Ab
-      recusandae consectetur vel eum unde voluptate quis consequuntur
-      reprehenderit omnis, facilis accusamus? Numquam quaerat nihil id amet
-      labore dolor laboriosam quidem distinctio architecto natus ipsam quod vel
-      illum, iusto libero facere magni at laudantium? Aliquid molestiae
-      exercitationem eveniet eos!
+      <div class="jumbotron jumbotron-fluid">
+      
+        <div class="row justify-content-center">
+          <div class="col-4 container">
+            <h1 class="display-4">Bienvenido</h1>
+            <p>Al sistema de gestion de citas</p>
+          </div>
+        </div>
+
+      </div>
     </div>
   </section>
 </main>

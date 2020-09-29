@@ -55,6 +55,7 @@
   let citasDB = [];
   let btnFechaDisponibilidad = 'h';
   let btnFechaCita = '';
+  let cambioHorarioPermitido = false;
 
   let diasSemana = [
     {check: false, dia: 1, nombre: 'Lunes'},
@@ -77,6 +78,7 @@
       tandaID = $dataCita.tandaID
     }
 
+    cargarMedicosDelAsistente();
     cargarDetalle();
     buscarDisponibilidadHorario();
     cargarHorarios();
@@ -85,6 +87,15 @@
     cargarPerfiles();
   });
 
+  function cargarMedicosDelAsistente() {
+    $axios.get("/MedicosAsistentes/" + user.nameid + "/Medicos")
+    .then(res => {
+        cambioHorarioPermitido = res.data.some(x => x.medicoID == id);
+      }).catch(err => {
+        console.error(err);
+        $errorConexion()
+      });
+  }
   function cargarDetalle() {
     $axios.get("/Medicos/" + id)
     .then(res => {
@@ -519,7 +530,7 @@
             </div>
           </div>
           
-          {#if user.isAny(['admin', 'assistant'])}
+          {#if user.is('assistant') && cambioHorarioPermitido || user.isAny(['admin', 'operator'])}
           <article class="card m-b-30 horarioEspecialista">
             <div class="card-header">
               <h5 class="m-b-0">
