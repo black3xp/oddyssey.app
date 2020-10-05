@@ -12,19 +12,23 @@
   let loginFail = false;
   let username = "";
   let password = "";
+  let cargando = false;
 
   jQuery('.modal-backdrop').hide();
 
   const iniciar = function() {
+    cargando = true;
+    loginFail = false;
     let _session = new Session(localStorage);
 
     login(_session, $host + "/Users/LogIn", username, password)
       .then(x => {
         if (x) {
           loginFail = true;
+          cargando = false;
         } else {
           $session = _session;
-
+          cargando = false;
           if ($session.isValid) {
             if ($connection.state === HubConnectionState.Disconnected) {
               $connection.start().catch(e => console.error(e))
@@ -33,6 +37,7 @@
           }
         }
       }).catch(e => {
+        cargando = false;
         Swal.fire({
           title: 'Error de conexion',
           text: 'Hubo un problema al conectar al servidor!',
@@ -85,6 +90,11 @@
               {#if loginFail}
                 <div class="alert alert-danger mt-2" role="alert">
                   Usuario y contraseña no coinciden
+                </div>
+              {/if}
+              {#if cargando}
+                <div class="alert alert-primary mt-2" role="alert">
+                  Cargando...
                 </div>
               {/if}
 
