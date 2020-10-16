@@ -12,13 +12,21 @@ import MedicoPerfil from './Pages/Medico/Perfil.svelte'
 import MedicoEspacioTrabajo from "./Pages/Medico/EspacioTrabajo.svelte"
 import Error404 from './Pages/Home/Error404.svelte'
 import Unauthorized from './Pages/Home/Unauthorized.svelte'
-import { UserManager } from './util.js';
+// import { UserManager } from './util.js';
 
 let $session = null;
 session.subscribe(x => $session = x);
 // let user = new UserManager($session.authorizationHeader.Authorization);
 
 const routes = {
+    // "/": wrap({
+    //     asyncComponent: () => Index,
+    //     conditions: [
+    //         () => {
+    //             return $session.isValid
+    //         }
+    //     ]
+    // }),
     "/": wrap(Index, x => $session.isValid),
     "/Home/Index": wrap(Index, x => $session.isValid),
     "/Home/Login": Login,

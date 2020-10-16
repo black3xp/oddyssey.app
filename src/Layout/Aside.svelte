@@ -1,5 +1,6 @@
 <script>
   import { link } from "svelte-spa-router";
+  import active from 'svelte-spa-router/active'
   import { activePage, session } from "../store.js";
   import { UserManager } from "../util.js";
 
@@ -33,7 +34,7 @@
     <!-- Menu List Begins-->
     <ul class="menu">
       <!--list item begins-->
-      <li class="menu-item" class:active={$activePage.includes('home.index')}>
+      <li class="menu-item" use:active={'/'}>
         <a href="/" use:link class="menu-link">
           <span class="menu-label">
             <span class="menu-name">Escritorio</span>
@@ -45,7 +46,7 @@
       </li>
       <!--list item ends-->
       <!--list item begins-->
-      <li class="menu-item " class:active={$activePage.includes('asistente')}
+      <li class="menu-item" use:active={'/Asistente/Index'}
         class:d-none={!user.isAny(['assistant', 'admin'])}>
         <a href="/Asistente/Index" use:link class="menu-link">
           <span class="menu-label">
@@ -56,7 +57,7 @@
           </span>
         </a>
       </li>
-      <li class="menu-item " class:active={$activePage.includes('citasProgramadas')}
+      <li class="menu-item" use:active={'/Asistente/CitasProgramadas'}
         class:d-none={!user.isAny(['assistant', 'operator', 'admin'])}>
         <a href="/Asistente/CitasProgramadas" use:link class="menu-link">
           <span class="menu-label">
@@ -69,7 +70,7 @@
       </li>
       <!--list item ends-->
       <!--list item begins-->
-      <li class="menu-item " class:active={$activePage.includes('gestor')}
+      <li class="menu-item" use:active={'/Cita/Gestionar'}
         class:d-none={!user.isAny(['assistant', 'operator', 'admin'])}>
         <a href="/Cita/Gestionar" use:link class="menu-link">
           <span class="menu-label">
@@ -83,7 +84,7 @@
       <!--list item ends-->
 
       <!--list item begins-->
-      <li class="menu-item " class:active={$activePage.includes('espacioMedico')}
+      <li class="menu-item" use:active={'/Medico/EspacioTrabajo'}
         class:d-none={!user.isAny(['doctor', 'admin'])}>
         <a href="/Medico/EspacioTrabajo" use:link class="menu-link">
           <span class="menu-label">
@@ -98,7 +99,7 @@
 
       <!--list item begins-->
       <li
-        class="menu-item " class:opened={$activePage.includes('mantenimiento')}
+        class="menu-item " use:active={'/Usuario/*'}
         class:d-none={!user.isAny(['admin'])}>
         <a href="#!" class="open-dropdown menu-link">
           <span class="menu-label">
@@ -114,9 +115,7 @@
         </a>
         <!--submenu-->
         <ul class="sub-menu">
-          <li
-            class="menu-item"
-            class:active={$activePage.includes('mantenimiento.usuarios.index')}>
+          <li class="menu-item" use:active={'/Usuario/Index'}>
             <a href="/Usuario/Index" use:link class=" menu-link">
               <span class="menu-label">
                 <span class="menu-name">Usuarios</span>
