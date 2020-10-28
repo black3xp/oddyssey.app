@@ -19,7 +19,15 @@
 
 <Router
   on:routeLoaded={event}
-  on:conditionsFailed={() => {
-    push('/Home/Login');
+  on:conditionsFailed={(e) => {
+    console.log(e.detail)
+    if (e.detail.userData == 'r') {
+      push('/Home/Unauthorized')
+    }
+    else if (e.detail.userData == 'i') {
+      push('/')
+    } else {
+      push('/Home/Login');
+    }
   }}
   {routes} />

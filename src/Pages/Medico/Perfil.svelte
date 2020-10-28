@@ -14,7 +14,7 @@
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization
   };
-  
+
   $activePage = "mantenimiento.peril";
   export let params = {};
   let id = params.id;

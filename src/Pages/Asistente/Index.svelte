@@ -11,9 +11,6 @@
 
   let user = {};
   user = new UserManager($session.authorizationHeader.Authorization)
-  if (!user.isAny(['assistant', 'admin'])) {
-    push('/Home/Unauthorized');
-  }
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization

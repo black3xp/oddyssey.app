@@ -1,5 +1,3 @@
-import { session } from "./store";
-import { wrap } from 'svelte-spa-router';
 
 import Index from './Pages/Home/Index.svelte'
 import Login from './Pages/Home/Login.svelte'
@@ -12,33 +10,197 @@ import MedicoPerfil from './Pages/Medico/Perfil.svelte'
 import MedicoEspacioTrabajo from "./Pages/Medico/EspacioTrabajo.svelte"
 import Error404 from './Pages/Home/Error404.svelte'
 import Unauthorized from './Pages/Home/Unauthorized.svelte'
-// import { UserManager } from './util.js';
+import { UserManager } from './util.js';
+import { session } from "./store";
+import { wrap } from 'svelte-spa-router/wrap';
 
 let $session = null;
 session.subscribe(x => $session = x);
-// let user = new UserManager($session.authorizationHeader.Authorization);
+let user = new UserManager(localStorage.getItem('access_token'));
 
 const routes = {
-    // "/": wrap({
-    //     asyncComponent: () => Index,
-    //     conditions: [
-    //         () => {
-    //             return $session.isValid
-    //         }
-    //     ]
-    // }),
-    "/": wrap(Index, x => $session.isValid),
-    "/Home/Index": wrap(Index, x => $session.isValid),
-    "/Home/Login": Login,
-    "/Usuario/Index": wrap(UsuarioIndex, x => $session.isValid),
-    "/Asistente/Index": wrap(AsistenteIndex, x => $session.isValid),
-    "/Asistente/CitasProgramadas": wrap(AsistenteCitas, x => $session.isValid),
-    "/Cita/Gestionar": wrap(Gestion, x => $session.isValid),
-    "/Cita/Crear": wrap(CitaCrear, x => $session.isValid),
-    "/Medico/Perfil/:id": wrap(MedicoPerfil, x => $session.isValid),
-    "/Medico/EspacioTrabajo": wrap(MedicoEspacioTrabajo, x => $session.isValid),
-    "/Home/Unauthorized": wrap(Unauthorized, x => $session.isValid),
-    "*": Error404
+    '/': wrap({
+        component: Index,
+        conditions: [() => $session.isValid]
+    }),
+    "/Home/Index": wrap({
+        component: Index,
+        conditions: [() => $session.isValid]
+    }),
+    "/Home/Login": wrap({
+        asyncComponent: () => Login,
+        conditions: [
+            (detail) => {
+                if (!$session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "i"
+                    return false;
+                }
+            },
+        ]
+    }),
+    "/Usuario/Index": wrap({
+        asyncComponent: () => UsuarioIndex,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.is('admin')) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Asistente/Index": wrap({
+        asyncComponent: () => AsistenteIndex,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Asistente/CitasProgramadas": wrap({
+        asyncComponent: () => AsistenteCitas,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'operator', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Cita/Gestionar": wrap({
+        asyncComponent: () => Gestion,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'operator', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Cita/Crear": wrap({
+        asyncComponent: () => CitaCrear,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'operator', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Medico/Perfil/:id": wrap({
+        asyncComponent: () => MedicoPerfil,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'operator', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Medico/EspacioTrabajo": wrap({
+        asyncComponent: () => MedicoEspacioTrabajo,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['doctor', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Home/Unauthorized": wrap({
+        asyncComponent: () => Unauthorized,
+        conditions: [() => $session.isValid]
+    }),
+    "*": wrap({
+        asyncComponent: () => Error404
+    })
 }
 
 export default routes;

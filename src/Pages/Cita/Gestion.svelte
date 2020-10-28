@@ -3,16 +3,9 @@
   import Header from "../../Layout/Header.svelte";
   import { push } from "svelte-spa-router";
   import { onMount } from "svelte";
-  import { UserManager } from "../../util.js";
   import { activePage, dataCita, axios, session, errorConexion } from "../../store";
   import moment from 'moment';
   import Swal from 'sweetalert2';
-
-  let user = {};
-  user = new UserManager($session.authorizationHeader.Authorization)
-  if (!user.isAny(['assistant', 'operator', 'admin'])) {
-    push('/Home/Unauthorized');
-  }
 
   $axios.defaults.headers.common = {
     Authorization: $session.authorizationHeader.Authorization

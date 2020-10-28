@@ -4,14 +4,14 @@ import { HubConnectionBuilder } from '@microsoft/signalr'
 import Axios from "axios";
 import Swal from 'sweetalert2';
 
+// const _host = "http://192.168.1.104:93";
+const _host = "http://172.20.1.12:303";
+
 const axiosInstance = Axios.create({
-  // baseURL: "http://192.168.1.104:93/api"
-  baseURL: "http://172.20.1.12:303/api"
+  baseURL: _host + "/api"
 });
 
 export const axios = writable(axiosInstance);
-// const _host = "http://192.168.1.104:93";
-const _host = "http://172.20.1.12:303";
 export const connection = writable(new HubConnectionBuilder()
   .withUrl(_host + "/hub", {
     accessTokenFactory: () => localStorage.getItem('access_token'),
