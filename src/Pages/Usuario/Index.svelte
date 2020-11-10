@@ -41,6 +41,7 @@
     email: "",
     phoneNumber: "",
     passwordHash: "",
+    ubicacion: "",
     isDoctor: false,
     perfilID: null
   };
@@ -217,6 +218,7 @@
       email: "",
       phoneNumber: "",
       passwordHash: "",
+      ubicacion: "",
       isDoctor: false,
       perfilID: null
     }
@@ -459,6 +461,13 @@
               </div>
               {#if obj.isDoctor}
                 <div class="form-group col-md-12">
+                  <label for="">Ubicacion</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    bind:value={obj.ubicacion} required/>
+                </div>
+                <div class="form-group col-md-12">
                   <label for="">Perfil</label>
                   <select class="form-control" name="perfil"
                     bind:value={obj.perfilID} required>
@@ -490,7 +499,7 @@
                 </div>
               {/if}
 
-              <div class="form-group col-md-12" style="display: none;">
+              <!-- <div class="form-group col-md-12" style="display: none;">
                 <label for="">exequatur</label>
                 <input
                   type="text"
@@ -498,8 +507,8 @@
                   utocomplete="off"
                   name="Exequatur"
                   id="txtTelefono" />
-              </div>
-              <div class="form-group col-md-12" style="display: none;">
+              </div> -->
+              <!-- <div class="form-group col-md-12" style="display: none;">
                 <select
                   name="IdDepartamento"
                   class="js-select2 select2-hidden-accessible"
@@ -535,7 +544,7 @@
                   </span>
                   <span class="dropdown-wrapper" aria-hidden="true" />
                 </span>
-              </div>
+              </div> -->
             </div>
             <br />
           </div>
