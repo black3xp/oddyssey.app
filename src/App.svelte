@@ -20,7 +20,6 @@
 <Router
   on:routeLoaded={event}
   on:conditionsFailed={(e) => {
-    console.log(e.detail)
     if (e.detail.userData == 'r') {
       push('/Home/Unauthorized')
     }
