@@ -47,6 +47,10 @@
     })
   }
   function getPaciente(id, via) {
+    if (id == "") {
+      return
+    }
+
     $axios.get("/Pacientes/" + id)
       .then(res => {
         if (via == 'asistente' || via == 'carga') {

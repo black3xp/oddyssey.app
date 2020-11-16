@@ -26963,7 +26963,7 @@ var app = (function (moment) {
     	return child_ctx;
     }
 
-    // (187:16) {#each citas as item}
+    // (191:16) {#each citas as item}
     function create_each_block$7(ctx) {
     	let div4;
     	let div3;
@@ -27010,21 +27010,21 @@ var app = (function (moment) {
     			t5 = text(t5_value);
     			t6 = space();
     			set_style(span0, "font-weight", "bold");
-    			add_location(span0, file$d, 198, 24, 6391);
-    			add_location(span1, file$d, 200, 24, 6505);
+    			add_location(span0, file$d, 202, 24, 6435);
+    			add_location(span1, file$d, 204, 24, 6549);
     			attr_dev(div0, "class", "name");
-    			add_location(div0, file$d, 197, 22, 6347);
+    			add_location(div0, file$d, 201, 22, 6391);
     			attr_dev(div1, "class", "text-muted svelte-17vubv2");
-    			add_location(div1, file$d, 202, 22, 6597);
+    			add_location(div1, file$d, 206, 22, 6641);
     			attr_dev(div2, "class", "");
-    			add_location(div2, file$d, 196, 20, 6309);
+    			add_location(div2, file$d, 200, 20, 6353);
     			attr_dev(div3, "class", "row");
-    			add_location(div3, file$d, 195, 18, 6270);
+    			add_location(div3, file$d, 199, 18, 6314);
     			attr_dev(div4, "class", "list-group-item d-flex align-items-center\r\n                  link-pacientes svelte-1p1f2vm active-select svelte-17vubv2");
     			set_style(div4, "cursor", "pointer");
     			toggle_class(div4, "activo", /*envioPacienteActual*/ ctx[2] == /*item*/ ctx[19].pacienteID);
     			toggle_class(div4, "active-select", /*pacienteSeleccionado*/ ctx[3] == /*item*/ ctx[19].pacienteID);
-    			add_location(div4, file$d, 187, 16, 5758);
+    			add_location(div4, file$d, 191, 16, 5802);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div4, anchor);
@@ -27076,7 +27076,7 @@ var app = (function (moment) {
     		block,
     		id: create_each_block$7.name,
     		type: "each",
-    		source: "(187:16) {#each citas as item}",
+    		source: "(191:16) {#each citas as item}",
     		ctx
     	});
 
@@ -27301,163 +27301,163 @@ var app = (function (moment) {
     			t42 = space();
     			br = element("br");
     			attr_dev(i, "class", "mdi mdi-check-all");
-    			add_location(i, file$d, 175, 12, 5318);
+    			add_location(i, file$d, 179, 12, 5362);
     			attr_dev(button, "class", "btn btn-success");
     			toggle_class(button, "d-none", /*envioPacienteActual*/ ctx[2] == "" || /*citaPacienteActual*/ ctx[0] == undefined);
-    			add_location(button, file$d, 173, 10, 5158);
+    			add_location(button, file$d, 177, 10, 5202);
     			attr_dev(div0, "class", "col-lg-12 mb-3");
     			set_style(div0, "text-align", "right");
-    			add_location(div0, file$d, 168, 8, 4920);
+    			add_location(div0, file$d, 172, 8, 4964);
     			attr_dev(h50, "class", "m-b-0");
-    			add_location(h50, file$d, 182, 14, 5561);
+    			add_location(h50, file$d, 186, 14, 5605);
     			attr_dev(div1, "class", "card-header");
-    			add_location(div1, file$d, 181, 12, 5520);
+    			add_location(div1, file$d, 185, 12, 5564);
     			attr_dev(div2, "class", "list-group list ");
-    			add_location(div2, file$d, 185, 14, 5671);
+    			add_location(div2, file$d, 189, 14, 5715);
     			attr_dev(div3, "class", "card-body");
-    			add_location(div3, file$d, 184, 12, 5632);
+    			add_location(div3, file$d, 188, 12, 5676);
     			attr_dev(div4, "class", "card m-b-20 card-vnc svelte-1e95eny");
-    			add_location(div4, file$d, 180, 10, 5457);
+    			add_location(div4, file$d, 184, 10, 5501);
     			attr_dev(div5, "class", "col-lg-5");
-    			add_location(div5, file$d, 179, 8, 5423);
+    			add_location(div5, file$d, 183, 8, 5467);
     			attr_dev(h51, "class", "m-b-0");
-    			add_location(h51, file$d, 215, 14, 6952);
+    			add_location(h51, file$d, 219, 14, 6996);
     			attr_dev(div6, "class", "card-header");
-    			add_location(div6, file$d, 214, 12, 6911);
+    			add_location(div6, file$d, 218, 12, 6955);
     			attr_dev(input0, "type", "hidden");
     			attr_dev(input0, "name", "IdUser");
     			input0.value = "0";
-    			add_location(input0, file$d, 219, 16, 7105);
+    			add_location(input0, file$d, 223, 16, 7149);
     			attr_dev(label0, "for", "");
-    			add_location(label0, file$d, 222, 20, 7262);
+    			add_location(label0, file$d, 226, 20, 7306);
     			input1.value = input1_value_value = /*paciente*/ ctx[1].nombre || "";
     			attr_dev(input1, "type", "name");
     			attr_dev(input1, "class", "form-control");
     			input1.readOnly = true;
     			attr_dev(input1, "name", "Name");
     			attr_dev(input1, "maxlength", "200");
-    			add_location(input1, file$d, 223, 20, 7312);
+    			add_location(input1, file$d, 227, 20, 7356);
     			attr_dev(div7, "class", "form-group col-md-6");
-    			add_location(div7, file$d, 221, 18, 7207);
+    			add_location(div7, file$d, 225, 18, 7251);
     			attr_dev(label1, "for", "");
-    			add_location(label1, file$d, 232, 20, 7660);
+    			add_location(label1, file$d, 236, 20, 7704);
     			input2.value = input2_value_value = /*paciente*/ ctx[1].apellidos || "";
     			attr_dev(input2, "type", "name");
     			attr_dev(input2, "class", "form-control");
     			input2.readOnly = true;
     			attr_dev(input2, "name", "Name");
     			attr_dev(input2, "maxlength", "200");
-    			add_location(input2, file$d, 233, 20, 7712);
+    			add_location(input2, file$d, 237, 20, 7756);
     			attr_dev(div8, "class", "form-group col-md-6");
-    			add_location(div8, file$d, 231, 18, 7605);
+    			add_location(div8, file$d, 235, 18, 7649);
     			attr_dev(label2, "for", "");
-    			add_location(label2, file$d, 243, 20, 8065);
+    			add_location(label2, file$d, 247, 20, 8109);
     			attr_dev(input3, "type", "name");
     			attr_dev(input3, "class", "form-control");
     			input3.readOnly = true;
     			input3.value = input3_value_value = /*paciente*/ ctx[1].cedula || "";
     			attr_dev(input3, "maxlength", "200");
-    			add_location(input3, file$d, 244, 20, 8115);
+    			add_location(input3, file$d, 248, 20, 8159);
     			attr_dev(div9, "class", "form-group col-md-6");
-    			add_location(div9, file$d, 242, 18, 8010);
+    			add_location(div9, file$d, 246, 18, 8054);
     			attr_dev(label3, "for", "");
-    			add_location(label3, file$d, 253, 20, 8430);
+    			add_location(label3, file$d, 257, 20, 8474);
     			input4.value = input4_value_value = /*paciente*/ ctx[1].telefono || "";
     			attr_dev(input4, "type", "tel");
     			attr_dev(input4, "class", "form-control");
     			input4.readOnly = true;
     			attr_dev(input4, "name", "Name");
     			attr_dev(input4, "maxlength", "200");
-    			add_location(input4, file$d, 254, 20, 8482);
+    			add_location(input4, file$d, 258, 20, 8526);
     			attr_dev(div10, "class", "form-group col-md-6");
-    			add_location(div10, file$d, 252, 18, 8375);
+    			add_location(div10, file$d, 256, 18, 8419);
     			attr_dev(label4, "for", "");
-    			add_location(label4, file$d, 264, 20, 8834);
+    			add_location(label4, file$d, 268, 20, 8878);
     			attr_dev(input5, "type", "email");
     			attr_dev(input5, "class", "form-control");
     			input5.readOnly = true;
     			input5.value = input5_value_value = /*paciente*/ ctx[1].correo || "";
     			attr_dev(input5, "maxlength", "200");
-    			add_location(input5, file$d, 265, 20, 8896);
+    			add_location(input5, file$d, 269, 20, 8940);
     			attr_dev(div11, "class", "form-group col-md-12");
-    			add_location(div11, file$d, 263, 18, 8778);
+    			add_location(div11, file$d, 267, 18, 8822);
     			attr_dev(label5, "for", "");
-    			add_location(label5, file$d, 274, 20, 9212);
+    			add_location(label5, file$d, 278, 20, 9256);
     			input6.value = input6_value_value = /*paciente*/ ctx[1].nombreAseguradora || "";
     			attr_dev(input6, "type", "email");
     			attr_dev(input6, "class", "form-control");
     			input6.readOnly = true;
     			attr_dev(input6, "maxlength", "200");
-    			add_location(input6, file$d, 275, 20, 9267);
+    			add_location(input6, file$d, 279, 20, 9311);
     			attr_dev(div12, "class", "form-group col-md-6");
-    			add_location(div12, file$d, 273, 18, 9157);
+    			add_location(div12, file$d, 277, 18, 9201);
     			attr_dev(label6, "for", "");
-    			add_location(label6, file$d, 284, 20, 9594);
+    			add_location(label6, file$d, 288, 20, 9638);
     			attr_dev(input7, "type", "text");
     			attr_dev(input7, "class", "form-control");
     			input7.readOnly = true;
     			attr_dev(input7, "maxlength", "200");
     			input7.value = input7_value_value = /*paciente*/ ctx[1].noAfiliado || "";
-    			add_location(input7, file$d, 285, 20, 9648);
+    			add_location(input7, file$d, 289, 20, 9692);
     			attr_dev(div13, "class", "form-group col-md-6");
-    			add_location(div13, file$d, 283, 18, 9539);
+    			add_location(div13, file$d, 287, 18, 9583);
     			attr_dev(label7, "for", "");
-    			add_location(label7, file$d, 294, 20, 9967);
+    			add_location(label7, file$d, 298, 20, 10011);
     			attr_dev(input8, "type", "email");
     			attr_dev(input8, "class", "form-control");
     			input8.readOnly = true;
     			input8.value = input8_value_value = /*paciente*/ ctx[1].nacionalidad || "";
     			attr_dev(input8, "maxlength", "200");
-    			add_location(input8, file$d, 295, 20, 10015);
+    			add_location(input8, file$d, 299, 20, 10059);
     			attr_dev(div14, "class", "form-group col-md-6");
-    			add_location(div14, file$d, 293, 18, 9912);
+    			add_location(div14, file$d, 297, 18, 9956);
     			attr_dev(label8, "for", "");
-    			add_location(label8, file$d, 304, 20, 10337);
+    			add_location(label8, file$d, 308, 20, 10381);
     			attr_dev(input9, "type", "email");
     			attr_dev(input9, "class", "form-control");
     			input9.readOnly = true;
     			attr_dev(input9, "maxlength", "200");
     			input9.value = input9_value_value = /*paciente*/ ctx[1].provincia || "";
-    			add_location(input9, file$d, 305, 20, 10390);
+    			add_location(input9, file$d, 309, 20, 10434);
     			attr_dev(div15, "class", "form-group col-md-6");
-    			add_location(div15, file$d, 303, 18, 10282);
+    			add_location(div15, file$d, 307, 18, 10326);
     			attr_dev(label9, "for", "");
-    			add_location(label9, file$d, 314, 20, 10710);
+    			add_location(label9, file$d, 318, 20, 10754);
     			attr_dev(textarea0, "class", "form-control");
     			attr_dev(textarea0, "rows", "2");
     			textarea0.readOnly = true;
     			textarea0.value = textarea0_value_value = /*paciente*/ ctx[1].direccion || "";
-    			add_location(textarea0, file$d, 315, 20, 10763);
+    			add_location(textarea0, file$d, 319, 20, 10807);
     			attr_dev(div16, "class", "form-group col-md-12");
-    			add_location(div16, file$d, 313, 18, 10654);
+    			add_location(div16, file$d, 317, 18, 10698);
     			attr_dev(label10, "for", "");
-    			add_location(label10, file$d, 323, 20, 11043);
+    			add_location(label10, file$d, 327, 20, 11087);
     			textarea1.value = textarea1_value_value = /*paciente*/ ctx[1].observaciones || "";
     			attr_dev(textarea1, "class", "form-control");
     			attr_dev(textarea1, "rows", "3");
     			attr_dev(textarea1, "name", "Observaciones");
-    			add_location(textarea1, file$d, 324, 20, 11100);
+    			add_location(textarea1, file$d, 328, 20, 11144);
     			attr_dev(div17, "class", "form-group col-md-12");
-    			add_location(div17, file$d, 322, 18, 10987);
-    			add_location(br, file$d, 330, 18, 11338);
+    			add_location(div17, file$d, 326, 18, 11031);
+    			add_location(br, file$d, 334, 18, 11382);
     			attr_dev(div18, "class", "row");
-    			add_location(div18, file$d, 220, 16, 7170);
+    			add_location(div18, file$d, 224, 16, 7214);
     			attr_dev(form, "id", "frmPaciente");
-    			add_location(form, file$d, 218, 14, 7064);
+    			add_location(form, file$d, 222, 14, 7108);
     			attr_dev(div19, "class", "card-body ");
-    			add_location(div19, file$d, 217, 12, 7024);
+    			add_location(div19, file$d, 221, 12, 7068);
     			attr_dev(div20, "class", "card m-b-30");
-    			add_location(div20, file$d, 213, 10, 6872);
+    			add_location(div20, file$d, 217, 10, 6916);
     			attr_dev(div21, "class", "col-lg-7");
-    			add_location(div21, file$d, 212, 8, 6838);
+    			add_location(div21, file$d, 216, 8, 6882);
     			attr_dev(div22, "class", "row");
-    			add_location(div22, file$d, 167, 6, 4893);
+    			add_location(div22, file$d, 171, 6, 4937);
     			attr_dev(div23, "class", "container mt-3");
-    			add_location(div23, file$d, 166, 4, 4857);
+    			add_location(div23, file$d, 170, 4, 4901);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$d, 165, 2, 4820);
+    			add_location(section, file$d, 169, 2, 4864);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$d, 163, 0, 4777);
+    			add_location(main, file$d, 167, 0, 4821);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -27729,6 +27729,10 @@ var app = (function (moment) {
     	}
 
     	function getPaciente(id, via) {
+    		if (id == "") {
+    			return;
+    		}
+
     		$axios.get("/Pacientes/" + id).then(res => {
     			if (via == "asistente" || via == "carga") {
     				$$invalidate(0, citaPacienteActual = citas.find(x => x.pacienteID == envioPacienteActual));
