@@ -351,7 +351,7 @@
                     <div class="col-lg-12">
                       <div class="form-group ">
                         <label class="font-secondary">Ubicaci&oacute;n del M&eacute;dico en el centro</label>
-                        <input type="text" class="form-control" readonly>
+                        <input type="text" class="form-control" readonly value={$dataCita.ubicacion || ""}>
                       </div>
                     </div>
                     <div class="col-lg-12">

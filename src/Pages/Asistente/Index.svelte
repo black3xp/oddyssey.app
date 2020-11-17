@@ -199,7 +199,7 @@
             text: 'Paciente actualizado con exito',
             icon: 'success'
           });
-          
+
           jQuery("#modalPaciente").modal("hide");
         } else {
           console.log(res);
@@ -301,12 +301,15 @@
     })
   }
   function irACita(time) {
+    let cita = medicos.find(x => x.medicoID == idMedico);
+
     $dataCita = {
       fechaCita: fecha,
       tandaID: tandaID,
       hora: time,
       medicoId: idMedico,
       pacienteId: cita.pacienteID,
+      ubicacion: cita.ubicacion
     };
     push('/Cita/Crear');
   }

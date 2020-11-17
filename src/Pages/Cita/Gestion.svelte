@@ -11,13 +11,12 @@
     Authorization: $session.authorizationHeader.Authorization
   };
 
-  let busqueda = "";
+  let ubicacion = "";
   let dia = -1;
   let especialidades = [];
   let listado = [];
   let tandas = [];
   let horasDisponibles = [];
-  let horasCompleta = [];
 
   let filter = {
     Nombre: "",
@@ -117,10 +116,11 @@
     filter.FechaCita = date.format('YYYY-MM-DD');
     cargarMedicos();
   }
-  function crearCita(id) {
+  function crearCita(item) {
+    ubicacion = item.ubicacion;
     filterCita.TandaID = filter.TandaID;
     filterCita.FechaCita = filter.FechaCita || moment().format('YYYY-MM-DD');
-    buscarDisponibilidadHorario(id)
+    buscarDisponibilidadHorario(item.id)
 
     jQuery('#modalCrearCita').modal('show')
   }
@@ -130,7 +130,8 @@
       tandaID: filterCita.TandaID,
       hora: time,
       medicoId: filterCita.MedicoId,
-      pacienteId: ""
+      pacienteId: "",
+      ubicacion: ubicacion
     };
     push('/Cita/Crear');
   }
@@ -303,7 +304,7 @@
                         Perfil
                       </button>
                       <button class="btn btn-outline-success btn-sm" 
-                        on:click={() => crearCita(item.id)}>
+                        on:click={() => crearCita(item)}>
                         <i class="mdi mdi-calendar-plus" />
                         Crear cita
                       </button>

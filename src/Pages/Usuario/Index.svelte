@@ -182,6 +182,11 @@
       AsistenteID: asistenteID,
       MedicoID: userID
     }
+
+    if (asistentesAsignado.some(e => e.asistenteID == asistenteID && e.medicoID == userID)) {
+      return;
+    }
+
     $axios.post('/MedicosAsistentes', obj)
     .then(res => {
       if (res.data.success) {
@@ -477,8 +482,10 @@
                     {/each}
                   </select>
                 </div>
+                {#if userID != "" && userID != undefined}
                 <div class="form-group col-md-12">
                   <label for="">Asistentes</label>
+                  <!-- svelte-ignore a11y-no-onchange -->
                   <select
                     class="form-control"
                     name="asistentes"
@@ -493,10 +500,11 @@
                 <div class="agregados col-lg-12">
                   {#each asistentesAsignado as item}
                   <button type="button" 
-                    class="btn btn-primary btn-block"
-                    on:click={ () => eliminarAsistente(item) }>{item.nombreAsistente}</button>
+                  class="btn btn-primary btn-block"
+                  on:click={ () => eliminarAsistente(item) }>{item.nombreAsistente}</button>
                   {/each}
                 </div>
+                {/if}
               {/if}
 
               <!-- <div class="form-group col-md-12" style="display: none;">
