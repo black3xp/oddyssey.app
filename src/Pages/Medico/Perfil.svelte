@@ -25,14 +25,16 @@
     name: "",
     email: "",
     perfil: "",
-    phoneNumber: ""
+    phoneNumber: "",
+    ubicacion: ""
   };
   let obj = {
     medicoID: "",
     name: "",
     email: "",
     perfilID: 0,
-    phoneNumber: ""
+    phoneNumber: "",
+    ubicacion: ""
   };
   
   let prefijos = [
@@ -217,7 +219,8 @@
       fechaCita: fecha,
       tandaID: tandaID,
       hora: hora,
-      medicoId: id
+      medicoId: id,
+      ubicacion: detail.ubicacion
     };
     push('/Cita/Crear/');
   }
@@ -340,11 +343,14 @@
                 </div>
                 <h3 class="p-t-10 searchBy-name">{detail.prefix} {detail.name}</h3>
               </div>
-              <div class="text-muted text-center m-b-10">
+              <div class="text-muted text-center">
                 {detail.perfil || ""}
               </div>
               <p class="text-muted text-center" style="margin-bottom: 0;">
                 {detail.email}
+              </p>
+              <p class="text-muted text-center" style="margin-bottom: 0;">
+                {detail.ubicacion || ""}
               </p>
               <p class="text-muted text-center">{detail.phoneNumber}</p>
               <div class="row text-center p-b-10">
@@ -641,6 +647,14 @@
                   maxlength="14"
                   placeholder="(809) 000-0000"
                   bind:value={obj.phoneNumber}/>
+              </div>
+              <div class="form-group col-md-12">
+                <label for="">Ubicacion</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  autocomplete="off"
+                  bind:value={obj.ubicacion}/>
               </div>
 
               <div class="form-group col-md-12" style="display: none;">
