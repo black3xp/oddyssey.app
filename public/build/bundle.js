@@ -9988,7 +9988,7 @@ var app = (function (moment) {
 
     // const _host = "http://192.168.1.104:93";
     // const _host = "http://172.20.1.12:303";
-    const _host = "http://45.33.20.181:107";
+    const _host = "https://odyssey-api.cmsiglo21.app/api";
 
     const axiosInstance = axios$1.create({
       baseURL: _host + "/api"
