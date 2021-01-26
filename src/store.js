@@ -5,7 +5,7 @@ import Axios from "axios";
 import Swal from 'sweetalert2';
 
 // const _host = "http://192.168.1.104:93";
-// const _host = "http://172.20.1.12:303";
+//const _host = "http://172.20.1.12:303";
 const _host = "https://odyssey-api.cmsiglo21.app";
 
 const axiosInstance = Axios.create({

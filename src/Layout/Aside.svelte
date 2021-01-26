@@ -97,6 +97,19 @@
       </li>
       <!--list item ends-->
 
+            <!--list item begins-->
+            <li class="menu-item" use:active={'/Solicitud/Index'}>
+            <a href="/Solicitud/Index" use:link class="menu-link">
+              <span class="menu-label">
+                <span class="menu-name">Solicitudes</span>
+              </span>
+              <span class="menu-icon">
+                <i class="icon-placeholder mdi mdi-doctor" />
+              </span>
+            </a>
+          </li>
+          <!--list item ends-->
+
       <!--list item begins-->
       <li
         class="menu-item " use:active={'/Usuario/*'}

@@ -8,6 +8,8 @@ import Gestion from './Pages/Cita/Gestion.svelte'
 import UsuarioIndex from './Pages/Usuario/Index.svelte'
 import MedicoPerfil from './Pages/Medico/Perfil.svelte'
 import MedicoEspacioTrabajo from "./Pages/Medico/EspacioTrabajo.svelte"
+import SolicitudIndex from "./Pages/Solicitudes/SolicitudIndex.svelte"
+import SolicitudDetalle from "./Pages/Solicitudes/SolicitudDetalle.svelte"
 import Error404 from './Pages/Home/Error404.svelte'
 import Unauthorized from './Pages/Home/Unauthorized.svelte'
 import { UserManager } from './util.js';
@@ -193,6 +195,50 @@ const routes = {
                 }
             }
         ]
+    }),
+    "/Solicitud/Index": wrap({
+        asyncComponent: () => SolicitudIndex,
+        // conditions: [
+        //     (detail) => {
+        //         if ($session.isValid) {
+        //             return true;
+        //         } else {
+        //             detail.userData = "s"
+        //             return false;
+        //         }
+        //     },
+        //     (detail) => {
+        //         user.asign(localStorage.getItem('access_token'))
+        //         if (user.isAny(['doctor', 'admin'])) {
+        //             return true
+        //         } else {
+        //             detail.userData = "r"
+        //             return false
+        //         }
+        //     }
+        // ]
+    }),
+    "/Solicitud/Detalle/:id": wrap({
+        asyncComponent: () => SolicitudDetalle,
+        // conditions: [
+        //     (detail) => {
+        //         if ($session.isValid) {
+        //             return true;
+        //         } else {
+        //             detail.userData = "s"
+        //             return false;
+        //         }
+        //     },
+        //     (detail) => {
+        //         user.asign(localStorage.getItem('access_token'))
+        //         if (user.isAny(['doctor', 'admin'])) {
+        //             return true
+        //         } else {
+        //             detail.userData = "r"
+        //             return false
+        //         }
+        //     }
+        // ]
     }),
     "/Home/Unauthorized": wrap({
         asyncComponent: () => Unauthorized,
