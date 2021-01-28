@@ -9,21 +9,20 @@
     
     let solicitudDetalle = []
     let paciente = []
+    let imagenesRecetas = []
 
     function cargarDetalleSolicitud(){
         $axios.get(`/solicitudes/${params.id}`)
             .then(res => {
                 solicitudDetalle = res.data
                 paciente = res.data.paciente
-                console.log(solicitudDetalle)
-                console.log(paciente)
             })
     }
 
     function cargarImagenSolicitud(){
         $axios.get(`/solicitudes/${params.id}/attachments`)
             .then(res => {
-                console.log(res.data)
+                imagenesRecetas = res.data
             })
     }
 
@@ -120,12 +119,18 @@
                             <input type="text" class="form-control" value={solicitudDetalle.codigo} readonly id="codigo">
                         </div>
                         <div class="form-group col-lg-4 col-md-6">
-                            <label for="catAfiliado">Categoria de agiliado</label>
+                            <label for="catAfiliado">Categoria de afiliado</label>
                             <input type="text" class="form-control" value={solicitudDetalle.categoriaAfiliado} readonly id="catAfiliado">
                         </div>
                         <div class="form-group col-lg-4 col-md-6">
                             <label for="colectivo">Colectivo</label>
                             <input type="text" class="form-control" value={solicitudDetalle.colectivo} readonly id="colectivo">
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12">
+                            <div class="form-group">
+                                <label for="exampleFormControlTextarea1">Sintomas</label>
+                                <textarea class="form-control" style="width:100%" disabled rows="3">{solicitudDetalle.comentario}</textarea>
+                              </div>
                         </div>
                     </div>
                 </div>
@@ -136,10 +141,17 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-lg-4">
-                                <img src="https://odyssey-api.cmsiglo21.app/api/archivos/storage/{paciente.imagenCedula}" alt="cedula"/>
-                        </div>
-                        
+                        <a href="https://odyssey-api.cmsiglo21.app/api/archivos/storage/{paciente.imagenCedula}" target="_blank" class="col-lg-4">
+                            <img src="https://odyssey-api.cmsiglo21.app/api/archivos/storage/{paciente.imagenCedula}" class="img-galeria img-thumbnail" alt="cedula"/>
+                        </a>
+                        <a href="https://odyssey-api.cmsiglo21.app/api/archivos/storage/{paciente.imagenSeguro}" target="_blank" class="col-lg-4">
+                            <img src="https://odyssey-api.cmsiglo21.app/api/archivos/storage/{paciente.imagenSeguro}" class="img-galeria img-thumbnail" alt="cedula"/>
+                        </a>
+                        {#each imagenesRecetas as img}
+                            <a href="https://odyssey-api.cmsiglo21.app/api/archivos/storage/{img.name}" target="_blank" class="col-lg-4">
+                                <img src="https://odyssey-api.cmsiglo21.app/api/archivos/storage/{img.name}" class="img-galeria img-thumbnail" alt="cedula"/>
+                            </a>
+                        {/each}
                     </div>
                 </div>
             </div>
@@ -149,9 +161,10 @@
   </main>
 
   <style>
-      .svelte-lightbox.svelte-1nywnxo{
-          height: 90vh !important;
-          width: 90vw !important;
+      .img-galeria{
+          height: 200px;
+          object-fit: cover;
+          width: 100%;
       }
   </style>
   

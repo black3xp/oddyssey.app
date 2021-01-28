@@ -4,20 +4,71 @@
     import { activePage, session, axios } from "../../store.js";
     import { onDestroy, onMount } from "svelte";
     import { push, link } from "svelte-spa-router";
+    import Loading from '../../Components/Loading.svelte'
 
     let solicitudes = []
+    let sltAseguradora = ''
+    let sltEstado = ''
+    let inpBusqueda = ''
+    let inpNumeroSolicitud = ''
+    let inpFechaInicio = ''
+    let inpFechaFin = ''
+    let aseguradoras = []
+    let cargando = false
+    let estados = []
 
+    function filtrar(obj){
+        let a = new Object();
+        for(const i in obj){
+            if(obj[i] != null && obj[i]!=""){
+            a[i] =obj[i]
+            }
+        }
+        return a;
+    }
 
     function cargarSolicitudes(){
-        $axios.get('/solicitudes')
+        cargando = true
+        let filtro = {
+            Aseguradora: sltAseguradora,
+            Estado: sltEstado,
+            Busqueda: inpBusqueda,
+            NumeroSolicitud: inpNumeroSolicitud,
+            FechaInicio: inpFechaInicio,
+            FechaFin: inpFechaFin
+        }
+        let x =filtrar(filtro)
+        
+        let query = new URLSearchParams(x).toString()
+
+        setTimeout(function(){
+            $axios.get(`/solicitudes?${query}`)
             .then(res => {
                 solicitudes = res.data
-                console.log(solicitudes)
+                cargando = false
+            })
+        }, 1000)
+        
+    }
+
+    function cargarAseguradoras(){
+            $axios.get(`/aseguradoras`)
+                .then(res =>{
+                aseguradoras = res.data
+            })
+    }
+
+    function cargarEstados(){
+            $axios.get(`/estadossolicitud`)
+                .then(res =>{
+                estados = res.data
             })
     }
 
     onMount(()=>{
         cargarSolicitudes()
+        cargarAseguradoras()
+        cargarEstados()
     })
   </script>
   
@@ -27,17 +78,51 @@
     <Header />
     <section class="admin-content">
         <div class="container-fluid mt-3">
-            <h4>Solicitudes</h4>
+            <h4>Solicitudes</h4><hr>
+            <div class="row">
+            <div class="col-lg-12">
+                    <div class="form-row">
+                        <div class="mb-3 col-lg-3 col-md-4">
+                            <label for="">Buscar pacientes</label>
+                            <input type="search" bind:value={inpBusqueda} on:input={cargarSolicitudes} class="form-control form-control-sm" placeholder="nombre, cedula, etc.">
+                        </div>
+                        <div class="mb-3 col-lg-3 col-md-4">
+                            <label for="">No. solicitud</label>
+                            <input type="search" bind:value={inpNumeroSolicitud} on:input={cargarSolicitudes} class="form-control form-control-sm" placeholder="Buscar numero solicitud">
+                        </div>
+                        <div class="mb-3 col-lg-2 col-md-4">
+                            <label for="">Por estados</label>
+                            <select class="form-control form-control-sm" bind:value={sltEstado} on:input={cargarSolicitudes}>
+                                <option value="" selected> - estados - </option>
+                                {#each estados as estado}
+                                <option value={estado.id}>{estado.descripcion}</option>
+                                     <!-- content here -->
+                                {/each}
+                            </select>
+                        </div>
+                        <div class="mb-3 col-lg-2 col-md-4">
+                            <label for="">Fecha inicio</label>
+                            <input type="date" bind:value={inpFechaInicio} on:change={cargarSolicitudes} class="form-control form-control-sm">
+                        </div>
+                        <div class="mb-3 col-lg-2 col-md-4">
+                            <label for="">Fecha fin</label>
+                            <input type="date" bind:value={inpFechaFin} on:change={cargarSolicitudes} class="form-control form-control-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="card m-b-30">
                 <div class="card-header">
                     <!-- <h5 class="card-title m-b-0">Solicitudes </h5> -->
-
+                    {#if cargando}
+                         <div class="col-1">
+                            <Loading />
+                         </div>
+                    {/if}
                     <div class="card-controls">
-
-                        <a href="#" class="js-card-fullscreen icon"></a>
-                        <a style="cursor:pointer;" on:click={cargarSolicitudes} class="js-card-refresh icon"></a>
+                        <a href="#!" on:click={cargarSolicitudes} class="js-card-refresh icon"></a>
                         <div class="dropdown">
-                            <a href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="icon mdi  mdi-dots-vertical"></i> </a>
+                            <a href="#!" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="icon mdi  mdi-dots-vertical"></i> </a>
 
                             <div class="dropdown-menu dropdown-menu-right">
                                 <button class="dropdown-item" type="button">Action</button>
