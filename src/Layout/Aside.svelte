@@ -138,6 +138,16 @@
               </span>
             </a>
           </li>
+          <li class="menu-item" use:active={'/Mantenimiento/Solicitudes'}>
+            <a href="/Mantenimiento/Solicitudes" use:link class=" menu-link">
+              <span class="menu-label">
+                <span class="menu-name">Solicitudes</span>
+              </span>
+              <span class="menu-icon">
+                <i class="icon-placeholder ">S</i>
+              </span>
+            </a>
+          </li>
         </ul>
       </li>
     </ul>

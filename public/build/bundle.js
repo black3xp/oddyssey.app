@@ -10516,7 +10516,7 @@ var app = (function (moment) {
     	let link_action_6;
     	let active_action_5;
     	let t22;
-    	let li7;
+    	let li8;
     	let a9;
     	let span22;
     	let span20;
@@ -10538,7 +10538,17 @@ var app = (function (moment) {
     	let i7;
     	let link_action_7;
     	let active_action_6;
+    	let t31;
+    	let li7;
+    	let a11;
+    	let span28;
+    	let span27;
+    	let t33;
+    	let span29;
+    	let i8;
+    	let link_action_8;
     	let active_action_7;
+    	let active_action_8;
     	let mounted;
     	let dispose;
 
@@ -10613,7 +10623,7 @@ var app = (function (moment) {
     			span18 = element("span");
     			i5 = element("i");
     			t22 = space();
-    			li7 = element("li");
+    			li8 = element("li");
     			a9 = element("a");
     			span22 = element("span");
     			span20 = element("span");
@@ -10636,6 +10646,16 @@ var app = (function (moment) {
     			span26 = element("span");
     			i7 = element("i");
     			i7.textContent = "U";
+    			t31 = space();
+    			li7 = element("li");
+    			a11 = element("a");
+    			span28 = element("span");
+    			span27 = element("span");
+    			span27.textContent = "Solicitudes";
+    			t33 = space();
+    			span29 = element("span");
+    			i8 = element("i");
+    			i8.textContent = "S";
     			attr_dev(img, "class", "admin-brand-logo");
     			if (img.src !== (img_src_value = "assets/img/logo.svg")) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "width", "40");
@@ -10765,11 +10785,24 @@ var app = (function (moment) {
     			add_location(a10, file, 131, 12, 4737);
     			attr_dev(li6, "class", "menu-item");
     			add_location(li6, file, 130, 10, 4671);
+    			attr_dev(span27, "class", "menu-name");
+    			add_location(span27, file, 143, 16, 5275);
+    			attr_dev(span28, "class", "menu-label");
+    			add_location(span28, file, 142, 14, 5232);
+    			attr_dev(i8, "class", "icon-placeholder ");
+    			add_location(i8, file, 146, 16, 5398);
+    			attr_dev(span29, "class", "menu-icon");
+    			add_location(span29, file, 145, 14, 5356);
+    			attr_dev(a11, "href", "/Mantenimiento/Solicitudes");
+    			attr_dev(a11, "class", " menu-link");
+    			add_location(a11, file, 141, 12, 5151);
+    			attr_dev(li7, "class", "menu-item");
+    			add_location(li7, file, 140, 10, 5073);
     			attr_dev(ul0, "class", "sub-menu");
     			add_location(ul0, file, 129, 8, 4638);
-    			attr_dev(li7, "class", "menu-item ");
-    			toggle_class(li7, "d-none", !/*user*/ ctx[0].isAny(["admin"]));
-    			add_location(li7, file, 113, 6, 4063);
+    			attr_dev(li8, "class", "menu-item ");
+    			toggle_class(li8, "d-none", !/*user*/ ctx[0].isAny(["admin"]));
+    			add_location(li8, file, 113, 6, 4063);
     			attr_dev(ul1, "class", "menu");
     			add_location(ul1, file, 34, 4, 1052);
     			attr_dev(div2, "class", "admin-sidebar-wrapper js-scrollbar");
@@ -10843,8 +10876,8 @@ var app = (function (moment) {
     			append_dev(a8, span18);
     			append_dev(span18, i5);
     			append_dev(ul1, t22);
-    			append_dev(ul1, li7);
-    			append_dev(li7, a9);
+    			append_dev(ul1, li8);
+    			append_dev(li8, a9);
     			append_dev(a9, span22);
     			append_dev(span22, span20);
     			append_dev(span20, t23);
@@ -10854,8 +10887,8 @@ var app = (function (moment) {
     			append_dev(a9, t26);
     			append_dev(a9, span23);
     			append_dev(span23, i6);
-    			append_dev(li7, t27);
-    			append_dev(li7, ul0);
+    			append_dev(li8, t27);
+    			append_dev(li8, ul0);
     			append_dev(ul0, li6);
     			append_dev(li6, a10);
     			append_dev(a10, span25);
@@ -10863,6 +10896,14 @@ var app = (function (moment) {
     			append_dev(a10, t29);
     			append_dev(a10, span26);
     			append_dev(span26, i7);
+    			append_dev(ul0, t31);
+    			append_dev(ul0, li7);
+    			append_dev(li7, a11);
+    			append_dev(a11, span28);
+    			append_dev(span28, span27);
+    			append_dev(a11, t33);
+    			append_dev(a11, span29);
+    			append_dev(span29, i8);
 
     			if (!mounted) {
     				dispose = [
@@ -10881,7 +10922,9 @@ var app = (function (moment) {
     					action_destroyer(active_action_5 = active$1.call(null, li5, "/Solicitud/Index")),
     					action_destroyer(link_action_7 = link.call(null, a10)),
     					action_destroyer(active_action_6 = active$1.call(null, li6, "/Usuario/Index")),
-    					action_destroyer(active_action_7 = active$1.call(null, li7, "/Usuario/*"))
+    					action_destroyer(link_action_8 = link.call(null, a11)),
+    					action_destroyer(active_action_7 = active$1.call(null, li7, "/Mantenimiento/Solicitudes")),
+    					action_destroyer(active_action_8 = active$1.call(null, li8, "/Usuario/*"))
     				];
 
     				mounted = true;
@@ -10905,7 +10948,7 @@ var app = (function (moment) {
     			}
 
     			if (dirty & /*user*/ 1) {
-    				toggle_class(li7, "d-none", !/*user*/ ctx[0].isAny(["admin"]));
+    				toggle_class(li8, "d-none", !/*user*/ ctx[0].isAny(["admin"]));
     			}
     		},
     		i: noop,
@@ -31999,15 +32042,203 @@ var app = (function (moment) {
     }
 
     /* src\Pages\Solicitudes\SolicitudDetalle.svelte generated by Svelte v3.23.0 */
+
+    const { console: console_1$b } = globals;
     const file$l = "src\\Pages\\Solicitudes\\SolicitudDetalle.svelte";
 
     function get_each_context$9(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[7] = list[i];
+    	child_ctx[9] = list[i];
     	return child_ctx;
     }
 
-    // (150:24) {#each imagenesRecetas as img}
+    function get_each_context_1$8(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[12] = list[i];
+    	return child_ctx;
+    }
+
+    // (147:12) {#each parentescos as parentesco}
+    function create_each_block_1$8(ctx) {
+    	let h5;
+    	let span;
+    	let t0;
+    	let t1_value = /*parentesco*/ ctx[12].tipoParentesco + "";
+    	let t1;
+    	let t2;
+    	let div6;
+    	let div5;
+    	let div4;
+    	let div0;
+    	let label0;
+    	let t4;
+    	let input0;
+    	let input0_value_value;
+    	let t5;
+    	let div1;
+    	let label1;
+    	let t7;
+    	let input1;
+    	let input1_value_value;
+    	let t8;
+    	let div2;
+    	let label2;
+    	let t10;
+    	let input2;
+    	let input2_value_value;
+    	let t11;
+    	let div3;
+    	let label3;
+    	let t13;
+    	let input3;
+    	let input3_value_value;
+
+    	const block = {
+    		c: function create() {
+    			h5 = element("h5");
+    			span = element("span");
+    			t0 = text("Datos de ");
+    			t1 = text(t1_value);
+    			t2 = space();
+    			div6 = element("div");
+    			div5 = element("div");
+    			div4 = element("div");
+    			div0 = element("div");
+    			label0 = element("label");
+    			label0.textContent = "Nombre";
+    			t4 = space();
+    			input0 = element("input");
+    			t5 = space();
+    			div1 = element("div");
+    			label1 = element("label");
+    			label1.textContent = "Apellidos";
+    			t7 = space();
+    			input1 = element("input");
+    			t8 = space();
+    			div2 = element("div");
+    			label2 = element("label");
+    			label2.textContent = "Cedula";
+    			t10 = space();
+    			input2 = element("input");
+    			t11 = space();
+    			div3 = element("div");
+    			label3 = element("label");
+    			label3.textContent = "Telefono";
+    			t13 = space();
+    			input3 = element("input");
+    			attr_dev(span, "class", "badge badge-primary");
+    			add_location(span, file$l, 147, 16, 7851);
+    			add_location(h5, file$l, 147, 12, 7847);
+    			attr_dev(label0, "for", "codigo");
+    			add_location(label0, file$l, 152, 33, 8180);
+    			attr_dev(input0, "type", "text");
+    			attr_dev(input0, "class", "form-control");
+    			input0.value = input0_value_value = /*parentesco*/ ctx[12].nombre;
+    			input0.readOnly = true;
+    			add_location(input0, file$l, 153, 33, 8249);
+    			attr_dev(div0, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div0, file$l, 151, 29, 8103);
+    			attr_dev(label1, "for", "catAfiliado");
+    			add_location(label1, file$l, 156, 33, 8469);
+    			attr_dev(input1, "type", "text");
+    			attr_dev(input1, "class", "form-control");
+    			input1.value = input1_value_value = /*parentesco*/ ctx[12].apellidos;
+    			input1.readOnly = true;
+    			add_location(input1, file$l, 157, 33, 8546);
+    			attr_dev(div1, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div1, file$l, 155, 29, 8392);
+    			attr_dev(label2, "for", "colectivo");
+    			add_location(label2, file$l, 160, 33, 8769);
+    			attr_dev(input2, "type", "text");
+    			attr_dev(input2, "class", "form-control");
+    			input2.value = input2_value_value = /*parentesco*/ ctx[12].cedula;
+    			input2.readOnly = true;
+    			add_location(input2, file$l, 161, 33, 8841);
+    			attr_dev(div2, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div2, file$l, 159, 29, 8692);
+    			attr_dev(label3, "for", "colectivo");
+    			add_location(label3, file$l, 164, 32, 9060);
+    			attr_dev(input3, "type", "text");
+    			attr_dev(input3, "class", "form-control");
+    			input3.value = input3_value_value = /*parentesco*/ ctx[12].telefono;
+    			input3.readOnly = true;
+    			add_location(input3, file$l, 165, 32, 9133);
+    			attr_dev(div3, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div3, file$l, 163, 29, 8984);
+    			attr_dev(div4, "class", "form-row");
+    			add_location(div4, file$l, 150, 25, 8050);
+    			attr_dev(div5, "class", "card-body");
+    			add_location(div5, file$l, 149, 21, 8000);
+    			attr_dev(div6, "class", "card m-b-30");
+    			add_location(div6, file$l, 148, 17, 7952);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, h5, anchor);
+    			append_dev(h5, span);
+    			append_dev(span, t0);
+    			append_dev(span, t1);
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, div6, anchor);
+    			append_dev(div6, div5);
+    			append_dev(div5, div4);
+    			append_dev(div4, div0);
+    			append_dev(div0, label0);
+    			append_dev(div0, t4);
+    			append_dev(div0, input0);
+    			append_dev(div4, t5);
+    			append_dev(div4, div1);
+    			append_dev(div1, label1);
+    			append_dev(div1, t7);
+    			append_dev(div1, input1);
+    			append_dev(div4, t8);
+    			append_dev(div4, div2);
+    			append_dev(div2, label2);
+    			append_dev(div2, t10);
+    			append_dev(div2, input2);
+    			append_dev(div4, t11);
+    			append_dev(div4, div3);
+    			append_dev(div3, label3);
+    			append_dev(div3, t13);
+    			append_dev(div3, input3);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*parentescos*/ 8 && t1_value !== (t1_value = /*parentesco*/ ctx[12].tipoParentesco + "")) set_data_dev(t1, t1_value);
+
+    			if (dirty & /*parentescos*/ 8 && input0_value_value !== (input0_value_value = /*parentesco*/ ctx[12].nombre) && input0.value !== input0_value_value) {
+    				prop_dev(input0, "value", input0_value_value);
+    			}
+
+    			if (dirty & /*parentescos*/ 8 && input1_value_value !== (input1_value_value = /*parentesco*/ ctx[12].apellidos) && input1.value !== input1_value_value) {
+    				prop_dev(input1, "value", input1_value_value);
+    			}
+
+    			if (dirty & /*parentescos*/ 8 && input2_value_value !== (input2_value_value = /*parentesco*/ ctx[12].cedula) && input2.value !== input2_value_value) {
+    				prop_dev(input2, "value", input2_value_value);
+    			}
+
+    			if (dirty & /*parentescos*/ 8 && input3_value_value !== (input3_value_value = /*parentesco*/ ctx[12].telefono) && input3.value !== input3_value_value) {
+    				prop_dev(input3, "value", input3_value_value);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(h5);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(div6);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block_1$8.name,
+    		type: "each",
+    		source: "(147:12) {#each parentescos as parentesco}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (185:24) {#each imagenesRecetas as img}
     function create_each_block$9(ctx) {
     	let a;
     	let img;
@@ -32020,14 +32251,14 @@ var app = (function (moment) {
     			a = element("a");
     			img = element("img");
     			t = space();
-    			if (img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[7].name)) attr_dev(img, "src", img_src_value);
+    			if (img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name)) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img, "alt", "cedula");
-    			add_location(img, file$l, 151, 32, 8735);
-    			attr_dev(a, "href", a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[7].name);
+    			add_location(img, file$l, 186, 32, 10545);
+    			attr_dev(a, "href", a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name);
     			attr_dev(a, "target", "_blank");
     			attr_dev(a, "class", "col-lg-4");
-    			add_location(a, file$l, 150, 28, 8592);
+    			add_location(a, file$l, 185, 28, 10402);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -32035,11 +32266,11 @@ var app = (function (moment) {
     			append_dev(a, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*imagenesRecetas*/ 4 && img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[7].name)) {
+    			if (dirty & /*imagenesRecetas*/ 4 && img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name)) {
     				attr_dev(img, "src", img_src_value);
     			}
 
-    			if (dirty & /*imagenesRecetas*/ 4 && a_href_value !== (a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[7].name)) {
+    			if (dirty & /*imagenesRecetas*/ 4 && a_href_value !== (a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name)) {
     				attr_dev(a, "href", a_href_value);
     			}
     		},
@@ -32052,7 +32283,7 @@ var app = (function (moment) {
     		block,
     		id: create_each_block$9.name,
     		type: "each",
-    		source: "(150:24) {#each imagenesRecetas as img}",
+    		source: "(185:24) {#each imagenesRecetas as img}",
     		ctx
     	});
 
@@ -32071,154 +32302,161 @@ var app = (function (moment) {
     	let t3_value = /*solicitudDetalle*/ ctx[0].codigo + "";
     	let t3;
     	let t4;
-    	let div17;
-    	let div0;
-    	let h50;
-    	let t6;
-    	let div16;
-    	let div15;
+    	let div9;
     	let div1;
+    	let div0;
+    	let span1;
+    	let t5;
+    	let t6_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "";
+    	let t6;
+    	let t7;
+    	let div8;
+    	let div7;
+    	let div2;
     	let label0;
-    	let t8;
+    	let t9;
     	let input0;
     	let input0_value_value;
-    	let t9;
-    	let div2;
+    	let t10;
+    	let div3;
     	let label1;
-    	let t11;
+    	let t12;
     	let input1;
     	let input1_value_value;
-    	let t12;
-    	let div3;
+    	let t13;
+    	let div4;
     	let label2;
-    	let t14;
+    	let t15;
     	let input2;
     	let input2_value_value;
-    	let t15;
-    	let div4;
-    	let label3;
-    	let t17;
-    	let input3;
-    	let input3_value_value;
-    	let t18;
-    	let div5;
-    	let label4;
-    	let t20;
-    	let input4;
-    	let input4_value_value;
-    	let t21;
+    	let t16;
     	let div6;
-    	let label5;
-    	let t23;
-    	let input5;
-    	let input5_value_value;
-    	let t24;
-    	let div7;
-    	let label6;
-    	let t26;
-    	let input6;
-    	let input6_value_value;
-    	let t27;
-    	let div8;
-    	let label7;
-    	let t29;
-    	let input7;
-    	let input7_value_value;
-    	let t30;
-    	let div9;
-    	let label8;
-    	let t32;
-    	let input8;
-    	let input8_value_value;
-    	let t33;
-    	let div10;
-    	let label9;
-    	let t35;
-    	let input9;
-    	let input9_value_value;
-    	let t36;
-    	let div11;
-    	let label10;
-    	let t38;
-    	let input10;
-    	let input10_value_value;
-    	let t39;
-    	let div12;
-    	let label11;
-    	let t41;
-    	let input11;
-    	let input11_value_value;
-    	let t42;
-    	let div13;
-    	let label12;
-    	let t44;
-    	let input12;
-    	let input12_value_value;
-    	let t45;
-    	let div14;
-    	let label13;
-    	let t47;
-    	let input13;
-    	let input13_value_value;
-    	let t48;
-    	let div27;
-    	let div19;
-    	let h51;
-    	let t50;
-    	let div18;
-    	let span1;
-    	let t51;
-    	let t52_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "";
-    	let t52;
-    	let t53;
-    	let div26;
-    	let div25;
-    	let div20;
-    	let label14;
-    	let t55;
-    	let input14;
-    	let input14_value_value;
-    	let t56;
-    	let div21;
-    	let label15;
-    	let t58;
-    	let input15;
-    	let input15_value_value;
-    	let t59;
-    	let div22;
-    	let label16;
-    	let t61;
-    	let input16;
-    	let input16_value_value;
-    	let t62;
-    	let div24;
-    	let div23;
-    	let label17;
-    	let t64;
+    	let div5;
+    	let label3;
+    	let t18;
     	let textarea;
     	let textarea_value_value;
-    	let t65;
+    	let t19;
+    	let div27;
+    	let div10;
+    	let h50;
+    	let t21;
+    	let div26;
+    	let div25;
+    	let div11;
+    	let label4;
+    	let t23;
+    	let input3;
+    	let input3_value_value;
+    	let t24;
+    	let div12;
+    	let label5;
+    	let t26;
+    	let input4;
+    	let input4_value_value;
+    	let t27;
+    	let div13;
+    	let label6;
+    	let t29;
+    	let input5;
+    	let input5_value_value;
+    	let t30;
+    	let div14;
+    	let label7;
+    	let t32;
+    	let input6;
+    	let input6_value_value;
+    	let t33;
+    	let div15;
+    	let label8;
+    	let t35;
+    	let input7;
+    	let input7_value_value;
+    	let t36;
+    	let div16;
+    	let label9;
+    	let t38;
+    	let input8;
+    	let input8_value_value;
+    	let t39;
+    	let div17;
+    	let label10;
+    	let t41;
+    	let input9;
+    	let input9_value_value;
+    	let t42;
+    	let div18;
+    	let label11;
+    	let t44;
+    	let input10;
+    	let input10_value_value;
+    	let t45;
+    	let div19;
+    	let label12;
+    	let t47;
+    	let input11;
+    	let input11_value_value;
+    	let t48;
+    	let div20;
+    	let label13;
+    	let t50;
+    	let input12;
+    	let input12_value_value;
+    	let t51;
+    	let div21;
+    	let label14;
+    	let t53;
+    	let input13;
+    	let input13_value_value;
+    	let t54;
+    	let div22;
+    	let label15;
+    	let t56;
+    	let input14;
+    	let input14_value_value;
+    	let t57;
+    	let div23;
+    	let label16;
+    	let t59;
+    	let input15;
+    	let input15_value_value;
+    	let t60;
+    	let div24;
+    	let label17;
+    	let t62;
+    	let input16;
+    	let input16_value_value;
+    	let t63;
+    	let t64;
     	let div31;
     	let div28;
-    	let h52;
-    	let t67;
+    	let h51;
+    	let t66;
     	let div30;
     	let div29;
     	let a0;
     	let img0;
     	let img0_src_value;
     	let a0_href_value;
-    	let t68;
+    	let t67;
     	let a1;
     	let img1;
     	let img1_src_value;
     	let a1_href_value;
+    	let t68;
     	let t69;
-    	let t70;
     	let br;
     	let current;
     	const aside = new Aside({ $$inline: true });
     	const header = new Header({ $$inline: true });
+    	let each_value_1 = /*parentescos*/ ctx[3];
+    	validate_each_argument(each_value_1);
+    	let each_blocks_1 = [];
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks_1[i] = create_each_block_1$8(get_each_context_1$8(ctx, each_value_1, i));
+    	}
+
     	let each_value = /*imagenesRecetas*/ ctx[2];
     	validate_each_argument(each_value);
     	let each_blocks = [];
@@ -32241,397 +32479,398 @@ var app = (function (moment) {
     			span0 = element("span");
     			t3 = text(t3_value);
     			t4 = space();
-    			div17 = element("div");
+    			div9 = element("div");
+    			div1 = element("div");
     			div0 = element("div");
+    			span1 = element("span");
+    			t5 = text("Fecha: ");
+    			t6 = text(t6_value);
+    			t7 = space();
+    			div8 = element("div");
+    			div7 = element("div");
+    			div2 = element("div");
+    			label0 = element("label");
+    			label0.textContent = "Codigo Solicitud";
+    			t9 = space();
+    			input0 = element("input");
+    			t10 = space();
+    			div3 = element("div");
+    			label1 = element("label");
+    			label1.textContent = "Categoria de afiliado";
+    			t12 = space();
+    			input1 = element("input");
+    			t13 = space();
+    			div4 = element("div");
+    			label2 = element("label");
+    			label2.textContent = "Colectivo";
+    			t15 = space();
+    			input2 = element("input");
+    			t16 = space();
+    			div6 = element("div");
+    			div5 = element("div");
+    			label3 = element("label");
+    			label3.textContent = "Sintomas";
+    			t18 = space();
+    			textarea = element("textarea");
+    			t19 = space();
+    			div27 = element("div");
+    			div10 = element("div");
     			h50 = element("h5");
     			h50.textContent = "Datos personales";
-    			t6 = space();
-    			div16 = element("div");
-    			div15 = element("div");
-    			div1 = element("div");
-    			label0 = element("label");
-    			label0.textContent = "Nombre";
-    			t8 = space();
-    			input0 = element("input");
-    			t9 = space();
-    			div2 = element("div");
-    			label1 = element("label");
-    			label1.textContent = "Apellidos";
-    			t11 = space();
-    			input1 = element("input");
-    			t12 = space();
-    			div3 = element("div");
-    			label2 = element("label");
-    			label2.textContent = "Apodo";
-    			t14 = space();
-    			input2 = element("input");
-    			t15 = space();
-    			div4 = element("div");
-    			label3 = element("label");
-    			label3.textContent = "Cedula";
-    			t17 = space();
-    			input3 = element("input");
-    			t18 = space();
-    			div5 = element("div");
-    			label4 = element("label");
-    			label4.textContent = "Aseguradora";
-    			t20 = space();
-    			input4 = element("input");
     			t21 = space();
-    			div6 = element("div");
-    			label5 = element("label");
-    			label5.textContent = "No. Afiliado / NSS";
-    			t23 = space();
-    			input5 = element("input");
-    			t24 = space();
-    			div7 = element("div");
-    			label6 = element("label");
-    			label6.textContent = "Fecha de nacimiento";
-    			t26 = space();
-    			input6 = element("input");
-    			t27 = space();
-    			div8 = element("div");
-    			label7 = element("label");
-    			label7.textContent = "Sexo";
-    			t29 = space();
-    			input7 = element("input");
-    			t30 = space();
-    			div9 = element("div");
-    			label8 = element("label");
-    			label8.textContent = "Correo electronico";
-    			t32 = space();
-    			input8 = element("input");
-    			t33 = space();
-    			div10 = element("div");
-    			label9 = element("label");
-    			label9.textContent = "Provincia";
-    			t35 = space();
-    			input9 = element("input");
-    			t36 = space();
-    			div11 = element("div");
-    			label10 = element("label");
-    			label10.textContent = "Municipio";
-    			t38 = space();
-    			input10 = element("input");
-    			t39 = space();
-    			div12 = element("div");
-    			label11 = element("label");
-    			label11.textContent = "Ciudad";
-    			t41 = space();
-    			input11 = element("input");
-    			t42 = space();
-    			div13 = element("div");
-    			label12 = element("label");
-    			label12.textContent = "Barrio";
-    			t44 = space();
-    			input12 = element("input");
-    			t45 = space();
-    			div14 = element("div");
-    			label13 = element("label");
-    			label13.textContent = "Direccion";
-    			t47 = space();
-    			input13 = element("input");
-    			t48 = space();
-    			div27 = element("div");
-    			div19 = element("div");
-    			h51 = element("h5");
-    			h51.textContent = "Datos solicitud";
-    			t50 = space();
-    			div18 = element("div");
-    			span1 = element("span");
-    			t51 = text("Fecha: ");
-    			t52 = text(t52_value);
-    			t53 = space();
     			div26 = element("div");
     			div25 = element("div");
+    			div11 = element("div");
+    			label4 = element("label");
+    			label4.textContent = "Nombre";
+    			t23 = space();
+    			input3 = element("input");
+    			t24 = space();
+    			div12 = element("div");
+    			label5 = element("label");
+    			label5.textContent = "Apellidos";
+    			t26 = space();
+    			input4 = element("input");
+    			t27 = space();
+    			div13 = element("div");
+    			label6 = element("label");
+    			label6.textContent = "Apodo";
+    			t29 = space();
+    			input5 = element("input");
+    			t30 = space();
+    			div14 = element("div");
+    			label7 = element("label");
+    			label7.textContent = "Cedula";
+    			t32 = space();
+    			input6 = element("input");
+    			t33 = space();
+    			div15 = element("div");
+    			label8 = element("label");
+    			label8.textContent = "Aseguradora";
+    			t35 = space();
+    			input7 = element("input");
+    			t36 = space();
+    			div16 = element("div");
+    			label9 = element("label");
+    			label9.textContent = "No. Afiliado / NSS";
+    			t38 = space();
+    			input8 = element("input");
+    			t39 = space();
+    			div17 = element("div");
+    			label10 = element("label");
+    			label10.textContent = "Fecha de nacimiento";
+    			t41 = space();
+    			input9 = element("input");
+    			t42 = space();
+    			div18 = element("div");
+    			label11 = element("label");
+    			label11.textContent = "Sexo";
+    			t44 = space();
+    			input10 = element("input");
+    			t45 = space();
+    			div19 = element("div");
+    			label12 = element("label");
+    			label12.textContent = "Correo electronico";
+    			t47 = space();
+    			input11 = element("input");
+    			t48 = space();
     			div20 = element("div");
-    			label14 = element("label");
-    			label14.textContent = "Codigo Solicitud";
-    			t55 = space();
-    			input14 = element("input");
-    			t56 = space();
+    			label13 = element("label");
+    			label13.textContent = "Provincia";
+    			t50 = space();
+    			input12 = element("input");
+    			t51 = space();
     			div21 = element("div");
-    			label15 = element("label");
-    			label15.textContent = "Categoria de afiliado";
-    			t58 = space();
-    			input15 = element("input");
-    			t59 = space();
+    			label14 = element("label");
+    			label14.textContent = "Municipio";
+    			t53 = space();
+    			input13 = element("input");
+    			t54 = space();
     			div22 = element("div");
-    			label16 = element("label");
-    			label16.textContent = "Colectivo";
-    			t61 = space();
-    			input16 = element("input");
-    			t62 = space();
-    			div24 = element("div");
+    			label15 = element("label");
+    			label15.textContent = "Ciudad";
+    			t56 = space();
+    			input14 = element("input");
+    			t57 = space();
     			div23 = element("div");
+    			label16 = element("label");
+    			label16.textContent = "Barrio";
+    			t59 = space();
+    			input15 = element("input");
+    			t60 = space();
+    			div24 = element("div");
     			label17 = element("label");
-    			label17.textContent = "Sintomas";
+    			label17.textContent = "Direccion";
+    			t62 = space();
+    			input16 = element("input");
+    			t63 = space();
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].c();
+    			}
+
     			t64 = space();
-    			textarea = element("textarea");
-    			t65 = space();
     			div31 = element("div");
     			div28 = element("div");
-    			h52 = element("h5");
-    			h52.textContent = "Archivos";
-    			t67 = space();
+    			h51 = element("h5");
+    			h51.textContent = "Archivos";
+    			t66 = space();
     			div30 = element("div");
     			div29 = element("div");
     			a0 = element("a");
     			img0 = element("img");
-    			t68 = space();
+    			t67 = space();
     			a1 = element("a");
     			img1 = element("img");
-    			t69 = space();
+    			t68 = space();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t70 = space();
+    			t69 = space();
     			br = element("br");
     			attr_dev(span0, "class", "badge badge-primary");
-    			add_location(span0, file$l, 40, 34, 1164);
-    			add_location(h4, file$l, 40, 12, 1142);
-    			attr_dev(h50, "class", "card-title m-b-0");
-    			add_location(h50, file$l, 43, 20, 1339);
-    			attr_dev(div0, "class", "card-header");
-    			add_location(div0, file$l, 42, 16, 1292);
-    			attr_dev(label0, "for", "nombre");
-    			add_location(label0, file$l, 48, 28, 1597);
+    			add_location(span0, file$l, 50, 34, 1464);
+    			add_location(h4, file$l, 50, 12, 1442);
+    			attr_dev(span1, "class", "badge badge-primary");
+    			add_location(span1, file$l, 54, 24, 1692);
+    			attr_dev(div0, "class", "card-controls");
+    			add_location(div0, file$l, 53, 20, 1639);
+    			attr_dev(div1, "class", "card-header");
+    			add_location(div1, file$l, 52, 16, 1592);
+    			attr_dev(label0, "for", "codigo");
+    			add_location(label0, file$l, 60, 28, 2030);
     			attr_dev(input0, "type", "text");
     			attr_dev(input0, "class", "form-control");
-    			input0.value = input0_value_value = /*paciente*/ ctx[1].nombre;
+    			input0.value = input0_value_value = /*solicitudDetalle*/ ctx[0].codigo;
     			input0.readOnly = true;
-    			attr_dev(input0, "id", "nombre");
-    			attr_dev(input0, "placeholder", "Email");
-    			add_location(input0, file$l, 49, 28, 1661);
-    			attr_dev(div1, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div1, file$l, 47, 24, 1525);
-    			attr_dev(label1, "for", "apellido");
-    			add_location(label1, file$l, 52, 28, 1896);
+    			attr_dev(input0, "id", "codigo");
+    			add_location(input0, file$l, 61, 28, 2104);
+    			attr_dev(div2, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div2, file$l, 59, 24, 1958);
+    			attr_dev(label1, "for", "catAfiliado");
+    			add_location(label1, file$l, 64, 28, 2327);
     			attr_dev(input1, "type", "text");
     			attr_dev(input1, "class", "form-control");
-    			input1.value = input1_value_value = /*paciente*/ ctx[1].apellidos;
+    			input1.value = input1_value_value = /*solicitudDetalle*/ ctx[0].categoriaAfiliado;
     			input1.readOnly = true;
-    			attr_dev(input1, "id", "apellido");
-    			add_location(input1, file$l, 53, 28, 1965);
-    			attr_dev(div2, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div2, file$l, 51, 24, 1824);
-    			attr_dev(label2, "for", "apodo");
-    			add_location(label2, file$l, 56, 28, 2185);
+    			attr_dev(input1, "id", "catAfiliado");
+    			add_location(input1, file$l, 65, 28, 2411);
+    			attr_dev(div3, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div3, file$l, 63, 24, 2255);
+    			attr_dev(label2, "for", "colectivo");
+    			add_location(label2, file$l, 68, 28, 2650);
     			attr_dev(input2, "type", "text");
     			attr_dev(input2, "class", "form-control");
-    			input2.value = input2_value_value = /*paciente*/ ctx[1].apodo;
+    			input2.value = input2_value_value = /*solicitudDetalle*/ ctx[0].colectivo;
     			input2.readOnly = true;
-    			attr_dev(input2, "id", "apodo");
-    			add_location(input2, file$l, 57, 28, 2247);
-    			attr_dev(div3, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div3, file$l, 55, 24, 2113);
-    			attr_dev(label3, "for", "cedula");
-    			add_location(label3, file$l, 60, 28, 2460);
-    			attr_dev(input3, "type", "text");
-    			attr_dev(input3, "class", "form-control");
-    			input3.value = input3_value_value = /*paciente*/ ctx[1].cedula;
-    			input3.readOnly = true;
-    			attr_dev(input3, "id", "cedula");
-    			add_location(input3, file$l, 61, 28, 2524);
+    			attr_dev(input2, "id", "colectivo");
+    			add_location(input2, file$l, 69, 28, 2720);
     			attr_dev(div4, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div4, file$l, 59, 24, 2388);
-    			attr_dev(label4, "for", "aseguradora");
-    			add_location(label4, file$l, 64, 28, 2739);
-    			attr_dev(input4, "type", "text");
-    			attr_dev(input4, "class", "form-control");
-    			input4.value = input4_value_value = /*paciente*/ ctx[1].aseguradora;
-    			input4.readOnly = true;
-    			attr_dev(input4, "id", "aseguradora");
-    			add_location(input4, file$l, 65, 28, 2813);
-    			attr_dev(div5, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div5, file$l, 63, 24, 2667);
-    			attr_dev(label5, "for", "afiliado");
-    			add_location(label5, file$l, 68, 28, 3038);
-    			attr_dev(input5, "type", "text");
-    			attr_dev(input5, "class", "form-control");
-    			input5.value = input5_value_value = /*paciente*/ ctx[1].noAfiliado;
-    			input5.readOnly = true;
-    			attr_dev(input5, "id", "afiliado");
-    			add_location(input5, file$l, 69, 28, 3116);
-    			attr_dev(div6, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div6, file$l, 67, 24, 2966);
-    			attr_dev(label6, "for", "nacimiento");
-    			add_location(label6, file$l, 72, 28, 3337);
-    			attr_dev(input6, "type", "text");
-    			attr_dev(input6, "class", "form-control");
-    			input6.value = input6_value_value = new Date(/*paciente*/ ctx[1].fechaNacimiento).toLocaleDateString("es-DO");
-    			input6.readOnly = true;
-    			attr_dev(input6, "id", "nacimiento");
-    			add_location(input6, file$l, 73, 28, 3418);
-    			attr_dev(div7, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div7, file$l, 71, 24, 3265);
-    			attr_dev(label7, "for", "sexo");
-    			add_location(label7, file$l, 76, 28, 3684);
-    			attr_dev(input7, "type", "text");
-    			attr_dev(input7, "class", "form-control");
-    			input7.value = input7_value_value = /*paciente*/ ctx[1].sexo;
-    			input7.readOnly = true;
-    			attr_dev(input7, "id", "sexo");
-    			add_location(input7, file$l, 77, 28, 3744);
-    			attr_dev(div8, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div8, file$l, 75, 24, 3612);
-    			attr_dev(label8, "for", "email");
-    			add_location(label8, file$l, 80, 28, 3955);
-    			attr_dev(input8, "type", "text");
-    			attr_dev(input8, "class", "form-control");
-    			input8.value = input8_value_value = /*paciente*/ ctx[1].email;
-    			input8.readOnly = true;
-    			attr_dev(input8, "id", "email");
-    			add_location(input8, file$l, 81, 28, 4030);
-    			attr_dev(div9, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div9, file$l, 79, 24, 3883);
-    			attr_dev(label9, "for", "provincia");
-    			add_location(label9, file$l, 84, 28, 4243);
-    			attr_dev(input9, "type", "text");
-    			attr_dev(input9, "class", "form-control");
-    			input9.value = input9_value_value = /*paciente*/ ctx[1].provincia;
-    			input9.readOnly = true;
-    			attr_dev(input9, "id", "provincia");
-    			add_location(input9, file$l, 85, 28, 4313);
-    			attr_dev(div10, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div10, file$l, 83, 24, 4171);
-    			attr_dev(label10, "for", "municipio");
-    			add_location(label10, file$l, 88, 28, 4534);
-    			attr_dev(input10, "type", "text");
-    			attr_dev(input10, "class", "form-control");
-    			input10.value = input10_value_value = /*paciente*/ ctx[1].municipio;
-    			input10.readOnly = true;
-    			attr_dev(input10, "id", "municipio");
-    			add_location(input10, file$l, 89, 28, 4604);
-    			attr_dev(div11, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div11, file$l, 87, 24, 4462);
-    			attr_dev(label11, "for", "ciudad");
-    			add_location(label11, file$l, 92, 28, 4825);
-    			attr_dev(input11, "type", "text");
-    			attr_dev(input11, "class", "form-control");
-    			input11.value = input11_value_value = /*paciente*/ ctx[1].ciudad;
-    			input11.readOnly = true;
-    			attr_dev(input11, "id", "ciudad");
-    			add_location(input11, file$l, 93, 28, 4889);
-    			attr_dev(div12, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div12, file$l, 91, 24, 4753);
-    			attr_dev(label12, "for", "barrio");
-    			add_location(label12, file$l, 96, 28, 5104);
-    			attr_dev(input12, "type", "text");
-    			attr_dev(input12, "class", "form-control");
-    			input12.value = input12_value_value = /*paciente*/ ctx[1].barrio;
-    			input12.readOnly = true;
-    			attr_dev(input12, "id", "barrio");
-    			add_location(input12, file$l, 97, 28, 5168);
-    			attr_dev(div13, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div13, file$l, 95, 24, 5032);
-    			attr_dev(label13, "for", "direccion");
-    			add_location(label13, file$l, 101, 28, 5409);
-    			attr_dev(input13, "type", "text");
-    			attr_dev(input13, "class", "form-control");
-    			input13.value = input13_value_value = /*paciente*/ ctx[1].ciudad;
-    			input13.readOnly = true;
-    			attr_dev(input13, "id", "direccion");
-    			add_location(input13, file$l, 102, 28, 5479);
-    			attr_dev(div14, "class", "form-group col-lg-8 col-md-6");
-    			add_location(div14, file$l, 100, 24, 5337);
-    			attr_dev(div15, "class", "form-row");
-    			add_location(div15, file$l, 46, 20, 1477);
-    			attr_dev(div16, "class", "card-body");
-    			add_location(div16, file$l, 45, 16, 1432);
-    			attr_dev(div17, "class", "card m-b-30");
-    			add_location(div17, file$l, 41, 12, 1249);
-    			attr_dev(h51, "class", "card-title m-b-0");
-    			add_location(h51, file$l, 109, 20, 5775);
-    			attr_dev(span1, "class", "badge badge-primary");
-    			add_location(span1, file$l, 111, 24, 5900);
-    			attr_dev(div18, "class", "card-controls");
-    			add_location(div18, file$l, 110, 20, 5847);
-    			attr_dev(div19, "class", "card-header");
-    			add_location(div19, file$l, 108, 16, 5728);
-    			attr_dev(label14, "for", "codigo");
-    			add_location(label14, file$l, 117, 28, 6238);
-    			attr_dev(input14, "type", "text");
-    			attr_dev(input14, "class", "form-control");
-    			input14.value = input14_value_value = /*solicitudDetalle*/ ctx[0].codigo;
-    			input14.readOnly = true;
-    			attr_dev(input14, "id", "codigo");
-    			add_location(input14, file$l, 118, 28, 6312);
-    			attr_dev(div20, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div20, file$l, 116, 24, 6166);
-    			attr_dev(label15, "for", "catAfiliado");
-    			add_location(label15, file$l, 121, 28, 6535);
-    			attr_dev(input15, "type", "text");
-    			attr_dev(input15, "class", "form-control");
-    			input15.value = input15_value_value = /*solicitudDetalle*/ ctx[0].categoriaAfiliado;
-    			input15.readOnly = true;
-    			attr_dev(input15, "id", "catAfiliado");
-    			add_location(input15, file$l, 122, 28, 6619);
-    			attr_dev(div21, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div21, file$l, 120, 24, 6463);
-    			attr_dev(label16, "for", "colectivo");
-    			add_location(label16, file$l, 125, 28, 6858);
-    			attr_dev(input16, "type", "text");
-    			attr_dev(input16, "class", "form-control");
-    			input16.value = input16_value_value = /*solicitudDetalle*/ ctx[0].colectivo;
-    			input16.readOnly = true;
-    			attr_dev(input16, "id", "colectivo");
-    			add_location(input16, file$l, 126, 28, 6928);
-    			attr_dev(div22, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div22, file$l, 124, 24, 6786);
-    			attr_dev(label17, "for", "exampleFormControlTextarea1");
-    			add_location(label17, file$l, 130, 32, 7217);
+    			add_location(div4, file$l, 67, 24, 2578);
+    			attr_dev(label3, "for", "exampleFormControlTextarea1");
+    			add_location(label3, file$l, 73, 32, 3009);
     			attr_dev(textarea, "class", "form-control");
     			set_style(textarea, "width", "100%");
     			textarea.disabled = true;
     			attr_dev(textarea, "rows", "3");
     			textarea.value = textarea_value_value = /*solicitudDetalle*/ ctx[0].comentario;
-    			add_location(textarea, file$l, 131, 32, 7308);
-    			attr_dev(div23, "class", "form-group");
-    			add_location(div23, file$l, 129, 28, 7159);
-    			attr_dev(div24, "class", "form-group col-lg-12 col-md-12");
-    			add_location(div24, file$l, 128, 24, 7085);
+    			add_location(textarea, file$l, 74, 32, 3100);
+    			attr_dev(div5, "class", "form-group");
+    			add_location(div5, file$l, 72, 28, 2951);
+    			attr_dev(div6, "class", "form-group col-lg-12 col-md-12");
+    			add_location(div6, file$l, 71, 24, 2877);
+    			attr_dev(div7, "class", "form-row");
+    			add_location(div7, file$l, 58, 20, 1910);
+    			attr_dev(div8, "class", "card-body");
+    			add_location(div8, file$l, 57, 16, 1865);
+    			attr_dev(div9, "class", "card m-b-30");
+    			add_location(div9, file$l, 51, 12, 1549);
+    			attr_dev(h50, "class", "card-title m-b-0");
+    			add_location(h50, file$l, 82, 20, 3454);
+    			attr_dev(div10, "class", "card-header");
+    			add_location(div10, file$l, 81, 16, 3407);
+    			attr_dev(label4, "for", "nombre");
+    			add_location(label4, file$l, 87, 28, 3712);
+    			attr_dev(input3, "type", "text");
+    			attr_dev(input3, "class", "form-control");
+    			input3.value = input3_value_value = /*paciente*/ ctx[1].nombre;
+    			input3.readOnly = true;
+    			attr_dev(input3, "id", "nombre");
+    			attr_dev(input3, "placeholder", "Email");
+    			add_location(input3, file$l, 88, 28, 3776);
+    			attr_dev(div11, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div11, file$l, 86, 24, 3640);
+    			attr_dev(label5, "for", "apellido");
+    			add_location(label5, file$l, 91, 28, 4011);
+    			attr_dev(input4, "type", "text");
+    			attr_dev(input4, "class", "form-control");
+    			input4.value = input4_value_value = /*paciente*/ ctx[1].apellidos;
+    			input4.readOnly = true;
+    			attr_dev(input4, "id", "apellido");
+    			add_location(input4, file$l, 92, 28, 4080);
+    			attr_dev(div12, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div12, file$l, 90, 24, 3939);
+    			attr_dev(label6, "for", "apodo");
+    			add_location(label6, file$l, 95, 28, 4300);
+    			attr_dev(input5, "type", "text");
+    			attr_dev(input5, "class", "form-control");
+    			input5.value = input5_value_value = /*paciente*/ ctx[1].apodo;
+    			input5.readOnly = true;
+    			attr_dev(input5, "id", "apodo");
+    			add_location(input5, file$l, 96, 28, 4362);
+    			attr_dev(div13, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div13, file$l, 94, 24, 4228);
+    			attr_dev(label7, "for", "cedula");
+    			add_location(label7, file$l, 99, 28, 4575);
+    			attr_dev(input6, "type", "text");
+    			attr_dev(input6, "class", "form-control");
+    			input6.value = input6_value_value = /*paciente*/ ctx[1].cedula;
+    			input6.readOnly = true;
+    			attr_dev(input6, "id", "cedula");
+    			add_location(input6, file$l, 100, 28, 4639);
+    			attr_dev(div14, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div14, file$l, 98, 24, 4503);
+    			attr_dev(label8, "for", "aseguradora");
+    			add_location(label8, file$l, 103, 28, 4854);
+    			attr_dev(input7, "type", "text");
+    			attr_dev(input7, "class", "form-control");
+    			input7.value = input7_value_value = /*paciente*/ ctx[1].aseguradora;
+    			input7.readOnly = true;
+    			attr_dev(input7, "id", "aseguradora");
+    			add_location(input7, file$l, 104, 28, 4928);
+    			attr_dev(div15, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div15, file$l, 102, 24, 4782);
+    			attr_dev(label9, "for", "afiliado");
+    			add_location(label9, file$l, 107, 28, 5153);
+    			attr_dev(input8, "type", "text");
+    			attr_dev(input8, "class", "form-control");
+    			input8.value = input8_value_value = /*paciente*/ ctx[1].noAfiliado;
+    			input8.readOnly = true;
+    			attr_dev(input8, "id", "afiliado");
+    			add_location(input8, file$l, 108, 28, 5231);
+    			attr_dev(div16, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div16, file$l, 106, 24, 5081);
+    			attr_dev(label10, "for", "nacimiento");
+    			add_location(label10, file$l, 111, 28, 5452);
+    			attr_dev(input9, "type", "text");
+    			attr_dev(input9, "class", "form-control");
+    			input9.value = input9_value_value = new Date(/*paciente*/ ctx[1].fechaNacimiento).toLocaleDateString("es-DO");
+    			input9.readOnly = true;
+    			attr_dev(input9, "id", "nacimiento");
+    			add_location(input9, file$l, 112, 28, 5533);
+    			attr_dev(div17, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div17, file$l, 110, 24, 5380);
+    			attr_dev(label11, "for", "sexo");
+    			add_location(label11, file$l, 115, 28, 5799);
+    			attr_dev(input10, "type", "text");
+    			attr_dev(input10, "class", "form-control");
+    			input10.value = input10_value_value = /*paciente*/ ctx[1].sexo;
+    			input10.readOnly = true;
+    			attr_dev(input10, "id", "sexo");
+    			add_location(input10, file$l, 116, 28, 5859);
+    			attr_dev(div18, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div18, file$l, 114, 24, 5727);
+    			attr_dev(label12, "for", "email");
+    			add_location(label12, file$l, 119, 28, 6070);
+    			attr_dev(input11, "type", "text");
+    			attr_dev(input11, "class", "form-control");
+    			input11.value = input11_value_value = /*paciente*/ ctx[1].email;
+    			input11.readOnly = true;
+    			attr_dev(input11, "id", "email");
+    			add_location(input11, file$l, 120, 28, 6145);
+    			attr_dev(div19, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div19, file$l, 118, 24, 5998);
+    			attr_dev(label13, "for", "provincia");
+    			add_location(label13, file$l, 123, 28, 6358);
+    			attr_dev(input12, "type", "text");
+    			attr_dev(input12, "class", "form-control");
+    			input12.value = input12_value_value = /*paciente*/ ctx[1].provincia;
+    			input12.readOnly = true;
+    			attr_dev(input12, "id", "provincia");
+    			add_location(input12, file$l, 124, 28, 6428);
+    			attr_dev(div20, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div20, file$l, 122, 24, 6286);
+    			attr_dev(label14, "for", "municipio");
+    			add_location(label14, file$l, 127, 28, 6649);
+    			attr_dev(input13, "type", "text");
+    			attr_dev(input13, "class", "form-control");
+    			input13.value = input13_value_value = /*paciente*/ ctx[1].municipio;
+    			input13.readOnly = true;
+    			attr_dev(input13, "id", "municipio");
+    			add_location(input13, file$l, 128, 28, 6719);
+    			attr_dev(div21, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div21, file$l, 126, 24, 6577);
+    			attr_dev(label15, "for", "ciudad");
+    			add_location(label15, file$l, 131, 28, 6940);
+    			attr_dev(input14, "type", "text");
+    			attr_dev(input14, "class", "form-control");
+    			input14.value = input14_value_value = /*paciente*/ ctx[1].ciudad;
+    			input14.readOnly = true;
+    			attr_dev(input14, "id", "ciudad");
+    			add_location(input14, file$l, 132, 28, 7004);
+    			attr_dev(div22, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div22, file$l, 130, 24, 6868);
+    			attr_dev(label16, "for", "barrio");
+    			add_location(label16, file$l, 135, 28, 7219);
+    			attr_dev(input15, "type", "text");
+    			attr_dev(input15, "class", "form-control");
+    			input15.value = input15_value_value = /*paciente*/ ctx[1].barrio;
+    			input15.readOnly = true;
+    			attr_dev(input15, "id", "barrio");
+    			add_location(input15, file$l, 136, 28, 7283);
+    			attr_dev(div23, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div23, file$l, 134, 24, 7147);
+    			attr_dev(label17, "for", "direccion");
+    			add_location(label17, file$l, 140, 28, 7524);
+    			attr_dev(input16, "type", "text");
+    			attr_dev(input16, "class", "form-control");
+    			input16.value = input16_value_value = /*paciente*/ ctx[1].ciudad;
+    			input16.readOnly = true;
+    			attr_dev(input16, "id", "direccion");
+    			add_location(input16, file$l, 141, 28, 7594);
+    			attr_dev(div24, "class", "form-group col-lg-8 col-md-6");
+    			add_location(div24, file$l, 139, 24, 7452);
     			attr_dev(div25, "class", "form-row");
-    			add_location(div25, file$l, 115, 20, 6118);
+    			add_location(div25, file$l, 85, 20, 3592);
     			attr_dev(div26, "class", "card-body");
-    			add_location(div26, file$l, 114, 16, 6073);
+    			add_location(div26, file$l, 84, 16, 3547);
     			attr_dev(div27, "class", "card m-b-30");
-    			add_location(div27, file$l, 107, 12, 5685);
-    			attr_dev(h52, "class", "card-title m-b-0");
-    			add_location(h52, file$l, 139, 20, 7667);
+    			add_location(div27, file$l, 80, 12, 3364);
+    			attr_dev(h51, "class", "card-title m-b-0");
+    			add_location(h51, file$l, 174, 20, 9477);
     			attr_dev(div28, "class", "card-header");
-    			add_location(div28, file$l, 138, 16, 7620);
+    			add_location(div28, file$l, 173, 16, 9430);
     			if (img0.src !== (img0_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenCedula)) attr_dev(img0, "src", img0_src_value);
     			attr_dev(img0, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img0, "alt", "cedula");
-    			add_location(img0, file$l, 144, 28, 7992);
+    			add_location(img0, file$l, 179, 28, 9802);
     			attr_dev(a0, "href", a0_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenCedula);
     			attr_dev(a0, "target", "_blank");
     			attr_dev(a0, "class", "col-lg-4");
-    			add_location(a0, file$l, 143, 24, 7840);
+    			add_location(a0, file$l, 178, 24, 9650);
     			if (img1.src !== (img1_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenSeguro)) attr_dev(img1, "src", img1_src_value);
     			attr_dev(img1, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img1, "alt", "cedula");
-    			add_location(img1, file$l, 147, 28, 8338);
+    			add_location(img1, file$l, 182, 28, 10148);
     			attr_dev(a1, "href", a1_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenSeguro);
     			attr_dev(a1, "target", "_blank");
     			attr_dev(a1, "class", "col-lg-4");
-    			add_location(a1, file$l, 146, 24, 8186);
+    			add_location(a1, file$l, 181, 24, 9996);
     			attr_dev(div29, "class", "row");
-    			add_location(div29, file$l, 142, 20, 7797);
+    			add_location(div29, file$l, 177, 20, 9607);
     			attr_dev(div30, "class", "card-body");
-    			add_location(div30, file$l, 141, 16, 7752);
+    			add_location(div30, file$l, 176, 16, 9562);
     			attr_dev(div31, "class", "card m-b-30 mb-5");
-    			add_location(div31, file$l, 137, 12, 7572);
+    			add_location(div31, file$l, 172, 12, 9382);
     			attr_dev(div32, "class", "container-fluid mt-3");
-    			add_location(div32, file$l, 39, 8, 1094);
-    			add_location(br, file$l, 157, 14, 9015);
+    			add_location(div32, file$l, 49, 8, 1394);
+    			add_location(br, file$l, 192, 14, 10825);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$l, 38, 4, 1053);
+    			add_location(section, file$l, 48, 4, 1353);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$l, 36, 2, 1006);
+    			add_location(main, file$l, 46, 2, 1306);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -32649,210 +32888,237 @@ var app = (function (moment) {
     			append_dev(h4, span0);
     			append_dev(span0, t3);
     			append_dev(div32, t4);
-    			append_dev(div32, div17);
-    			append_dev(div17, div0);
-    			append_dev(div0, h50);
-    			append_dev(div17, t6);
-    			append_dev(div17, div16);
-    			append_dev(div16, div15);
-    			append_dev(div15, div1);
-    			append_dev(div1, label0);
-    			append_dev(div1, t8);
-    			append_dev(div1, input0);
-    			append_dev(div15, t9);
-    			append_dev(div15, div2);
-    			append_dev(div2, label1);
-    			append_dev(div2, t11);
-    			append_dev(div2, input1);
-    			append_dev(div15, t12);
-    			append_dev(div15, div3);
-    			append_dev(div3, label2);
-    			append_dev(div3, t14);
-    			append_dev(div3, input2);
-    			append_dev(div15, t15);
-    			append_dev(div15, div4);
-    			append_dev(div4, label3);
-    			append_dev(div4, t17);
-    			append_dev(div4, input3);
-    			append_dev(div15, t18);
-    			append_dev(div15, div5);
-    			append_dev(div5, label4);
-    			append_dev(div5, t20);
-    			append_dev(div5, input4);
-    			append_dev(div15, t21);
-    			append_dev(div15, div6);
-    			append_dev(div6, label5);
-    			append_dev(div6, t23);
-    			append_dev(div6, input5);
-    			append_dev(div15, t24);
-    			append_dev(div15, div7);
-    			append_dev(div7, label6);
-    			append_dev(div7, t26);
-    			append_dev(div7, input6);
-    			append_dev(div15, t27);
-    			append_dev(div15, div8);
-    			append_dev(div8, label7);
-    			append_dev(div8, t29);
-    			append_dev(div8, input7);
-    			append_dev(div15, t30);
-    			append_dev(div15, div9);
-    			append_dev(div9, label8);
-    			append_dev(div9, t32);
-    			append_dev(div9, input8);
-    			append_dev(div15, t33);
-    			append_dev(div15, div10);
-    			append_dev(div10, label9);
-    			append_dev(div10, t35);
-    			append_dev(div10, input9);
-    			append_dev(div15, t36);
-    			append_dev(div15, div11);
-    			append_dev(div11, label10);
-    			append_dev(div11, t38);
-    			append_dev(div11, input10);
-    			append_dev(div15, t39);
-    			append_dev(div15, div12);
-    			append_dev(div12, label11);
-    			append_dev(div12, t41);
-    			append_dev(div12, input11);
-    			append_dev(div15, t42);
-    			append_dev(div15, div13);
-    			append_dev(div13, label12);
-    			append_dev(div13, t44);
-    			append_dev(div13, input12);
-    			append_dev(div15, t45);
-    			append_dev(div15, div14);
-    			append_dev(div14, label13);
-    			append_dev(div14, t47);
-    			append_dev(div14, input13);
-    			append_dev(div32, t48);
+    			append_dev(div32, div9);
+    			append_dev(div9, div1);
+    			append_dev(div1, div0);
+    			append_dev(div0, span1);
+    			append_dev(span1, t5);
+    			append_dev(span1, t6);
+    			append_dev(div9, t7);
+    			append_dev(div9, div8);
+    			append_dev(div8, div7);
+    			append_dev(div7, div2);
+    			append_dev(div2, label0);
+    			append_dev(div2, t9);
+    			append_dev(div2, input0);
+    			append_dev(div7, t10);
+    			append_dev(div7, div3);
+    			append_dev(div3, label1);
+    			append_dev(div3, t12);
+    			append_dev(div3, input1);
+    			append_dev(div7, t13);
+    			append_dev(div7, div4);
+    			append_dev(div4, label2);
+    			append_dev(div4, t15);
+    			append_dev(div4, input2);
+    			append_dev(div7, t16);
+    			append_dev(div7, div6);
+    			append_dev(div6, div5);
+    			append_dev(div5, label3);
+    			append_dev(div5, t18);
+    			append_dev(div5, textarea);
+    			append_dev(div32, t19);
     			append_dev(div32, div27);
-    			append_dev(div27, div19);
-    			append_dev(div19, h51);
-    			append_dev(div19, t50);
-    			append_dev(div19, div18);
-    			append_dev(div18, span1);
-    			append_dev(span1, t51);
-    			append_dev(span1, t52);
-    			append_dev(div27, t53);
+    			append_dev(div27, div10);
+    			append_dev(div10, h50);
+    			append_dev(div27, t21);
     			append_dev(div27, div26);
     			append_dev(div26, div25);
+    			append_dev(div25, div11);
+    			append_dev(div11, label4);
+    			append_dev(div11, t23);
+    			append_dev(div11, input3);
+    			append_dev(div25, t24);
+    			append_dev(div25, div12);
+    			append_dev(div12, label5);
+    			append_dev(div12, t26);
+    			append_dev(div12, input4);
+    			append_dev(div25, t27);
+    			append_dev(div25, div13);
+    			append_dev(div13, label6);
+    			append_dev(div13, t29);
+    			append_dev(div13, input5);
+    			append_dev(div25, t30);
+    			append_dev(div25, div14);
+    			append_dev(div14, label7);
+    			append_dev(div14, t32);
+    			append_dev(div14, input6);
+    			append_dev(div25, t33);
+    			append_dev(div25, div15);
+    			append_dev(div15, label8);
+    			append_dev(div15, t35);
+    			append_dev(div15, input7);
+    			append_dev(div25, t36);
+    			append_dev(div25, div16);
+    			append_dev(div16, label9);
+    			append_dev(div16, t38);
+    			append_dev(div16, input8);
+    			append_dev(div25, t39);
+    			append_dev(div25, div17);
+    			append_dev(div17, label10);
+    			append_dev(div17, t41);
+    			append_dev(div17, input9);
+    			append_dev(div25, t42);
+    			append_dev(div25, div18);
+    			append_dev(div18, label11);
+    			append_dev(div18, t44);
+    			append_dev(div18, input10);
+    			append_dev(div25, t45);
+    			append_dev(div25, div19);
+    			append_dev(div19, label12);
+    			append_dev(div19, t47);
+    			append_dev(div19, input11);
+    			append_dev(div25, t48);
     			append_dev(div25, div20);
-    			append_dev(div20, label14);
-    			append_dev(div20, t55);
-    			append_dev(div20, input14);
-    			append_dev(div25, t56);
+    			append_dev(div20, label13);
+    			append_dev(div20, t50);
+    			append_dev(div20, input12);
+    			append_dev(div25, t51);
     			append_dev(div25, div21);
-    			append_dev(div21, label15);
-    			append_dev(div21, t58);
-    			append_dev(div21, input15);
-    			append_dev(div25, t59);
+    			append_dev(div21, label14);
+    			append_dev(div21, t53);
+    			append_dev(div21, input13);
+    			append_dev(div25, t54);
     			append_dev(div25, div22);
-    			append_dev(div22, label16);
-    			append_dev(div22, t61);
-    			append_dev(div22, input16);
-    			append_dev(div25, t62);
+    			append_dev(div22, label15);
+    			append_dev(div22, t56);
+    			append_dev(div22, input14);
+    			append_dev(div25, t57);
+    			append_dev(div25, div23);
+    			append_dev(div23, label16);
+    			append_dev(div23, t59);
+    			append_dev(div23, input15);
+    			append_dev(div25, t60);
     			append_dev(div25, div24);
-    			append_dev(div24, div23);
-    			append_dev(div23, label17);
-    			append_dev(div23, t64);
-    			append_dev(div23, textarea);
-    			append_dev(div32, t65);
+    			append_dev(div24, label17);
+    			append_dev(div24, t62);
+    			append_dev(div24, input16);
+    			append_dev(div32, t63);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].m(div32, null);
+    			}
+
+    			append_dev(div32, t64);
     			append_dev(div32, div31);
     			append_dev(div31, div28);
-    			append_dev(div28, h52);
-    			append_dev(div31, t67);
+    			append_dev(div28, h51);
+    			append_dev(div31, t66);
     			append_dev(div31, div30);
     			append_dev(div30, div29);
     			append_dev(div29, a0);
     			append_dev(a0, img0);
-    			append_dev(div29, t68);
+    			append_dev(div29, t67);
     			append_dev(div29, a1);
     			append_dev(a1, img1);
-    			append_dev(div29, t69);
+    			append_dev(div29, t68);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(div29, null);
     			}
 
-    			append_dev(div32, t70);
+    			append_dev(div32, t69);
     			append_dev(section, br);
     			current = true;
     		},
     		p: function update(ctx, [dirty]) {
     			if ((!current || dirty & /*solicitudDetalle*/ 1) && t3_value !== (t3_value = /*solicitudDetalle*/ ctx[0].codigo + "")) set_data_dev(t3, t3_value);
+    			if ((!current || dirty & /*solicitudDetalle*/ 1) && t6_value !== (t6_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "")) set_data_dev(t6, t6_value);
 
-    			if (!current || dirty & /*paciente*/ 2 && input0_value_value !== (input0_value_value = /*paciente*/ ctx[1].nombre) && input0.value !== input0_value_value) {
+    			if (!current || dirty & /*solicitudDetalle*/ 1 && input0_value_value !== (input0_value_value = /*solicitudDetalle*/ ctx[0].codigo) && input0.value !== input0_value_value) {
     				prop_dev(input0, "value", input0_value_value);
     			}
 
-    			if (!current || dirty & /*paciente*/ 2 && input1_value_value !== (input1_value_value = /*paciente*/ ctx[1].apellidos) && input1.value !== input1_value_value) {
+    			if (!current || dirty & /*solicitudDetalle*/ 1 && input1_value_value !== (input1_value_value = /*solicitudDetalle*/ ctx[0].categoriaAfiliado) && input1.value !== input1_value_value) {
     				prop_dev(input1, "value", input1_value_value);
     			}
 
-    			if (!current || dirty & /*paciente*/ 2 && input2_value_value !== (input2_value_value = /*paciente*/ ctx[1].apodo) && input2.value !== input2_value_value) {
+    			if (!current || dirty & /*solicitudDetalle*/ 1 && input2_value_value !== (input2_value_value = /*solicitudDetalle*/ ctx[0].colectivo) && input2.value !== input2_value_value) {
     				prop_dev(input2, "value", input2_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input3_value_value !== (input3_value_value = /*paciente*/ ctx[1].cedula) && input3.value !== input3_value_value) {
-    				prop_dev(input3, "value", input3_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input4_value_value !== (input4_value_value = /*paciente*/ ctx[1].aseguradora) && input4.value !== input4_value_value) {
-    				prop_dev(input4, "value", input4_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input5_value_value !== (input5_value_value = /*paciente*/ ctx[1].noAfiliado) && input5.value !== input5_value_value) {
-    				prop_dev(input5, "value", input5_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input6_value_value !== (input6_value_value = new Date(/*paciente*/ ctx[1].fechaNacimiento).toLocaleDateString("es-DO")) && input6.value !== input6_value_value) {
-    				prop_dev(input6, "value", input6_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input7_value_value !== (input7_value_value = /*paciente*/ ctx[1].sexo) && input7.value !== input7_value_value) {
-    				prop_dev(input7, "value", input7_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input8_value_value !== (input8_value_value = /*paciente*/ ctx[1].email) && input8.value !== input8_value_value) {
-    				prop_dev(input8, "value", input8_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input9_value_value !== (input9_value_value = /*paciente*/ ctx[1].provincia) && input9.value !== input9_value_value) {
-    				prop_dev(input9, "value", input9_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input10_value_value !== (input10_value_value = /*paciente*/ ctx[1].municipio) && input10.value !== input10_value_value) {
-    				prop_dev(input10, "value", input10_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input11_value_value !== (input11_value_value = /*paciente*/ ctx[1].ciudad) && input11.value !== input11_value_value) {
-    				prop_dev(input11, "value", input11_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input12_value_value !== (input12_value_value = /*paciente*/ ctx[1].barrio) && input12.value !== input12_value_value) {
-    				prop_dev(input12, "value", input12_value_value);
-    			}
-
-    			if (!current || dirty & /*paciente*/ 2 && input13_value_value !== (input13_value_value = /*paciente*/ ctx[1].ciudad) && input13.value !== input13_value_value) {
-    				prop_dev(input13, "value", input13_value_value);
-    			}
-
-    			if ((!current || dirty & /*solicitudDetalle*/ 1) && t52_value !== (t52_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "")) set_data_dev(t52, t52_value);
-
-    			if (!current || dirty & /*solicitudDetalle*/ 1 && input14_value_value !== (input14_value_value = /*solicitudDetalle*/ ctx[0].codigo) && input14.value !== input14_value_value) {
-    				prop_dev(input14, "value", input14_value_value);
-    			}
-
-    			if (!current || dirty & /*solicitudDetalle*/ 1 && input15_value_value !== (input15_value_value = /*solicitudDetalle*/ ctx[0].categoriaAfiliado) && input15.value !== input15_value_value) {
-    				prop_dev(input15, "value", input15_value_value);
-    			}
-
-    			if (!current || dirty & /*solicitudDetalle*/ 1 && input16_value_value !== (input16_value_value = /*solicitudDetalle*/ ctx[0].colectivo) && input16.value !== input16_value_value) {
-    				prop_dev(input16, "value", input16_value_value);
     			}
 
     			if (!current || dirty & /*solicitudDetalle*/ 1 && textarea_value_value !== (textarea_value_value = /*solicitudDetalle*/ ctx[0].comentario)) {
     				prop_dev(textarea, "value", textarea_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input3_value_value !== (input3_value_value = /*paciente*/ ctx[1].nombre) && input3.value !== input3_value_value) {
+    				prop_dev(input3, "value", input3_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input4_value_value !== (input4_value_value = /*paciente*/ ctx[1].apellidos) && input4.value !== input4_value_value) {
+    				prop_dev(input4, "value", input4_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input5_value_value !== (input5_value_value = /*paciente*/ ctx[1].apodo) && input5.value !== input5_value_value) {
+    				prop_dev(input5, "value", input5_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input6_value_value !== (input6_value_value = /*paciente*/ ctx[1].cedula) && input6.value !== input6_value_value) {
+    				prop_dev(input6, "value", input6_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input7_value_value !== (input7_value_value = /*paciente*/ ctx[1].aseguradora) && input7.value !== input7_value_value) {
+    				prop_dev(input7, "value", input7_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input8_value_value !== (input8_value_value = /*paciente*/ ctx[1].noAfiliado) && input8.value !== input8_value_value) {
+    				prop_dev(input8, "value", input8_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input9_value_value !== (input9_value_value = new Date(/*paciente*/ ctx[1].fechaNacimiento).toLocaleDateString("es-DO")) && input9.value !== input9_value_value) {
+    				prop_dev(input9, "value", input9_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input10_value_value !== (input10_value_value = /*paciente*/ ctx[1].sexo) && input10.value !== input10_value_value) {
+    				prop_dev(input10, "value", input10_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input11_value_value !== (input11_value_value = /*paciente*/ ctx[1].email) && input11.value !== input11_value_value) {
+    				prop_dev(input11, "value", input11_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input12_value_value !== (input12_value_value = /*paciente*/ ctx[1].provincia) && input12.value !== input12_value_value) {
+    				prop_dev(input12, "value", input12_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input13_value_value !== (input13_value_value = /*paciente*/ ctx[1].municipio) && input13.value !== input13_value_value) {
+    				prop_dev(input13, "value", input13_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input14_value_value !== (input14_value_value = /*paciente*/ ctx[1].ciudad) && input14.value !== input14_value_value) {
+    				prop_dev(input14, "value", input14_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input15_value_value !== (input15_value_value = /*paciente*/ ctx[1].barrio) && input15.value !== input15_value_value) {
+    				prop_dev(input15, "value", input15_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input16_value_value !== (input16_value_value = /*paciente*/ ctx[1].ciudad) && input16.value !== input16_value_value) {
+    				prop_dev(input16, "value", input16_value_value);
+    			}
+
+    			if (dirty & /*parentescos*/ 8) {
+    				each_value_1 = /*parentescos*/ ctx[3];
+    				validate_each_argument(each_value_1);
+    				let i;
+
+    				for (i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1$8(ctx, each_value_1, i);
+
+    					if (each_blocks_1[i]) {
+    						each_blocks_1[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks_1[i] = create_each_block_1$8(child_ctx);
+    						each_blocks_1[i].c();
+    						each_blocks_1[i].m(div32, t64);
+    					}
+    				}
+
+    				for (; i < each_blocks_1.length; i += 1) {
+    					each_blocks_1[i].d(1);
+    				}
+
+    				each_blocks_1.length = each_value_1.length;
     			}
 
     			if (!current || dirty & /*paciente*/ 2 && img0.src !== (img0_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenCedula)) {
@@ -32911,6 +33177,7 @@ var app = (function (moment) {
     			if (detaching) detach_dev(t0);
     			if (detaching) detach_dev(main);
     			destroy_component(header);
+    			destroy_each(each_blocks_1, detaching);
     			destroy_each(each_blocks, detaching);
     		}
     	};
@@ -32929,16 +33196,25 @@ var app = (function (moment) {
     function instance$n($$self, $$props, $$invalidate) {
     	let $axios;
     	validate_store(axios$2, "axios");
-    	component_subscribe($$self, axios$2, $$value => $$invalidate(4, $axios = $$value));
+    	component_subscribe($$self, axios$2, $$value => $$invalidate(5, $axios = $$value));
     	let { params = {} } = $$props;
     	let solicitudDetalle = [];
     	let paciente = [];
     	let imagenesRecetas = [];
+    	let parentescos = [];
 
     	function cargarDetalleSolicitud() {
     		$axios.get(`/solicitudes/${params.id}`).then(res => {
     			$$invalidate(0, solicitudDetalle = res.data);
     			$$invalidate(1, paciente = res.data.paciente);
+    			cargarParentesco();
+    		});
+    	}
+
+    	function cargarParentesco() {
+    		$axios.get(`/pacientes/${paciente.id}/parentescos`).then(res => {
+    			$$invalidate(3, parentescos = res.data);
+    			console.log(parentescos);
     		});
     	}
 
@@ -32948,24 +33224,22 @@ var app = (function (moment) {
     		});
     	}
 
-    	cargarDetalleSolicitud();
-    	cargarImagenSolicitud();
-
     	onMount(() => {
-    		
+    		cargarDetalleSolicitud();
+    		cargarImagenSolicitud();
     	});
 
     	const writable_props = ["params"];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<SolicitudDetalle> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$b.warn(`<SolicitudDetalle> was created with unknown prop '${key}'`);
     	});
 
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("SolicitudDetalle", $$slots, []);
 
     	$$self.$set = $$props => {
-    		if ("params" in $$props) $$invalidate(3, params = $$props.params);
+    		if ("params" in $$props) $$invalidate(4, params = $$props.params);
     	};
 
     	$$self.$capture_state = () => ({
@@ -32983,29 +33257,32 @@ var app = (function (moment) {
     		solicitudDetalle,
     		paciente,
     		imagenesRecetas,
+    		parentescos,
     		cargarDetalleSolicitud,
+    		cargarParentesco,
     		cargarImagenSolicitud,
     		$axios
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("params" in $$props) $$invalidate(3, params = $$props.params);
+    		if ("params" in $$props) $$invalidate(4, params = $$props.params);
     		if ("solicitudDetalle" in $$props) $$invalidate(0, solicitudDetalle = $$props.solicitudDetalle);
     		if ("paciente" in $$props) $$invalidate(1, paciente = $$props.paciente);
     		if ("imagenesRecetas" in $$props) $$invalidate(2, imagenesRecetas = $$props.imagenesRecetas);
+    		if ("parentescos" in $$props) $$invalidate(3, parentescos = $$props.parentescos);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [solicitudDetalle, paciente, imagenesRecetas, params];
+    	return [solicitudDetalle, paciente, imagenesRecetas, parentescos, params];
     }
 
     class SolicitudDetalle extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$n, create_fragment$n, safe_not_equal, { params: 3 });
+    		init(this, options, instance$n, create_fragment$n, safe_not_equal, { params: 4 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -33024,18 +33301,420 @@ var app = (function (moment) {
     	}
     }
 
-    /* src\Pages\Home\Error404.svelte generated by Svelte v3.23.0 */
+    /* src\Pages\Mantenimiento\Solicitudes.svelte generated by Svelte v3.23.0 */
 
-    const file$m = "src\\Pages\\Home\\Error404.svelte";
+    const { console: console_1$c } = globals;
+    const file$m = "src\\Pages\\Mantenimiento\\Solicitudes.svelte";
+
+    // (43:8) {#if cargando}
+    function create_if_block_1$6(ctx) {
+    	let div3;
+    	let div2;
+    	let div1;
+    	let div0;
+    	let p0;
+    	let strong;
+    	let t1;
+    	let p1;
+
+    	const block = {
+    		c: function create() {
+    			div3 = element("div");
+    			div2 = element("div");
+    			div1 = element("div");
+    			div0 = element("div");
+    			p0 = element("p");
+    			strong = element("strong");
+    			strong.textContent = "Activar solicitudes para pruebas PCR";
+    			t1 = space();
+    			p1 = element("p");
+    			p1.textContent = "El formulario en la web para pruebas de PCR Covid-19 se desactivara y las personas no podran hacer mas solicitudes";
+    			add_location(strong, file$m, 47, 67, 1552);
+    			attr_dev(p0, "class", "font-flow");
+    			set_style(p0, "margin", "0");
+    			add_location(p0, file$m, 47, 28, 1513);
+    			attr_dev(p1, "class", "font-flow");
+    			set_style(p1, "font-size", "12px");
+    			set_style(p1, "margin-bottom", "0");
+    			set_style(p1, "font-weight", "lighter");
+    			add_location(p1, file$m, 48, 28, 1639);
+    			attr_dev(div0, "class", "col-lg-6");
+    			add_location(div0, file$m, 46, 24, 1461);
+    			attr_dev(div1, "class", "row");
+    			add_location(div1, file$m, 45, 20, 1418);
+    			attr_dev(div2, "class", "card-body");
+    			add_location(div2, file$m, 44, 16, 1373);
+    			attr_dev(div3, "class", "card mb-3");
+    			add_location(div3, file$m, 43, 12, 1332);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div3, anchor);
+    			append_dev(div3, div2);
+    			append_dev(div2, div1);
+    			append_dev(div1, div0);
+    			append_dev(div0, p0);
+    			append_dev(p0, strong);
+    			append_dev(div0, t1);
+    			append_dev(div0, p1);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div3);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1$6.name,
+    		type: "if",
+    		source: "(43:8) {#if cargando}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (55:8) {#if !cargando}
+    function create_if_block$c(ctx) {
+    	let div4;
+    	let div3;
+    	let div2;
+    	let div0;
+    	let p0;
+    	let strong;
+    	let t1;
+    	let p1;
+    	let t3;
+    	let div1;
+    	let label;
+    	let input;
+    	let t4;
+    	let span;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			div4 = element("div");
+    			div3 = element("div");
+    			div2 = element("div");
+    			div0 = element("div");
+    			p0 = element("p");
+    			strong = element("strong");
+    			strong.textContent = "Activar solicitudes para pruebas PCR";
+    			t1 = space();
+    			p1 = element("p");
+    			p1.textContent = "El formulario en la web para pruebas de PCR Covid-19 se desactivara y las personas no podran hacer mas solicitudes";
+    			t3 = space();
+    			div1 = element("div");
+    			label = element("label");
+    			input = element("input");
+    			t4 = space();
+    			span = element("span");
+    			add_location(strong, file$m, 59, 45, 2178);
+    			set_style(p0, "margin", "0");
+    			add_location(p0, file$m, 59, 24, 2157);
+    			set_style(p1, "font-size", "12px");
+    			set_style(p1, "margin-bottom", "0");
+    			set_style(p1, "font-weight", "lighter");
+    			add_location(p1, file$m, 60, 24, 2261);
+    			attr_dev(div0, "class", "col-lg-6");
+    			add_location(div0, file$m, 58, 20, 2109);
+    			attr_dev(input, "type", "checkbox");
+    			attr_dev(input, "name", "option");
+    			input.__value = "1";
+    			input.value = input.__value;
+    			attr_dev(input, "class", "cstm-switch-input");
+    			add_location(input, file$m, 64, 28, 2613);
+    			attr_dev(span, "class", "cstm-switch-indicator bg-success ");
+    			add_location(span, file$m, 65, 28, 2782);
+    			attr_dev(label, "class", "cstm-switch");
+    			add_location(label, file$m, 63, 24, 2556);
+    			attr_dev(div1, "class", "col-lg-6 text-right");
+    			add_location(div1, file$m, 62, 20, 2497);
+    			attr_dev(div2, "class", "row");
+    			add_location(div2, file$m, 57, 16, 2070);
+    			attr_dev(div3, "class", "card-body");
+    			add_location(div3, file$m, 56, 12, 2029);
+    			attr_dev(div4, "class", "card");
+    			add_location(div4, file$m, 55, 8, 1997);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div4, anchor);
+    			append_dev(div4, div3);
+    			append_dev(div3, div2);
+    			append_dev(div2, div0);
+    			append_dev(div0, p0);
+    			append_dev(p0, strong);
+    			append_dev(div0, t1);
+    			append_dev(div0, p1);
+    			append_dev(div2, t3);
+    			append_dev(div2, div1);
+    			append_dev(div1, label);
+    			append_dev(label, input);
+    			input.checked = /*activarSolicitudPCR*/ ctx[0];
+    			append_dev(label, t4);
+    			append_dev(label, span);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(input, "change", /*input_change_handler*/ ctx[6]),
+    					listen_dev(input, "click", /*solicitudActivarPCR*/ ctx[2], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*activarSolicitudPCR*/ 1) {
+    				input.checked = /*activarSolicitudPCR*/ ctx[0];
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div4);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$c.name,
+    		type: "if",
+    		source: "(55:8) {#if !cargando}",
+    		ctx
+    	});
+
+    	return block;
+    }
 
     function create_fragment$o(ctx) {
+    	let t0;
+    	let main;
+    	let t1;
+    	let section;
+    	let div;
+    	let h1;
+    	let t3;
+    	let t4;
+    	let current;
+    	const aside = new Aside({ $$inline: true });
+    	const header = new Header({ $$inline: true });
+    	let if_block0 = /*cargando*/ ctx[1] && create_if_block_1$6(ctx);
+    	let if_block1 = !/*cargando*/ ctx[1] && create_if_block$c(ctx);
+
+    	const block = {
+    		c: function create() {
+    			create_component(aside.$$.fragment);
+    			t0 = space();
+    			main = element("main");
+    			create_component(header.$$.fragment);
+    			t1 = space();
+    			section = element("section");
+    			div = element("div");
+    			h1 = element("h1");
+    			h1.textContent = "Solicitudes";
+    			t3 = space();
+    			if (if_block0) if_block0.c();
+    			t4 = space();
+    			if (if_block1) if_block1.c();
+    			add_location(h1, file$m, 41, 8, 1274);
+    			attr_dev(div, "class", "container mt-3");
+    			add_location(div, file$m, 40, 6, 1236);
+    			attr_dev(section, "class", "admin-content");
+    			add_location(section, file$m, 39, 4, 1197);
+    			attr_dev(main, "class", "admin-main");
+    			add_location(main, file$m, 37, 2, 1150);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(aside, target, anchor);
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, main, anchor);
+    			mount_component(header, main, null);
+    			append_dev(main, t1);
+    			append_dev(main, section);
+    			append_dev(section, div);
+    			append_dev(div, h1);
+    			append_dev(div, t3);
+    			if (if_block0) if_block0.m(div, null);
+    			append_dev(div, t4);
+    			if (if_block1) if_block1.m(div, null);
+    			current = true;
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (/*cargando*/ ctx[1]) {
+    				if (if_block0) ; else {
+    					if_block0 = create_if_block_1$6(ctx);
+    					if_block0.c();
+    					if_block0.m(div, t4);
+    				}
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
+    			}
+
+    			if (!/*cargando*/ ctx[1]) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+    				} else {
+    					if_block1 = create_if_block$c(ctx);
+    					if_block1.c();
+    					if_block1.m(div, null);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(aside.$$.fragment, local);
+    			transition_in(header.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(aside.$$.fragment, local);
+    			transition_out(header.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(aside, detaching);
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(main);
+    			destroy_component(header);
+    			if (if_block0) if_block0.d();
+    			if (if_block1) if_block1.d();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$o.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$o($$self, $$props, $$invalidate) {
+    	let $axios;
+    	validate_store(axios$2, "axios");
+    	component_subscribe($$self, axios$2, $$value => $$invalidate(4, $axios = $$value));
+    	let activarSolicitudPCR = false;
+    	let solicitudActiva = [];
+    	let cargando = false;
+
+    	function solicitudActivarPCR() {
+    		$axios.put(`/ajustes/${solicitudActiva.id}`, {
+    			solicitudPruebaInactiva: activarSolicitudPCR
+    		}).then(res => {
+    			console.log(res);
+    		});
+    	}
+
+    	function disponibilidad() {
+    		$$invalidate(1, cargando = true);
+
+    		$axios.get(`/ajustes`).then(res => {
+    			solicitudActiva = res.data;
+    			console.log(solicitudActiva);
+
+    			if (res.data.solicitudPruebaInactiva) {
+    				$$invalidate(0, activarSolicitudPCR = false);
+    			} else {
+    				$$invalidate(0, activarSolicitudPCR = true);
+    			}
+
+    			$$invalidate(1, cargando = false);
+    		});
+    	}
+
+    	onMount(() => {
+    		disponibilidad();
+    	});
+
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$c.warn(`<Solicitudes> was created with unknown prop '${key}'`);
+    	});
+
+    	let { $$slots = {}, $$scope } = $$props;
+    	validate_slots("Solicitudes", $$slots, []);
+
+    	function input_change_handler() {
+    		activarSolicitudPCR = this.checked;
+    		$$invalidate(0, activarSolicitudPCR);
+    	}
+
+    	$$self.$capture_state = () => ({
+    		Aside,
+    		Header,
+    		activePage,
+    		session,
+    		axios: axios$2,
+    		onDestroy,
+    		onMount,
+    		push,
+    		activarSolicitudPCR,
+    		solicitudActiva,
+    		cargando,
+    		solicitudActivarPCR,
+    		disponibilidad,
+    		$axios
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ("activarSolicitudPCR" in $$props) $$invalidate(0, activarSolicitudPCR = $$props.activarSolicitudPCR);
+    		if ("solicitudActiva" in $$props) solicitudActiva = $$props.solicitudActiva;
+    		if ("cargando" in $$props) $$invalidate(1, cargando = $$props.cargando);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [
+    		activarSolicitudPCR,
+    		cargando,
+    		solicitudActivarPCR,
+    		solicitudActiva,
+    		$axios,
+    		disponibilidad,
+    		input_change_handler
+    	];
+    }
+
+    class Solicitudes extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$o, create_fragment$o, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Solicitudes",
+    			options,
+    			id: create_fragment$o.name
+    		});
+    	}
+    }
+
+    /* src\Pages\Home\Error404.svelte generated by Svelte v3.23.0 */
+
+    const file$n = "src\\Pages\\Home\\Error404.svelte";
+
+    function create_fragment$p(ctx) {
     	let h1;
 
     	const block = {
     		c: function create() {
     			h1 = element("h1");
     			h1.textContent = "Error 404";
-    			add_location(h1, file$m, 0, 0, 0);
+    			add_location(h1, file$n, 0, 0, 0);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -33053,7 +33732,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$o.name,
+    		id: create_fragment$p.name,
     		type: "component",
     		source: "",
     		ctx
@@ -33062,7 +33741,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    function instance$o($$self, $$props) {
+    function instance$p($$self, $$props) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -33077,22 +33756,22 @@ var app = (function (moment) {
     class Error404 extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$o, create_fragment$o, safe_not_equal, {});
+    		init(this, options, instance$p, create_fragment$p, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Error404",
     			options,
-    			id: create_fragment$o.name
+    			id: create_fragment$p.name
     		});
     	}
     }
 
     /* src\Pages\Home\Unauthorized.svelte generated by Svelte v3.23.0 */
 
-    const file$n = "src\\Pages\\Home\\Unauthorized.svelte";
+    const file$o = "src\\Pages\\Home\\Unauthorized.svelte";
 
-    function create_fragment$p(ctx) {
+    function create_fragment$q(ctx) {
     	let h2;
     	let t1;
     	let a;
@@ -33105,10 +33784,10 @@ var app = (function (moment) {
     			a = element("a");
     			a.textContent = "Ir a inicio";
     			attr_dev(h2, "class", "ml-2 mt-2");
-    			add_location(h2, file$n, 0, 0, 0);
+    			add_location(h2, file$o, 0, 0, 0);
     			attr_dev(a, "class", "ml-2 mt-2");
     			attr_dev(a, "href", "#/");
-    			add_location(a, file$n, 2, 0, 46);
+    			add_location(a, file$o, 2, 0, 46);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -33130,7 +33809,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$p.name,
+    		id: create_fragment$q.name,
     		type: "component",
     		source: "",
     		ctx
@@ -33139,7 +33818,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    function instance$p($$self, $$props) {
+    function instance$q($$self, $$props) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -33154,13 +33833,13 @@ var app = (function (moment) {
     class Unauthorized extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$p, create_fragment$p, safe_not_equal, {});
+    		init(this, options, instance$q, create_fragment$q, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Unauthorized",
     			options,
-    			id: create_fragment$p.name
+    			id: create_fragment$q.name
     		});
     	}
     }
@@ -33345,6 +34024,28 @@ var app = (function (moment) {
                 }
             ]
         }),
+        "/Mantenimiento/Solicitudes": wrap({
+            asyncComponent: () => Solicitudes,
+            conditions: [
+                (detail) => {
+                    if ($session.isValid) {
+                        return true;
+                    } else {
+                        detail.userData = "s";
+                        return false;
+                    }
+                },
+                (detail) => {
+                    user.asign(localStorage.getItem('access_token'));
+                    if (user.isAny(['admin'])) {
+                        return true
+                    } else {
+                        detail.userData = "r";
+                        return false
+                    }
+                }
+            ]
+        }),
         "/Solicitud/Index": wrap({
             asyncComponent: () => SolicitudIndex,
             // conditions: [
@@ -33400,9 +34101,9 @@ var app = (function (moment) {
 
     /* src\App.svelte generated by Svelte v3.23.0 */
 
-    const { console: console_1$b } = globals;
+    const { console: console_1$d } = globals;
 
-    function create_fragment$q(ctx) {
+    function create_fragment$r(ctx) {
     	let current;
     	const router = new Router({ props: { routes }, $$inline: true });
     	router.$on("routeLoaded", event);
@@ -33436,7 +34137,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$q.name,
+    		id: create_fragment$r.name,
     		type: "component",
     		source: "",
     		ctx
@@ -33449,7 +34150,7 @@ var app = (function (moment) {
     	jQuery("body").removeClass("sidebar-open");
     }
 
-    function instance$q($$self, $$props, $$invalidate) {
+    function instance$r($$self, $$props, $$invalidate) {
     	let $session;
     	let $connection;
     	validate_store(session, "session");
@@ -33466,7 +34167,7 @@ var app = (function (moment) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$b.warn(`<App> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$d.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
     	let { $$slots = {}, $$scope } = $$props;
@@ -33501,13 +34202,13 @@ var app = (function (moment) {
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$q, create_fragment$q, safe_not_equal, {});
+    		init(this, options, instance$r, create_fragment$r, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "App",
     			options,
-    			id: create_fragment$q.name
+    			id: create_fragment$r.name
     		});
     	}
     }

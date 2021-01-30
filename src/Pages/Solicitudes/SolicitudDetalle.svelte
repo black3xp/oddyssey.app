@@ -10,12 +10,22 @@
     let solicitudDetalle = []
     let paciente = []
     let imagenesRecetas = []
+    let parentescos = []
 
     function cargarDetalleSolicitud(){
         $axios.get(`/solicitudes/${params.id}`)
             .then(res => {
                 solicitudDetalle = res.data
                 paciente = res.data.paciente
+                cargarParentesco()
+            })
+    }
+
+    function cargarParentesco(){
+        $axios.get(`/pacientes/${paciente.id}/parentescos`)
+            .then(res => {
+                parentescos = res.data
+                console.log(parentescos)
             })
     }
 
@@ -26,9 +36,9 @@
             })
     }
 
-    cargarDetalleSolicitud()
-    cargarImagenSolicitud()
     onMount(()=>{
+        cargarDetalleSolicitud()
+        cargarImagenSolicitud()
     })
   </script>
   
@@ -39,6 +49,35 @@
     <section class="admin-content">
         <div class="container-fluid mt-3">
             <h4>Detalle Solicitud <span class="badge badge-primary">{solicitudDetalle.codigo}</span></h4>
+            <div class="card m-b-30">
+                <div class="card-header">
+                    <div class="card-controls">
+                        <span class="badge badge-primary">Fecha: {new Date(solicitudDetalle.createdAt).toLocaleString()}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="form-group col-lg-4 col-md-6">
+                            <label for="codigo">Codigo Solicitud</label>
+                            <input type="text" class="form-control" value={solicitudDetalle.codigo} readonly id="codigo">
+                        </div>
+                        <div class="form-group col-lg-4 col-md-6">
+                            <label for="catAfiliado">Categoria de afiliado</label>
+                            <input type="text" class="form-control" value={solicitudDetalle.categoriaAfiliado} readonly id="catAfiliado">
+                        </div>
+                        <div class="form-group col-lg-4 col-md-6">
+                            <label for="colectivo">Colectivo</label>
+                            <input type="text" class="form-control" value={solicitudDetalle.colectivo} readonly id="colectivo">
+                        </div>
+                        <div class="form-group col-lg-12 col-md-12">
+                            <div class="form-group">
+                                <label for="exampleFormControlTextarea1">Sintomas</label>
+                                <textarea class="form-control" style="width:100%" disabled rows="3">{solicitudDetalle.comentario}</textarea>
+                              </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="card m-b-30">
                 <div class="card-header">
                     <h5 class="card-title m-b-0">Datos personales </h5>
@@ -105,36 +144,32 @@
                     </div>
                 </div>
             </div>
-            <div class="card m-b-30">
-                <div class="card-header">
-                    <h5 class="card-title m-b-0">Datos solicitud </h5>
-                    <div class="card-controls">
-                        <span class="badge badge-primary">Fecha: {new Date(solicitudDetalle.createdAt).toLocaleString()}</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="form-row">
-                        <div class="form-group col-lg-4 col-md-6">
-                            <label for="codigo">Codigo Solicitud</label>
-                            <input type="text" class="form-control" value={solicitudDetalle.codigo} readonly id="codigo">
-                        </div>
-                        <div class="form-group col-lg-4 col-md-6">
-                            <label for="catAfiliado">Categoria de afiliado</label>
-                            <input type="text" class="form-control" value={solicitudDetalle.categoriaAfiliado} readonly id="catAfiliado">
-                        </div>
-                        <div class="form-group col-lg-4 col-md-6">
-                            <label for="colectivo">Colectivo</label>
-                            <input type="text" class="form-control" value={solicitudDetalle.colectivo} readonly id="colectivo">
-                        </div>
-                        <div class="form-group col-lg-12 col-md-12">
-                            <div class="form-group">
-                                <label for="exampleFormControlTextarea1">Sintomas</label>
-                                <textarea class="form-control" style="width:100%" disabled rows="3">{solicitudDetalle.comentario}</textarea>
-                              </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {#each parentescos as parentesco}
+            <h5><span class="badge badge-primary">Datos de {parentesco.tipoParentesco}</span></h5>
+                 <div class="card m-b-30">
+                     <div class="card-body">
+                         <div class="form-row">
+                             <div class="form-group col-lg-4 col-md-6">
+                                 <label for="codigo">Nombre</label>
+                                 <input type="text" class="form-control" value={parentesco.nombre} readonly>
+                             </div>
+                             <div class="form-group col-lg-4 col-md-6">
+                                 <label for="catAfiliado">Apellidos</label>
+                                 <input type="text" class="form-control" value={parentesco.apellidos} readonly>
+                             </div>
+                             <div class="form-group col-lg-4 col-md-6">
+                                 <label for="colectivo">Cedula</label>
+                                 <input type="text" class="form-control" value={parentesco.cedula} readonly>
+                             </div>
+                             <div class="form-group col-lg-4 col-md-6">
+                                <label for="colectivo">Telefono</label>
+                                <input type="text" class="form-control" value={parentesco.telefono} readonly>
+                            </div>
+                         </div>
+                     </div>
+                 </div>
+            {/each}
+            
             <div class="card m-b-30 mb-5">
                 <div class="card-header">
                     <h5 class="card-title m-b-0">Archivos </h5>
