@@ -111,8 +111,8 @@
       <!--list item ends-->
 
       <!--list item begins-->
-      <li class="menu-item" use:active={'/Citas/Index'}>
-        <a href="/Citas/Index" use:link class="menu-link">
+      <li class="menu-item" use:active={'/Cita/CrearCita'}>
+        <a href="/Cita/CrearCita" use:link class="menu-link">
           <span class="menu-label">
             <span class="menu-name">Citas</span>
           </span>

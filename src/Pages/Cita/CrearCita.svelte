@@ -1,7 +1,7 @@
 <script>
     import Aside from "../../Layout/Aside.svelte";
     import Header from "../../Layout/Header.svelte";
-    import { push } from "svelte-spa-router";
+    import { push, link } from "svelte-spa-router";
     import { activePage, dataCita, axios, session, errorConexion, toast } from "../../store";
     import { onMount } from "svelte";
     import moment from 'moment';
@@ -181,6 +181,9 @@
     <section class="admin-content">
       <div class="container mt-3">
         <div class="row">
+          <div class="col-lg-12 mb-3 text-right">
+            <a href="/Citas/Index" class="btn btn-outline-primary" use:link>Lista de citas</a>
+          </div>
           <div class="col-lg-12 mb-5">
             <div class="card">
               <div class="card-header">
