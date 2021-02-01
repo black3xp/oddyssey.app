@@ -4,6 +4,9 @@ import Login from './Pages/Home/Login.svelte'
 import AsistenteIndex from './Pages/Asistente/Index.svelte'
 import AsistenteCitas from './Pages/Asistente/CitasProgramadas.svelte'
 import CitaCrear from './Pages/Cita/Crear.svelte'
+import CrearCitaServicios from './Pages/Cita/CrearCita.svelte'
+import CitasIndex from './Pages/Cita/Index.svelte'
+import DetalleCita from './Pages/Cita/DetalleCita.svelte'
 import Gestion from './Pages/Cita/Gestion.svelte'
 import UsuarioIndex from './Pages/Usuario/Index.svelte'
 import MedicoPerfil from './Pages/Medico/Perfil.svelte'
@@ -153,8 +156,74 @@ const routes = {
             }
         ]
     }),
+    "/Cita/CrearCita": wrap({
+        asyncComponent: () => CrearCitaServicios,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'operator', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Cita/DetalleCita/:id": wrap({
+        asyncComponent: () => DetalleCita,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'operator', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
     "/Medico/Perfil/:id": wrap({
         asyncComponent: () => MedicoPerfil,
+        conditions: [
+            (detail) => {
+                if ($session.isValid) {
+                    return true;
+                } else {
+                    detail.userData = "s"
+                    return false;
+                }
+            },
+            (detail) => {
+                user.asign(localStorage.getItem('access_token'))
+                if (user.isAny(['assistant', 'operator', 'admin'])) {
+                    return true
+                } else {
+                    detail.userData = "r"
+                    return false
+                }
+            }
+        ]
+    }),
+    "/Citas/Index": wrap({
+        asyncComponent: () => CitasIndex,
         conditions: [
             (detail) => {
                 if ($session.isValid) {
