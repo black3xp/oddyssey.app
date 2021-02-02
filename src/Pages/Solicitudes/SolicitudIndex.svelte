@@ -11,8 +11,8 @@
     let sltEstado = ''
     let inpBusqueda = ''
     let inpNumeroSolicitud = ''
-    let inpFechaInicio = ''
-    let inpFechaFin = ''
+    let inpFechaInicio = new Date().toISOString().split('T')[0]
+    let inpFechaFin = new Date().toISOString().split('T')[0]
     let aseguradoras = []
     let cargando = false
     let estados = []

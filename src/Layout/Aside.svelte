@@ -46,7 +46,7 @@
       </li>
       <!--list item ends-->
       <!--list item begins-->
-      <li class="menu-item" use:active={'/Asistente/Index'}
+      <!-- <li class="menu-item" use:active={'/Asistente/Index'}
         class:d-none={!user.isAny(['assistant', 'admin'])}>
         <a href="/Asistente/Index" use:link class="menu-link">
           <span class="menu-label">
@@ -56,8 +56,8 @@
             <i class="icon-placeholder mdi mdi-calendar-check" />
           </span>
         </a>
-      </li>
-      <li class="menu-item" use:active={'/Asistente/CitasProgramadas'}
+      </li> -->
+      <!-- <li class="menu-item" use:active={'/Asistente/CitasProgramadas'}
         class:d-none={!user.isAny(['assistant', 'operator', 'admin'])}>
         <a href="/Asistente/CitasProgramadas" use:link class="menu-link">
           <span class="menu-label">
@@ -67,10 +67,10 @@
             <i class="icon-placeholder mdi mdi-calendar-check" />
           </span>
         </a>
-      </li>
+      </li> -->
       <!--list item ends-->
       <!--list item begins-->
-      <li class="menu-item" use:active={'/Cita/Gestionar'}
+      <!-- <li class="menu-item" use:active={'/Cita/Gestionar'}
         class:d-none={!user.isAny(['assistant', 'operator', 'admin'])}>
         <a href="/Cita/Gestionar" use:link class="menu-link">
           <span class="menu-label">
@@ -80,11 +80,11 @@
             <i class="icon-placeholder mdi mdi-calendar-multiselect" />
           </span>
         </a>
-      </li>
+      </li> -->
       <!--list item ends-->
 
       <!--list item begins-->
-      <li class="menu-item" use:active={'/Medico/EspacioTrabajo'}
+      <!-- <li class="menu-item" use:active={'/Medico/EspacioTrabajo'}
         class:d-none={!user.isAny(['doctor', 'admin'])}>
         <a href="/Medico/EspacioTrabajo" use:link class="menu-link">
           <span class="menu-label">
@@ -94,7 +94,7 @@
             <i class="icon-placeholder mdi mdi-doctor" />
           </span>
         </a>
-      </li>
+      </li> -->
       <!--list item ends-->
 
       <!--list item begins-->
@@ -111,7 +111,7 @@
       <!--list item ends-->
 
       <!--list item begins-->
-      <li class="menu-item" use:active={'/Cita/CrearCita'}>
+      <!-- <li class="menu-item" use:active={'/Cita/CrearCita'}>
         <a href="/Cita/CrearCita" use:link class="menu-link">
           <span class="menu-label">
             <span class="menu-name">Citas</span>
@@ -120,7 +120,7 @@
             <i class="icon-placeholder mdi mdi-calendar" />
           </span>
         </a>
-      </li>
+      </li> -->
       <!--list item ends-->
 
       <!--list item begins-->

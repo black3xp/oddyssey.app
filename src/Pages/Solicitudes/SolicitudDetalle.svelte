@@ -16,6 +16,7 @@
         $axios.get(`/solicitudes/${params.id}`)
             .then(res => {
                 solicitudDetalle = res.data
+                console.log(solicitudDetalle)
                 paciente = res.data.paciente
                 cargarParentesco()
             })
@@ -57,21 +58,25 @@
                 </div>
                 <div class="card-body">
                     <div class="form-row">
-                        <div class="form-group col-lg-3 col-md-6">
+                        <div class="form-group col-lg-4 col-md-6">
                             <label for="codigo">Codigo Solicitud</label>
                             <input type="text" class="form-control" value={solicitudDetalle.codigo} readonly id="codigo">
                         </div>
-                        <div class="form-group col-lg-3 col-md-6">
+                        <div class="form-group col-lg-4 col-md-6">
                             <label for="catAfiliado">Categoria de afiliado</label>
                             <input type="text" class="form-control" value={solicitudDetalle.categoriaAfiliado} readonly id="catAfiliado">
                         </div>
-                        <div class="form-group col-lg-3 col-md-6">
+                        <div class="form-group col-lg-4 col-md-6">
                             <label for="colectivo">Colectivo</label>
                             <input type="text" class="form-control" value={solicitudDetalle.colectivo} readonly id="colectivo">
                         </div>
-                        <div class="form-group col-lg-3 col-md-6">
+                        <div class="form-group col-lg-4 col-md-6">
                             <label for="colectivo">Motivo</label>
-                            <input type="text" class="form-control" value={solicitudDetalle.motivo} readonly id="motivo">
+                            <input type="text" class="form-control" value={solicitudDetalle.motivoSolicitud} readonly id="motivo">
+                        </div>
+                        <div class="form-group col-lg-4 col-md-6">
+                            <label for="modalidad">Modalidad</label>
+                            <input type="text" class="form-control" value={solicitudDetalle.modalidad} readonly id="modalidad">
                         </div>
                         <div class="form-group col-lg-12 col-md-12">
                             <div class="form-group">
