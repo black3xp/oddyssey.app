@@ -8,7 +8,7 @@
 
     let solicitudes = []
     let sltAseguradora = ''
-    let sltEstado = ''
+    let sltEstado = 'N'
     let inpBusqueda = ''
     let inpNumeroSolicitud = ''
     let inpFechaInicio = new Date().toISOString().split('T')[0]
@@ -92,8 +92,8 @@
                         </div>
                         <div class="mb-3 col-lg-2 col-md-4">
                             <label for="">Por estados</label>
-                            <select class="form-control form-control-sm" bind:value={sltEstado} on:input={cargarSolicitudes}>
-                                <option value="" selected> - estados - </option>
+                            <select class="form-control form-control-sm" bind:value={sltEstado} on:change={cargarSolicitudes}>
+                                <option value=""> - estados - </option>
                                 {#each estados as estado}
                                 <option value={estado.id}>{estado.descripcion}</option>
                                      <!-- content here -->
@@ -155,8 +155,8 @@
                                          <td>{solicitud.cedula || 'N/A'}</td>
                                          <td>{solicitud.numeroAsegurado || 'N/A'}</td>
                                          <td>{new Date(solicitud.createdAt).toLocaleString('es-DO')}</td>
-                                         <td><span class="badge" class:badge-primary={solicitud.estadoId == 'N'}>{solicitud.estadoId}</span></td>
-                                         <td><a href="/Solicitud/Detalle/{solicitud.id}" use:link class="btn btn-success btn-sm">VER <i class="mdi mdi-send"></i></a></td>
+                                         <td><span class="badge" class:badge-primary={solicitud.estadoId == 'N'} class:badge-success={solicitud.estadoId == 'F'}>{solicitud.estadoId}</span></td>
+                                         <td><a href="/Solicitud/Detalle/{solicitud.id}" use:link class="btn btn-outline-success btn-sm">VER <i class="mdi mdi-send"></i></a></td>
                                      </tr>                       
                                 {/each}
                             </tbody>

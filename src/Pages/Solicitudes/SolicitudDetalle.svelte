@@ -1,32 +1,36 @@
 <script>
     import Aside from "../../Layout/Aside.svelte";
     import Header from "../../Layout/Header.svelte";
-    import { activePage, session, axios } from "../../store.js";
+    import { activePage, session, axios, toast } from "../../store.js";
     import { onDestroy, onMount } from "svelte";
-    import { push, link } from "svelte-spa-router";
-    import { Lightbox } from 'svelte-lightbox';
     export let params = {}
     
     let solicitudDetalle = []
     let paciente = []
     let imagenesRecetas = []
     let parentescos = []
+    let estados = []
 
     function cargarDetalleSolicitud(){
         $axios.get(`/solicitudes/${params.id}`)
             .then(res => {
                 solicitudDetalle = res.data
-                console.log(solicitudDetalle)
                 paciente = res.data.paciente
                 cargarParentesco()
             })
+    }
+
+    function cargarEstados(){
+        $axios.get(`/estadossolicitud`)
+            .then(res =>{
+            estados = res.data
+        })
     }
 
     function cargarParentesco(){
         $axios.get(`/pacientes/${paciente.id}/parentescos`)
             .then(res => {
                 parentescos = res.data
-                console.log(parentescos)
             })
     }
 
@@ -37,9 +41,41 @@
             })
     }
 
+    function cambiarEstadoSolicitud(estado){
+        const datosSolicitud = {
+            Id :solicitudDetalle.id,
+            PacienteId :solicitudDetalle.pacienteId,
+            AseguradoraId :solicitudDetalle. aseguradoraId,
+            CategoriaAfiliado :solicitudDetalle.categoriaAfiliado,
+            NumeroAsegurado :solicitudDetalle.numeroAsegurado,
+            Colectivo :solicitudDetalle.colectivo,
+            EstadoId :estado,
+            Flag :solicitudDetalle.flag,
+            Codigo :solicitudDetalle.codigo,
+            Comentario :solicitudDetalle.comentario,
+            CreatedAt :solicitudDetalle.createdAt,
+            Autorizado :solicitudDetalle.autorizado,
+            NumeroAutorizacion :solicitudDetalle.numeroAutorizacion,
+            Modalidad :solicitudDetalle.modalidad,
+            MotivoSolicitud :solicitudDetalle.motivoSolicitud,
+        }
+        $axios.put(`/solicitudes/${solicitudDetalle.id}`, datosSolicitud)
+            .then(res => {
+                if(res.status == 200){
+                    $toast(5000).fire({
+                        icon: 'success',
+                        title: 'Se actualizado la solicitud'
+                    })
+                }else{
+                    alert('Ocurrio un error en el servidor')
+                }
+            })
+    }
+
     onMount(()=>{
         cargarDetalleSolicitud()
         cargarImagenSolicitud()
+        cargarEstados()
     })
   </script>
   
@@ -50,6 +86,16 @@
     <section class="admin-content">
         <div class="container-fluid mt-3">
             <h4>Detalle Solicitud <span class="badge badge-primary">{solicitudDetalle.codigo}</span></h4>
+            <div class="row">
+                <div class="col-lg-12 mb-4 mt-3">
+                    {#each estados as estado}
+                         <div class="custom-control custom-radio custom-control-inline">
+                             <input type="radio" id={estado.id} value={estado.id} bind:group={solicitudDetalle.estadoId} on:click={() => cambiarEstadoSolicitud(estado.id)} name="Estado" class="custom-control-input">
+                             <label class="custom-control-label" for={estado.id}>{estado.descripcion}</label>
+                         </div>
+                    {/each}
+                </div>
+            </div>
             <div class="card m-b-30">
                 <div class="card-header">
                     <div class="card-controls">

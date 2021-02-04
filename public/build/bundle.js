@@ -6,7 +6,6 @@ var app = (function (moment) {
     moment = moment && Object.prototype.hasOwnProperty.call(moment, 'default') ? moment['default'] : moment;
 
     function noop() { }
-    const identity = x => x;
     function assign(tar, src) {
         // @ts-ignore
         for (const k in src)
@@ -48,86 +47,12 @@ var app = (function (moment) {
     function component_subscribe(component, store, callback) {
         component.$$.on_destroy.push(subscribe(store, callback));
     }
-    function create_slot(definition, ctx, $$scope, fn) {
-        if (definition) {
-            const slot_ctx = get_slot_context(definition, ctx, $$scope, fn);
-            return definition[0](slot_ctx);
-        }
-    }
-    function get_slot_context(definition, ctx, $$scope, fn) {
-        return definition[1] && fn
-            ? assign($$scope.ctx.slice(), definition[1](fn(ctx)))
-            : $$scope.ctx;
-    }
-    function get_slot_changes(definition, $$scope, dirty, fn) {
-        if (definition[2] && fn) {
-            const lets = definition[2](fn(dirty));
-            if ($$scope.dirty === undefined) {
-                return lets;
-            }
-            if (typeof lets === 'object') {
-                const merged = [];
-                const len = Math.max($$scope.dirty.length, lets.length);
-                for (let i = 0; i < len; i += 1) {
-                    merged[i] = $$scope.dirty[i] | lets[i];
-                }
-                return merged;
-            }
-            return $$scope.dirty | lets;
-        }
-        return $$scope.dirty;
-    }
-    function update_slot(slot, slot_definition, ctx, $$scope, dirty, get_slot_changes_fn, get_slot_context_fn) {
-        const slot_changes = get_slot_changes(slot_definition, $$scope, dirty, get_slot_changes_fn);
-        if (slot_changes) {
-            const slot_context = get_slot_context(slot_definition, ctx, $$scope, get_slot_context_fn);
-            slot.p(slot_context, slot_changes);
-        }
-    }
-    function null_to_empty(value) {
-        return value == null ? '' : value;
-    }
     function set_store_value(store, ret, value = ret) {
         store.set(value);
         return ret;
     }
     function action_destroyer(action_result) {
         return action_result && is_function(action_result.destroy) ? action_result.destroy : noop;
-    }
-
-    const is_client = typeof window !== 'undefined';
-    let now = is_client
-        ? () => window.performance.now()
-        : () => Date.now();
-    let raf = is_client ? cb => requestAnimationFrame(cb) : noop;
-
-    const tasks = new Set();
-    function run_tasks(now) {
-        tasks.forEach(task => {
-            if (!task.c(now)) {
-                tasks.delete(task);
-                task.f();
-            }
-        });
-        if (tasks.size !== 0)
-            raf(run_tasks);
-    }
-    /**
-     * Creates a new task that runs on each raf frame
-     * until it returns a falsy value or is aborted
-     */
-    function loop(callback) {
-        let task;
-        if (tasks.size === 0)
-            raf(run_tasks);
-        return {
-            promise: new Promise(fulfill => {
-                tasks.add(task = { c: callback, f: fulfill });
-            }),
-            abort() {
-                tasks.delete(task);
-            }
-        };
     }
 
     function append(target, node) {
@@ -208,67 +133,6 @@ var app = (function (moment) {
         return e;
     }
 
-    const active_docs = new Set();
-    let active = 0;
-    // https://github.com/darkskyapp/string-hash/blob/master/index.js
-    function hash(str) {
-        let hash = 5381;
-        let i = str.length;
-        while (i--)
-            hash = ((hash << 5) - hash) ^ str.charCodeAt(i);
-        return hash >>> 0;
-    }
-    function create_rule(node, a, b, duration, delay, ease, fn, uid = 0) {
-        const step = 16.666 / duration;
-        let keyframes = '{\n';
-        for (let p = 0; p <= 1; p += step) {
-            const t = a + (b - a) * ease(p);
-            keyframes += p * 100 + `%{${fn(t, 1 - t)}}\n`;
-        }
-        const rule = keyframes + `100% {${fn(b, 1 - b)}}\n}`;
-        const name = `__svelte_${hash(rule)}_${uid}`;
-        const doc = node.ownerDocument;
-        active_docs.add(doc);
-        const stylesheet = doc.__svelte_stylesheet || (doc.__svelte_stylesheet = doc.head.appendChild(element('style')).sheet);
-        const current_rules = doc.__svelte_rules || (doc.__svelte_rules = {});
-        if (!current_rules[name]) {
-            current_rules[name] = true;
-            stylesheet.insertRule(`@keyframes ${name} ${rule}`, stylesheet.cssRules.length);
-        }
-        const animation = node.style.animation || '';
-        node.style.animation = `${animation ? `${animation}, ` : ``}${name} ${duration}ms linear ${delay}ms 1 both`;
-        active += 1;
-        return name;
-    }
-    function delete_rule(node, name) {
-        const previous = (node.style.animation || '').split(', ');
-        const next = previous.filter(name
-            ? anim => anim.indexOf(name) < 0 // remove specific animation
-            : anim => anim.indexOf('__svelte') === -1 // remove all Svelte animations
-        );
-        const deleted = previous.length - next.length;
-        if (deleted) {
-            node.style.animation = next.join(', ');
-            active -= deleted;
-            if (!active)
-                clear_rules();
-        }
-    }
-    function clear_rules() {
-        raf(() => {
-            if (active)
-                return;
-            active_docs.forEach(doc => {
-                const stylesheet = doc.__svelte_stylesheet;
-                let i = stylesheet.cssRules.length;
-                while (i--)
-                    stylesheet.deleteRule(i);
-                doc.__svelte_rules = {};
-            });
-            active_docs.clear();
-        });
-    }
-
     let current_component;
     function set_current_component(component) {
         current_component = component;
@@ -330,9 +194,6 @@ var app = (function (moment) {
     function add_render_callback(fn) {
         render_callbacks.push(fn);
     }
-    function add_flush_callback(fn) {
-        flush_callbacks.push(fn);
-    }
     let flushing = false;
     const seen_callbacks = new Set();
     function flush() {
@@ -380,20 +241,6 @@ var app = (function (moment) {
             $$.after_update.forEach(add_render_callback);
         }
     }
-
-    let promise;
-    function wait() {
-        if (!promise) {
-            promise = Promise.resolve();
-            promise.then(() => {
-                promise = null;
-            });
-        }
-        return promise;
-    }
-    function dispatch(node, direction, kind) {
-        node.dispatchEvent(custom_event(`${direction ? 'intro' : 'outro'}${kind}`));
-    }
     const outroing = new Set();
     let outros;
     function group_outros() {
@@ -430,112 +277,6 @@ var app = (function (moment) {
             });
             block.o(local);
         }
-    }
-    const null_transition = { duration: 0 };
-    function create_bidirectional_transition(node, fn, params, intro) {
-        let config = fn(node, params);
-        let t = intro ? 0 : 1;
-        let running_program = null;
-        let pending_program = null;
-        let animation_name = null;
-        function clear_animation() {
-            if (animation_name)
-                delete_rule(node, animation_name);
-        }
-        function init(program, duration) {
-            const d = program.b - t;
-            duration *= Math.abs(d);
-            return {
-                a: t,
-                b: program.b,
-                d,
-                duration,
-                start: program.start,
-                end: program.start + duration,
-                group: program.group
-            };
-        }
-        function go(b) {
-            const { delay = 0, duration = 300, easing = identity, tick = noop, css } = config || null_transition;
-            const program = {
-                start: now() + delay,
-                b
-            };
-            if (!b) {
-                // @ts-ignore todo: improve typings
-                program.group = outros;
-                outros.r += 1;
-            }
-            if (running_program) {
-                pending_program = program;
-            }
-            else {
-                // if this is an intro, and there's a delay, we need to do
-                // an initial tick and/or apply CSS animation immediately
-                if (css) {
-                    clear_animation();
-                    animation_name = create_rule(node, t, b, duration, delay, easing, css);
-                }
-                if (b)
-                    tick(0, 1);
-                running_program = init(program, duration);
-                add_render_callback(() => dispatch(node, b, 'start'));
-                loop(now => {
-                    if (pending_program && now > pending_program.start) {
-                        running_program = init(pending_program, duration);
-                        pending_program = null;
-                        dispatch(node, running_program.b, 'start');
-                        if (css) {
-                            clear_animation();
-                            animation_name = create_rule(node, t, running_program.b, running_program.duration, 0, easing, config.css);
-                        }
-                    }
-                    if (running_program) {
-                        if (now >= running_program.end) {
-                            tick(t = running_program.b, 1 - t);
-                            dispatch(node, running_program.b, 'end');
-                            if (!pending_program) {
-                                // we're done
-                                if (running_program.b) {
-                                    // intro — we can tidy up immediately
-                                    clear_animation();
-                                }
-                                else {
-                                    // outro — needs to be coordinated
-                                    if (!--running_program.group.r)
-                                        run_all(running_program.group.c);
-                                }
-                            }
-                            running_program = null;
-                        }
-                        else if (now >= running_program.start) {
-                            const p = now - running_program.start;
-                            t = running_program.a + running_program.d * easing(p / running_program.duration);
-                            tick(t, 1 - t);
-                        }
-                    }
-                    return !!(running_program || pending_program);
-                });
-            }
-        }
-        return {
-            run(b) {
-                if (is_function(config)) {
-                    wait().then(() => {
-                        // @ts-ignore
-                        config = config();
-                        go(b);
-                    });
-                }
-                else {
-                    go(b);
-                }
-            },
-            end() {
-                clear_animation();
-                running_program = pending_program = null;
-            }
-        };
     }
 
     const globals = (typeof window !== 'undefined'
@@ -579,14 +320,6 @@ var app = (function (moment) {
     }
     function get_spread_object(spread_props) {
         return typeof spread_props === 'object' && spread_props !== null ? spread_props : {};
-    }
-
-    function bind(component, name, callback) {
-        const index = component.$$.props[name];
-        if (index !== undefined) {
-            component.$$.bound[index] = callback;
-            callback(component.$$.ctx[index]);
-        }
     }
     function create_component(block) {
         block && block.c();
@@ -1915,7 +1648,7 @@ var app = (function (moment) {
      * @param {ActiveOptions|string|RegExp} [opts] - Can be an object of type ActiveOptions, or a string (or regular expressions) representing ActiveOptions.path.
      * @returns {{destroy: function(): void}} Destroy function
      */
-    function active$1(node, opts) {
+    function active(node, opts) {
         // Check options
         if (opts && (typeof opts == 'string' || (typeof opts == 'object' && opts instanceof RegExp))) {
             // Interpret strings and regular expressions as opts.path
@@ -5423,7 +5156,7 @@ var app = (function (moment) {
         return logger.log !== undefined;
     }
 
-    var bind$1 = function bind(fn, thisArg) {
+    var bind = function bind(fn, thisArg) {
       return function wrap() {
         var args = new Array(arguments.length);
         for (var i = 0; i < args.length; i++) {
@@ -5742,7 +5475,7 @@ var app = (function (moment) {
     function extend(a, b, thisArg) {
       forEach(b, function assignValue(val, key) {
         if (thisArg && typeof val === 'function') {
-          a[key] = bind$1(val, thisArg);
+          a[key] = bind(val, thisArg);
         } else {
           a[key] = val;
         }
@@ -6806,7 +6539,7 @@ var app = (function (moment) {
      */
     function createInstance(defaultConfig) {
       var context = new Axios_1(defaultConfig);
-      var instance = bind$1(Axios_1.prototype.request, context);
+      var instance = bind(Axios_1.prototype.request, context);
 
       // Copy axios.prototype to instance
       utils.extend(instance, Axios_1.prototype, context);
@@ -10253,7 +9986,7 @@ var app = (function (moment) {
     "undefined"!=typeof document&&function(e,t){var n=e.createElement("style");if(e.getElementsByTagName("head")[0].appendChild(n),n.styleSheet)n.styleSheet.disabled||(n.styleSheet.cssText=t);else try{n.innerHTML=t;}catch(e){n.innerText=t;}}(document,".swal2-popup.swal2-toast{flex-direction:row;align-items:center;width:auto;padding:.625em;overflow-y:hidden;background:#fff;box-shadow:0 0 .625em #d9d9d9}.swal2-popup.swal2-toast .swal2-header{flex-direction:row;padding:0}.swal2-popup.swal2-toast .swal2-title{flex-grow:1;justify-content:flex-start;margin:0 .6em;font-size:1em}.swal2-popup.swal2-toast .swal2-footer{margin:.5em 0 0;padding:.5em 0 0;font-size:.8em}.swal2-popup.swal2-toast .swal2-close{position:static;width:.8em;height:.8em;line-height:.8}.swal2-popup.swal2-toast .swal2-content{justify-content:flex-start;padding:0;font-size:1em}.swal2-popup.swal2-toast .swal2-icon{width:2em;min-width:2em;height:2em;margin:0}.swal2-popup.swal2-toast .swal2-icon .swal2-icon-content{display:flex;align-items:center;font-size:1.8em;font-weight:700}@media all and (-ms-high-contrast:none),(-ms-high-contrast:active){.swal2-popup.swal2-toast .swal2-icon .swal2-icon-content{font-size:.25em}}.swal2-popup.swal2-toast .swal2-icon.swal2-success .swal2-success-ring{width:2em;height:2em}.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line]{top:.875em;width:1.375em}.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=left]{left:.3125em}.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=right]{right:.3125em}.swal2-popup.swal2-toast .swal2-actions{flex-basis:auto!important;width:auto;height:auto;margin:0 .3125em;padding:0}.swal2-popup.swal2-toast .swal2-styled{margin:0 .3125em;padding:.3125em .625em;font-size:1em}.swal2-popup.swal2-toast .swal2-styled:focus{box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(50,100,150,.4)}.swal2-popup.swal2-toast .swal2-success{border-color:#a5dc86}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-circular-line]{position:absolute;width:1.6em;height:3em;transform:rotate(45deg);border-radius:50%}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-circular-line][class$=left]{top:-.8em;left:-.5em;transform:rotate(-45deg);transform-origin:2em 2em;border-radius:4em 0 0 4em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-circular-line][class$=right]{top:-.25em;left:.9375em;transform-origin:0 1.5em;border-radius:0 4em 4em 0}.swal2-popup.swal2-toast .swal2-success .swal2-success-ring{width:2em;height:2em}.swal2-popup.swal2-toast .swal2-success .swal2-success-fix{top:0;left:.4375em;width:.4375em;height:2.6875em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-line]{height:.3125em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-line][class$=tip]{top:1.125em;left:.1875em;width:.75em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-line][class$=long]{top:.9375em;right:.1875em;width:1.375em}.swal2-popup.swal2-toast .swal2-success.swal2-icon-show .swal2-success-line-tip{-webkit-animation:swal2-toast-animate-success-line-tip .75s;animation:swal2-toast-animate-success-line-tip .75s}.swal2-popup.swal2-toast .swal2-success.swal2-icon-show .swal2-success-line-long{-webkit-animation:swal2-toast-animate-success-line-long .75s;animation:swal2-toast-animate-success-line-long .75s}.swal2-popup.swal2-toast.swal2-show{-webkit-animation:swal2-toast-show .5s;animation:swal2-toast-show .5s}.swal2-popup.swal2-toast.swal2-hide{-webkit-animation:swal2-toast-hide .1s forwards;animation:swal2-toast-hide .1s forwards}.swal2-container{display:flex;position:fixed;z-index:1060;top:0;right:0;bottom:0;left:0;flex-direction:row;align-items:center;justify-content:center;padding:.625em;overflow-x:hidden;transition:background-color .1s;-webkit-overflow-scrolling:touch}.swal2-container.swal2-backdrop-show,.swal2-container.swal2-noanimation{background:rgba(0,0,0,.4)}.swal2-container.swal2-backdrop-hide{background:0 0!important}.swal2-container.swal2-top{align-items:flex-start}.swal2-container.swal2-top-left,.swal2-container.swal2-top-start{align-items:flex-start;justify-content:flex-start}.swal2-container.swal2-top-end,.swal2-container.swal2-top-right{align-items:flex-start;justify-content:flex-end}.swal2-container.swal2-center{align-items:center}.swal2-container.swal2-center-left,.swal2-container.swal2-center-start{align-items:center;justify-content:flex-start}.swal2-container.swal2-center-end,.swal2-container.swal2-center-right{align-items:center;justify-content:flex-end}.swal2-container.swal2-bottom{align-items:flex-end}.swal2-container.swal2-bottom-left,.swal2-container.swal2-bottom-start{align-items:flex-end;justify-content:flex-start}.swal2-container.swal2-bottom-end,.swal2-container.swal2-bottom-right{align-items:flex-end;justify-content:flex-end}.swal2-container.swal2-bottom-end>:first-child,.swal2-container.swal2-bottom-left>:first-child,.swal2-container.swal2-bottom-right>:first-child,.swal2-container.swal2-bottom-start>:first-child,.swal2-container.swal2-bottom>:first-child{margin-top:auto}.swal2-container.swal2-grow-fullscreen>.swal2-modal{display:flex!important;flex:1;align-self:stretch;justify-content:center}.swal2-container.swal2-grow-row>.swal2-modal{display:flex!important;flex:1;align-content:center;justify-content:center}.swal2-container.swal2-grow-column{flex:1;flex-direction:column}.swal2-container.swal2-grow-column.swal2-bottom,.swal2-container.swal2-grow-column.swal2-center,.swal2-container.swal2-grow-column.swal2-top{align-items:center}.swal2-container.swal2-grow-column.swal2-bottom-left,.swal2-container.swal2-grow-column.swal2-bottom-start,.swal2-container.swal2-grow-column.swal2-center-left,.swal2-container.swal2-grow-column.swal2-center-start,.swal2-container.swal2-grow-column.swal2-top-left,.swal2-container.swal2-grow-column.swal2-top-start{align-items:flex-start}.swal2-container.swal2-grow-column.swal2-bottom-end,.swal2-container.swal2-grow-column.swal2-bottom-right,.swal2-container.swal2-grow-column.swal2-center-end,.swal2-container.swal2-grow-column.swal2-center-right,.swal2-container.swal2-grow-column.swal2-top-end,.swal2-container.swal2-grow-column.swal2-top-right{align-items:flex-end}.swal2-container.swal2-grow-column>.swal2-modal{display:flex!important;flex:1;align-content:center;justify-content:center}.swal2-container.swal2-no-transition{transition:none!important}.swal2-container:not(.swal2-top):not(.swal2-top-start):not(.swal2-top-end):not(.swal2-top-left):not(.swal2-top-right):not(.swal2-center-start):not(.swal2-center-end):not(.swal2-center-left):not(.swal2-center-right):not(.swal2-bottom):not(.swal2-bottom-start):not(.swal2-bottom-end):not(.swal2-bottom-left):not(.swal2-bottom-right):not(.swal2-grow-fullscreen)>.swal2-modal{margin:auto}@media all and (-ms-high-contrast:none),(-ms-high-contrast:active){.swal2-container .swal2-modal{margin:0!important}}.swal2-popup{display:none;position:relative;box-sizing:border-box;flex-direction:column;justify-content:center;width:32em;max-width:100%;padding:1.25em;border:none;border-radius:.3125em;background:#fff;font-family:inherit;font-size:1rem}.swal2-popup:focus{outline:0}.swal2-popup.swal2-loading{overflow-y:hidden}.swal2-header{display:flex;flex-direction:column;align-items:center;padding:0 1.8em}.swal2-title{position:relative;max-width:100%;margin:0 0 .4em;padding:0;color:#595959;font-size:1.875em;font-weight:600;text-align:center;text-transform:none;word-wrap:break-word}.swal2-actions{display:flex;z-index:1;box-sizing:border-box;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;margin:1.25em auto 0;padding:0 1.6em}.swal2-actions:not(.swal2-loading) .swal2-styled[disabled]{opacity:.4}.swal2-actions:not(.swal2-loading) .swal2-styled:hover{background-image:linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1))}.swal2-actions:not(.swal2-loading) .swal2-styled:active{background-image:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.2))}.swal2-loader{display:none;align-items:center;justify-content:center;width:2.2em;height:2.2em;margin:0 1.875em;-webkit-animation:swal2-rotate-loading 1.5s linear 0s infinite normal;animation:swal2-rotate-loading 1.5s linear 0s infinite normal;border-width:.25em;border-style:solid;border-radius:100%;border-color:#2778c4 transparent #2778c4 transparent}.swal2-styled{margin:.3125em;padding:.625em 2em;box-shadow:none;font-weight:500}.swal2-styled:not([disabled]){cursor:pointer}.swal2-styled.swal2-confirm{border:0;border-radius:.25em;background:initial;background-color:#2778c4;color:#fff;font-size:1.0625em}.swal2-styled.swal2-deny{border:0;border-radius:.25em;background:initial;background-color:#d14529;color:#fff;font-size:1.0625em}.swal2-styled.swal2-cancel{border:0;border-radius:.25em;background:initial;background-color:#757575;color:#fff;font-size:1.0625em}.swal2-styled:focus{outline:0;box-shadow:0 0 0 1px #fff,0 0 0 3px rgba(50,100,150,.4)}.swal2-styled::-moz-focus-inner{border:0}.swal2-footer{justify-content:center;margin:1.25em 0 0;padding:1em 0 0;border-top:1px solid #eee;color:#545454;font-size:1em}.swal2-timer-progress-bar-container{position:absolute;right:0;bottom:0;left:0;height:.25em;overflow:hidden;border-bottom-right-radius:.3125em;border-bottom-left-radius:.3125em}.swal2-timer-progress-bar{width:100%;height:.25em;background:rgba(0,0,0,.2)}.swal2-image{max-width:100%;margin:1.25em auto}.swal2-close{position:absolute;z-index:2;top:0;right:0;align-items:center;justify-content:center;width:1.2em;height:1.2em;padding:0;overflow:hidden;transition:color .1s ease-out;border:none;border-radius:0;background:0 0;color:#ccc;font-family:serif;font-size:2.5em;line-height:1.2;cursor:pointer}.swal2-close:hover{transform:none;background:0 0;color:#f27474}.swal2-close::-moz-focus-inner{border:0}.swal2-content{z-index:1;justify-content:center;margin:0;padding:0 1.6em;color:#545454;font-size:1.125em;font-weight:400;line-height:normal;text-align:center;word-wrap:break-word}.swal2-checkbox,.swal2-file,.swal2-input,.swal2-radio,.swal2-select,.swal2-textarea{margin:1em auto}.swal2-file,.swal2-input,.swal2-textarea{box-sizing:border-box;width:100%;transition:border-color .3s,box-shadow .3s;border:1px solid #d9d9d9;border-radius:.1875em;background:inherit;box-shadow:inset 0 1px 1px rgba(0,0,0,.06);color:inherit;font-size:1.125em}.swal2-file.swal2-inputerror,.swal2-input.swal2-inputerror,.swal2-textarea.swal2-inputerror{border-color:#f27474!important;box-shadow:0 0 2px #f27474!important}.swal2-file:focus,.swal2-input:focus,.swal2-textarea:focus{border:1px solid #b4dbed;outline:0;box-shadow:0 0 3px #c4e6f5}.swal2-file::-moz-placeholder,.swal2-input::-moz-placeholder,.swal2-textarea::-moz-placeholder{color:#ccc}.swal2-file:-ms-input-placeholder,.swal2-input:-ms-input-placeholder,.swal2-textarea:-ms-input-placeholder{color:#ccc}.swal2-file::placeholder,.swal2-input::placeholder,.swal2-textarea::placeholder{color:#ccc}.swal2-range{margin:1em auto;background:#fff}.swal2-range input{width:80%}.swal2-range output{width:20%;color:inherit;font-weight:600;text-align:center}.swal2-range input,.swal2-range output{height:2.625em;padding:0;font-size:1.125em;line-height:2.625em}.swal2-input{height:2.625em;padding:0 .75em}.swal2-input[type=number]{max-width:10em}.swal2-file{background:inherit;font-size:1.125em}.swal2-textarea{height:6.75em;padding:.75em}.swal2-select{min-width:50%;max-width:100%;padding:.375em .625em;background:inherit;color:inherit;font-size:1.125em}.swal2-checkbox,.swal2-radio{align-items:center;justify-content:center;background:#fff;color:inherit}.swal2-checkbox label,.swal2-radio label{margin:0 .6em;font-size:1.125em}.swal2-checkbox input,.swal2-radio input{margin:0 .4em}.swal2-input-label{display:flex;justify-content:center;margin:1em auto}.swal2-validation-message{display:none;align-items:center;justify-content:center;margin:0 -2.7em;padding:.625em;overflow:hidden;background:#f0f0f0;color:#666;font-size:1em;font-weight:300}.swal2-validation-message::before{content:\"!\";display:inline-block;width:1.5em;min-width:1.5em;height:1.5em;margin:0 .625em;border-radius:50%;background-color:#f27474;color:#fff;font-weight:600;line-height:1.5em;text-align:center}.swal2-icon{position:relative;box-sizing:content-box;justify-content:center;width:5em;height:5em;margin:1.25em auto 1.875em;border:.25em solid transparent;border-radius:50%;font-family:inherit;line-height:5em;cursor:default;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.swal2-icon .swal2-icon-content{display:flex;align-items:center;font-size:3.75em}.swal2-icon.swal2-error{border-color:#f27474;color:#f27474}.swal2-icon.swal2-error .swal2-x-mark{position:relative;flex-grow:1}.swal2-icon.swal2-error [class^=swal2-x-mark-line]{display:block;position:absolute;top:2.3125em;width:2.9375em;height:.3125em;border-radius:.125em;background-color:#f27474}.swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=left]{left:1.0625em;transform:rotate(45deg)}.swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=right]{right:1em;transform:rotate(-45deg)}.swal2-icon.swal2-error.swal2-icon-show{-webkit-animation:swal2-animate-error-icon .5s;animation:swal2-animate-error-icon .5s}.swal2-icon.swal2-error.swal2-icon-show .swal2-x-mark{-webkit-animation:swal2-animate-error-x-mark .5s;animation:swal2-animate-error-x-mark .5s}.swal2-icon.swal2-warning{border-color:#facea8;color:#f8bb86}.swal2-icon.swal2-info{border-color:#9de0f6;color:#3fc3ee}.swal2-icon.swal2-question{border-color:#c9dae1;color:#87adbd}.swal2-icon.swal2-success{border-color:#a5dc86;color:#a5dc86}.swal2-icon.swal2-success [class^=swal2-success-circular-line]{position:absolute;width:3.75em;height:7.5em;transform:rotate(45deg);border-radius:50%}.swal2-icon.swal2-success [class^=swal2-success-circular-line][class$=left]{top:-.4375em;left:-2.0635em;transform:rotate(-45deg);transform-origin:3.75em 3.75em;border-radius:7.5em 0 0 7.5em}.swal2-icon.swal2-success [class^=swal2-success-circular-line][class$=right]{top:-.6875em;left:1.875em;transform:rotate(-45deg);transform-origin:0 3.75em;border-radius:0 7.5em 7.5em 0}.swal2-icon.swal2-success .swal2-success-ring{position:absolute;z-index:2;top:-.25em;left:-.25em;box-sizing:content-box;width:100%;height:100%;border:.25em solid rgba(165,220,134,.3);border-radius:50%}.swal2-icon.swal2-success .swal2-success-fix{position:absolute;z-index:1;top:.5em;left:1.625em;width:.4375em;height:5.625em;transform:rotate(-45deg)}.swal2-icon.swal2-success [class^=swal2-success-line]{display:block;position:absolute;z-index:2;height:.3125em;border-radius:.125em;background-color:#a5dc86}.swal2-icon.swal2-success [class^=swal2-success-line][class$=tip]{top:2.875em;left:.8125em;width:1.5625em;transform:rotate(45deg)}.swal2-icon.swal2-success [class^=swal2-success-line][class$=long]{top:2.375em;right:.5em;width:2.9375em;transform:rotate(-45deg)}.swal2-icon.swal2-success.swal2-icon-show .swal2-success-line-tip{-webkit-animation:swal2-animate-success-line-tip .75s;animation:swal2-animate-success-line-tip .75s}.swal2-icon.swal2-success.swal2-icon-show .swal2-success-line-long{-webkit-animation:swal2-animate-success-line-long .75s;animation:swal2-animate-success-line-long .75s}.swal2-icon.swal2-success.swal2-icon-show .swal2-success-circular-line-right{-webkit-animation:swal2-rotate-success-circular-line 4.25s ease-in;animation:swal2-rotate-success-circular-line 4.25s ease-in}.swal2-progress-steps{flex-wrap:wrap;align-items:center;max-width:100%;margin:0 0 1.25em;padding:0;background:inherit;font-weight:600}.swal2-progress-steps li{display:inline-block;position:relative}.swal2-progress-steps .swal2-progress-step{z-index:20;flex-shrink:0;width:2em;height:2em;border-radius:2em;background:#2778c4;color:#fff;line-height:2em;text-align:center}.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step{background:#2778c4}.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step{background:#add8e6;color:#fff}.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step-line{background:#add8e6}.swal2-progress-steps .swal2-progress-step-line{z-index:10;flex-shrink:0;width:2.5em;height:.4em;margin:0 -1px;background:#2778c4}[class^=swal2]{-webkit-tap-highlight-color:transparent}.swal2-show{-webkit-animation:swal2-show .3s;animation:swal2-show .3s}.swal2-hide{-webkit-animation:swal2-hide .15s forwards;animation:swal2-hide .15s forwards}.swal2-noanimation{transition:none}.swal2-scrollbar-measure{position:absolute;top:-9999px;width:50px;height:50px;overflow:scroll}.swal2-rtl .swal2-close{right:auto;left:0}.swal2-rtl .swal2-timer-progress-bar{right:0;left:auto}@supports (-ms-accelerator:true){.swal2-range input{width:100%!important}.swal2-range output{display:none}}@media all and (-ms-high-contrast:none),(-ms-high-contrast:active){.swal2-range input{width:100%!important}.swal2-range output{display:none}}@-moz-document url-prefix(){.swal2-close:focus{outline:2px solid rgba(50,100,150,.4)}}@-webkit-keyframes swal2-toast-show{0%{transform:translateY(-.625em) rotateZ(2deg)}33%{transform:translateY(0) rotateZ(-2deg)}66%{transform:translateY(.3125em) rotateZ(2deg)}100%{transform:translateY(0) rotateZ(0)}}@keyframes swal2-toast-show{0%{transform:translateY(-.625em) rotateZ(2deg)}33%{transform:translateY(0) rotateZ(-2deg)}66%{transform:translateY(.3125em) rotateZ(2deg)}100%{transform:translateY(0) rotateZ(0)}}@-webkit-keyframes swal2-toast-hide{100%{transform:rotateZ(1deg);opacity:0}}@keyframes swal2-toast-hide{100%{transform:rotateZ(1deg);opacity:0}}@-webkit-keyframes swal2-toast-animate-success-line-tip{0%{top:.5625em;left:.0625em;width:0}54%{top:.125em;left:.125em;width:0}70%{top:.625em;left:-.25em;width:1.625em}84%{top:1.0625em;left:.75em;width:.5em}100%{top:1.125em;left:.1875em;width:.75em}}@keyframes swal2-toast-animate-success-line-tip{0%{top:.5625em;left:.0625em;width:0}54%{top:.125em;left:.125em;width:0}70%{top:.625em;left:-.25em;width:1.625em}84%{top:1.0625em;left:.75em;width:.5em}100%{top:1.125em;left:.1875em;width:.75em}}@-webkit-keyframes swal2-toast-animate-success-line-long{0%{top:1.625em;right:1.375em;width:0}65%{top:1.25em;right:.9375em;width:0}84%{top:.9375em;right:0;width:1.125em}100%{top:.9375em;right:.1875em;width:1.375em}}@keyframes swal2-toast-animate-success-line-long{0%{top:1.625em;right:1.375em;width:0}65%{top:1.25em;right:.9375em;width:0}84%{top:.9375em;right:0;width:1.125em}100%{top:.9375em;right:.1875em;width:1.375em}}@-webkit-keyframes swal2-show{0%{transform:scale(.7)}45%{transform:scale(1.05)}80%{transform:scale(.95)}100%{transform:scale(1)}}@keyframes swal2-show{0%{transform:scale(.7)}45%{transform:scale(1.05)}80%{transform:scale(.95)}100%{transform:scale(1)}}@-webkit-keyframes swal2-hide{0%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}@keyframes swal2-hide{0%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}@-webkit-keyframes swal2-animate-success-line-tip{0%{top:1.1875em;left:.0625em;width:0}54%{top:1.0625em;left:.125em;width:0}70%{top:2.1875em;left:-.375em;width:3.125em}84%{top:3em;left:1.3125em;width:1.0625em}100%{top:2.8125em;left:.8125em;width:1.5625em}}@keyframes swal2-animate-success-line-tip{0%{top:1.1875em;left:.0625em;width:0}54%{top:1.0625em;left:.125em;width:0}70%{top:2.1875em;left:-.375em;width:3.125em}84%{top:3em;left:1.3125em;width:1.0625em}100%{top:2.8125em;left:.8125em;width:1.5625em}}@-webkit-keyframes swal2-animate-success-line-long{0%{top:3.375em;right:2.875em;width:0}65%{top:3.375em;right:2.875em;width:0}84%{top:2.1875em;right:0;width:3.4375em}100%{top:2.375em;right:.5em;width:2.9375em}}@keyframes swal2-animate-success-line-long{0%{top:3.375em;right:2.875em;width:0}65%{top:3.375em;right:2.875em;width:0}84%{top:2.1875em;right:0;width:3.4375em}100%{top:2.375em;right:.5em;width:2.9375em}}@-webkit-keyframes swal2-rotate-success-circular-line{0%{transform:rotate(-45deg)}5%{transform:rotate(-45deg)}12%{transform:rotate(-405deg)}100%{transform:rotate(-405deg)}}@keyframes swal2-rotate-success-circular-line{0%{transform:rotate(-45deg)}5%{transform:rotate(-45deg)}12%{transform:rotate(-405deg)}100%{transform:rotate(-405deg)}}@-webkit-keyframes swal2-animate-error-x-mark{0%{margin-top:1.625em;transform:scale(.4);opacity:0}50%{margin-top:1.625em;transform:scale(.4);opacity:0}80%{margin-top:-.375em;transform:scale(1.15)}100%{margin-top:0;transform:scale(1);opacity:1}}@keyframes swal2-animate-error-x-mark{0%{margin-top:1.625em;transform:scale(.4);opacity:0}50%{margin-top:1.625em;transform:scale(.4);opacity:0}80%{margin-top:-.375em;transform:scale(1.15)}100%{margin-top:0;transform:scale(1);opacity:1}}@-webkit-keyframes swal2-animate-error-icon{0%{transform:rotateX(100deg);opacity:0}100%{transform:rotateX(0);opacity:1}}@keyframes swal2-animate-error-icon{0%{transform:rotateX(100deg);opacity:0}100%{transform:rotateX(0);opacity:1}}@-webkit-keyframes swal2-rotate-loading{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}@keyframes swal2-rotate-loading{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown){overflow:hidden}body.swal2-height-auto{height:auto!important}body.swal2-no-backdrop .swal2-container{top:auto;right:auto;bottom:auto;left:auto;max-width:calc(100% - .625em * 2);background-color:transparent!important}body.swal2-no-backdrop .swal2-container>.swal2-modal{box-shadow:0 0 10px rgba(0,0,0,.4)}body.swal2-no-backdrop .swal2-container.swal2-top{top:0;left:50%;transform:translateX(-50%)}body.swal2-no-backdrop .swal2-container.swal2-top-left,body.swal2-no-backdrop .swal2-container.swal2-top-start{top:0;left:0}body.swal2-no-backdrop .swal2-container.swal2-top-end,body.swal2-no-backdrop .swal2-container.swal2-top-right{top:0;right:0}body.swal2-no-backdrop .swal2-container.swal2-center{top:50%;left:50%;transform:translate(-50%,-50%)}body.swal2-no-backdrop .swal2-container.swal2-center-left,body.swal2-no-backdrop .swal2-container.swal2-center-start{top:50%;left:0;transform:translateY(-50%)}body.swal2-no-backdrop .swal2-container.swal2-center-end,body.swal2-no-backdrop .swal2-container.swal2-center-right{top:50%;right:0;transform:translateY(-50%)}body.swal2-no-backdrop .swal2-container.swal2-bottom{bottom:0;left:50%;transform:translateX(-50%)}body.swal2-no-backdrop .swal2-container.swal2-bottom-left,body.swal2-no-backdrop .swal2-container.swal2-bottom-start{bottom:0;left:0}body.swal2-no-backdrop .swal2-container.swal2-bottom-end,body.swal2-no-backdrop .swal2-container.swal2-bottom-right{right:0;bottom:0}@media print{body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown){overflow-y:scroll!important}body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown)>[aria-hidden=true]{display:none}body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) .swal2-container{position:static!important}}body.swal2-toast-shown .swal2-container{background-color:transparent}body.swal2-toast-shown .swal2-container.swal2-top{top:0;right:auto;bottom:auto;left:50%;transform:translateX(-50%)}body.swal2-toast-shown .swal2-container.swal2-top-end,body.swal2-toast-shown .swal2-container.swal2-top-right{top:0;right:0;bottom:auto;left:auto}body.swal2-toast-shown .swal2-container.swal2-top-left,body.swal2-toast-shown .swal2-container.swal2-top-start{top:0;right:auto;bottom:auto;left:0}body.swal2-toast-shown .swal2-container.swal2-center-left,body.swal2-toast-shown .swal2-container.swal2-center-start{top:50%;right:auto;bottom:auto;left:0;transform:translateY(-50%)}body.swal2-toast-shown .swal2-container.swal2-center{top:50%;right:auto;bottom:auto;left:50%;transform:translate(-50%,-50%)}body.swal2-toast-shown .swal2-container.swal2-center-end,body.swal2-toast-shown .swal2-container.swal2-center-right{top:50%;right:0;bottom:auto;left:auto;transform:translateY(-50%)}body.swal2-toast-shown .swal2-container.swal2-bottom-left,body.swal2-toast-shown .swal2-container.swal2-bottom-start{top:auto;right:auto;bottom:0;left:0}body.swal2-toast-shown .swal2-container.swal2-bottom{top:auto;right:auto;bottom:0;left:50%;transform:translateX(-50%)}body.swal2-toast-shown .swal2-container.swal2-bottom-end,body.swal2-toast-shown .swal2-container.swal2-bottom-right{top:auto;right:0;bottom:0;left:auto}body.swal2-toast-column .swal2-toast{flex-direction:column;align-items:stretch}body.swal2-toast-column .swal2-toast .swal2-actions{flex:1;align-self:stretch;height:2.2em;margin-top:.3125em}body.swal2-toast-column .swal2-toast .swal2-loading{justify-content:center}body.swal2-toast-column .swal2-toast .swal2-input{height:2em;margin:.3125em auto;font-size:1em}body.swal2-toast-column .swal2-toast .swal2-validation-message{font-size:1em}");
     });
 
-    // const _host = "http://192.168.1.104:93";
+    //const _host = "http://192.168.1.124:90";
     //const _host = "http://172.20.1.12:303";
     const _host = "https://odyssey-api.cmsiglo21.app";
 
@@ -10745,14 +10478,14 @@ var app = (function (moment) {
     				dispose = [
     					action_destroyer(link_action = link.call(null, a0)),
     					action_destroyer(link_action_1 = link.call(null, a3)),
-    					action_destroyer(active_action = active$1.call(null, li0, "/")),
+    					action_destroyer(active_action = active.call(null, li0, "/")),
     					action_destroyer(link_action_2 = link.call(null, a4)),
-    					action_destroyer(active_action_1 = active$1.call(null, li1, "/Solicitud/Index")),
+    					action_destroyer(active_action_1 = active.call(null, li1, "/Solicitud/Index")),
     					action_destroyer(link_action_3 = link.call(null, a6)),
-    					action_destroyer(active_action_2 = active$1.call(null, li2, "/Usuario/Index")),
+    					action_destroyer(active_action_2 = active.call(null, li2, "/Usuario/Index")),
     					action_destroyer(link_action_4 = link.call(null, a7)),
-    					action_destroyer(active_action_3 = active$1.call(null, li3, "/Mantenimiento/Solicitudes")),
-    					action_destroyer(active_action_4 = active$1.call(null, li4, "/Usuario/*"))
+    					action_destroyer(active_action_3 = active.call(null, li3, "/Mantenimiento/Solicitudes")),
+    					action_destroyer(active_action_4 = active.call(null, li4, "/Usuario/*"))
     				];
 
     				mounted = true;
@@ -10799,7 +10532,7 @@ var app = (function (moment) {
 
     	$$self.$capture_state = () => ({
     		link,
-    		active: active$1,
+    		active,
     		activePage,
     		session,
     		UserManager,
@@ -31309,7 +31042,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*estado*/ ctx[22].id;
     			option.value = option.__value;
-    			add_location(option, file$i, 97, 32, 3444);
+    			add_location(option, file$i, 97, 32, 3437);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -31351,7 +31084,7 @@ var app = (function (moment) {
     			div = element("div");
     			create_component(loading.$$.fragment);
     			attr_dev(div, "class", "col-1");
-    			add_location(div, file$i, 117, 25, 4563);
+    			add_location(div, file$i, 117, 25, 4556);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -31454,22 +31187,23 @@ var app = (function (moment) {
     			t14 = text("VER ");
     			i = element("i");
     			t15 = space();
-    			add_location(td0, file$i, 152, 41, 6377);
-    			add_location(td1, file$i, 153, 41, 6469);
-    			add_location(td2, file$i, 154, 41, 6539);
-    			add_location(td3, file$i, 155, 41, 6618);
-    			add_location(td4, file$i, 156, 41, 6706);
+    			add_location(td0, file$i, 152, 41, 6370);
+    			add_location(td1, file$i, 153, 41, 6462);
+    			add_location(td2, file$i, 154, 41, 6532);
+    			add_location(td3, file$i, 155, 41, 6611);
+    			add_location(td4, file$i, 156, 41, 6699);
     			attr_dev(span, "class", "badge");
     			toggle_class(span, "badge-primary", /*solicitud*/ ctx[19].estadoId == "N");
-    			add_location(span, file$i, 157, 45, 6817);
-    			add_location(td5, file$i, 157, 41, 6813);
+    			toggle_class(span, "badge-success", /*solicitud*/ ctx[19].estadoId == "F");
+    			add_location(span, file$i, 157, 45, 6810);
+    			add_location(td5, file$i, 157, 41, 6806);
     			attr_dev(i, "class", "mdi mdi-send");
-    			add_location(i, file$i, 158, 133, 7052);
+    			add_location(i, file$i, 158, 141, 7101);
     			attr_dev(a, "href", a_href_value = "/Solicitud/Detalle/" + /*solicitud*/ ctx[19].id);
-    			attr_dev(a, "class", "btn btn-success btn-sm");
-    			add_location(a, file$i, 158, 45, 6964);
-    			add_location(td6, file$i, 158, 41, 6960);
-    			add_location(tr, file$i, 151, 37, 6330);
+    			attr_dev(a, "class", "btn btn-outline-success btn-sm");
+    			add_location(a, file$i, 158, 45, 7005);
+    			add_location(td6, file$i, 158, 41, 7001);
+    			add_location(tr, file$i, 151, 37, 6323);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -31516,6 +31250,10 @@ var app = (function (moment) {
 
     			if (dirty & /*solicitudes*/ 1) {
     				toggle_class(span, "badge-primary", /*solicitud*/ ctx[19].estadoId == "N");
+    			}
+
+    			if (dirty & /*solicitudes*/ 1) {
+    				toggle_class(span, "badge-success", /*solicitud*/ ctx[19].estadoId == "F");
     			}
 
     			if (dirty & /*solicitudes*/ 1 && a_href_value !== (a_href_value = "/Solicitud/Detalle/" + /*solicitud*/ ctx[19].id)) {
@@ -31742,106 +31480,105 @@ var app = (function (moment) {
     				each_blocks[i].c();
     			}
 
-    			add_location(h4, file$i, 80, 12, 2196);
-    			add_location(hr, file$i, 80, 32, 2216);
+    			add_location(h4, file$i, 80, 12, 2197);
+    			add_location(hr, file$i, 80, 32, 2217);
     			attr_dev(label0, "for", "");
-    			add_location(label0, file$i, 85, 28, 2424);
+    			add_location(label0, file$i, 85, 28, 2425);
     			attr_dev(input0, "type", "search");
     			attr_dev(input0, "class", "form-control form-control-sm");
     			attr_dev(input0, "placeholder", "nombre, cedula, etc.");
-    			add_location(input0, file$i, 86, 28, 2492);
+    			add_location(input0, file$i, 86, 28, 2493);
     			attr_dev(div0, "class", "mb-3 col-lg-3 col-md-4");
-    			add_location(div0, file$i, 84, 24, 2358);
+    			add_location(div0, file$i, 84, 24, 2359);
     			attr_dev(label1, "for", "");
-    			add_location(label1, file$i, 89, 28, 2763);
+    			add_location(label1, file$i, 89, 28, 2764);
     			attr_dev(input1, "type", "search");
     			attr_dev(input1, "class", "form-control form-control-sm");
     			attr_dev(input1, "placeholder", "Buscar numero solicitud");
-    			add_location(input1, file$i, 90, 28, 2828);
+    			add_location(input1, file$i, 90, 28, 2829);
     			attr_dev(div1, "class", "mb-3 col-lg-3 col-md-4");
-    			add_location(div1, file$i, 88, 24, 2697);
+    			add_location(div1, file$i, 88, 24, 2698);
     			attr_dev(label2, "for", "");
-    			add_location(label2, file$i, 93, 28, 3109);
+    			add_location(label2, file$i, 93, 28, 3110);
     			option.__value = "";
     			option.value = option.__value;
-    			option.selected = true;
-    			add_location(option, file$i, 95, 32, 3303);
+    			add_location(option, file$i, 95, 32, 3305);
     			attr_dev(select, "class", "form-control form-control-sm");
     			if (/*sltEstado*/ ctx[1] === void 0) add_render_callback(() => /*select_change_handler*/ ctx[16].call(select));
-    			add_location(select, file$i, 94, 28, 3172);
+    			add_location(select, file$i, 94, 28, 3173);
     			attr_dev(div2, "class", "mb-3 col-lg-2 col-md-4");
-    			add_location(div2, file$i, 92, 24, 3043);
+    			add_location(div2, file$i, 92, 24, 3044);
     			attr_dev(label3, "for", "");
-    			add_location(label3, file$i, 103, 28, 3763);
+    			add_location(label3, file$i, 103, 28, 3756);
     			attr_dev(input2, "type", "date");
     			attr_dev(input2, "class", "form-control form-control-sm");
-    			add_location(input2, file$i, 104, 28, 3827);
+    			add_location(input2, file$i, 104, 28, 3820);
     			attr_dev(div3, "class", "mb-3 col-lg-2 col-md-4");
-    			add_location(div3, file$i, 102, 24, 3697);
+    			add_location(div3, file$i, 102, 24, 3690);
     			attr_dev(label4, "for", "");
-    			add_location(label4, file$i, 107, 28, 4065);
+    			add_location(label4, file$i, 107, 28, 4058);
     			attr_dev(input3, "type", "date");
     			attr_dev(input3, "class", "form-control form-control-sm");
-    			add_location(input3, file$i, 108, 28, 4126);
+    			add_location(input3, file$i, 108, 28, 4119);
     			attr_dev(div4, "class", "mb-3 col-lg-2 col-md-4");
-    			add_location(div4, file$i, 106, 24, 3999);
+    			add_location(div4, file$i, 106, 24, 3992);
     			attr_dev(div5, "class", "form-row");
-    			add_location(div5, file$i, 83, 20, 2310);
+    			add_location(div5, file$i, 83, 20, 2311);
     			attr_dev(div6, "class", "col-lg-12");
-    			add_location(div6, file$i, 82, 12, 2265);
+    			add_location(div6, file$i, 82, 12, 2266);
     			attr_dev(div7, "class", "row");
-    			add_location(div7, file$i, 81, 12, 2234);
+    			add_location(div7, file$i, 81, 12, 2235);
     			attr_dev(a0, "href", "#!");
     			attr_dev(a0, "class", "js-card-refresh icon");
-    			add_location(a0, file$i, 122, 24, 4758);
+    			add_location(a0, file$i, 122, 24, 4751);
     			attr_dev(i, "class", "icon mdi  mdi-dots-vertical");
-    			add_location(i, file$i, 124, 108, 4991);
+    			add_location(i, file$i, 124, 108, 4984);
     			attr_dev(a1, "href", "#!");
     			attr_dev(a1, "data-toggle", "dropdown");
     			attr_dev(a1, "aria-haspopup", "true");
     			attr_dev(a1, "aria-expanded", "false");
-    			add_location(a1, file$i, 124, 28, 4911);
+    			add_location(a1, file$i, 124, 28, 4904);
     			attr_dev(button0, "class", "dropdown-item");
     			attr_dev(button0, "type", "button");
-    			add_location(button0, file$i, 127, 32, 5152);
+    			add_location(button0, file$i, 127, 32, 5145);
     			attr_dev(button1, "class", "dropdown-item");
     			attr_dev(button1, "type", "button");
-    			add_location(button1, file$i, 128, 32, 5245);
+    			add_location(button1, file$i, 128, 32, 5238);
     			attr_dev(button2, "class", "dropdown-item");
     			attr_dev(button2, "type", "button");
-    			add_location(button2, file$i, 129, 32, 5346);
+    			add_location(button2, file$i, 129, 32, 5339);
     			attr_dev(div8, "class", "dropdown-menu dropdown-menu-right");
-    			add_location(div8, file$i, 126, 28, 5071);
+    			add_location(div8, file$i, 126, 28, 5064);
     			attr_dev(div9, "class", "dropdown");
-    			add_location(div9, file$i, 123, 24, 4859);
+    			add_location(div9, file$i, 123, 24, 4852);
     			attr_dev(div10, "class", "card-controls");
-    			add_location(div10, file$i, 121, 20, 4705);
+    			add_location(div10, file$i, 121, 20, 4698);
     			attr_dev(div11, "class", "card-header");
-    			add_location(div11, file$i, 114, 16, 4398);
-    			add_location(th0, file$i, 140, 32, 5802);
-    			add_location(th1, file$i, 141, 32, 5851);
-    			add_location(th2, file$i, 142, 32, 5907);
-    			add_location(th3, file$i, 143, 32, 5956);
-    			add_location(th4, file$i, 144, 32, 6009);
-    			add_location(th5, file$i, 145, 32, 6057);
-    			add_location(th6, file$i, 146, 32, 6106);
-    			add_location(tr, file$i, 139, 28, 5764);
-    			add_location(thead, file$i, 138, 28, 5727);
-    			add_location(tbody, file$i, 149, 28, 6218);
+    			add_location(div11, file$i, 114, 16, 4391);
+    			add_location(th0, file$i, 140, 32, 5795);
+    			add_location(th1, file$i, 141, 32, 5844);
+    			add_location(th2, file$i, 142, 32, 5900);
+    			add_location(th3, file$i, 143, 32, 5949);
+    			add_location(th4, file$i, 144, 32, 6002);
+    			add_location(th5, file$i, 145, 32, 6050);
+    			add_location(th6, file$i, 146, 32, 6099);
+    			add_location(tr, file$i, 139, 28, 5757);
+    			add_location(thead, file$i, 138, 28, 5720);
+    			add_location(tbody, file$i, 149, 28, 6211);
     			attr_dev(table, "class", "table table-hover");
-    			add_location(table, file$i, 137, 24, 5664);
+    			add_location(table, file$i, 137, 24, 5657);
     			attr_dev(div12, "class", "table-responsive mt-3");
-    			add_location(div12, file$i, 135, 20, 5601);
+    			add_location(div12, file$i, 135, 20, 5594);
     			attr_dev(div13, "class", "card-body");
-    			add_location(div13, file$i, 134, 16, 5556);
+    			add_location(div13, file$i, 134, 16, 5549);
     			attr_dev(div14, "class", "card m-b-30");
-    			add_location(div14, file$i, 113, 12, 4355);
+    			add_location(div14, file$i, 113, 12, 4348);
     			attr_dev(div15, "class", "container-fluid mt-3");
-    			add_location(div15, file$i, 79, 8, 2148);
+    			add_location(div15, file$i, 79, 8, 2149);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$i, 78, 4, 2107);
+    			add_location(section, file$i, 78, 4, 2108);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$i, 76, 2, 2060);
+    			add_location(main, file$i, 76, 2, 2061);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -31948,7 +31685,7 @@ var app = (function (moment) {
     					listen_dev(input1, "input", /*input1_input_handler*/ ctx[15]),
     					listen_dev(input1, "input", /*cargarSolicitudes*/ ctx[8], false, false, false),
     					listen_dev(select, "change", /*select_change_handler*/ ctx[16]),
-    					listen_dev(select, "input", /*cargarSolicitudes*/ ctx[8], false, false, false),
+    					listen_dev(select, "change", /*cargarSolicitudes*/ ctx[8], false, false, false),
     					listen_dev(input2, "input", /*input2_input_handler*/ ctx[17]),
     					listen_dev(input2, "change", /*cargarSolicitudes*/ ctx[8], false, false, false),
     					listen_dev(input3, "input", /*input3_input_handler*/ ctx[18]),
@@ -32104,7 +31841,7 @@ var app = (function (moment) {
     	component_subscribe($$self, axios$2, $$value => $$invalidate(10, $axios = $$value));
     	let solicitudes = [];
     	let sltAseguradora = "";
-    	let sltEstado = "";
+    	let sltEstado = "N";
     	let inpBusqueda = "";
     	let inpNumeroSolicitud = "";
     	let inpFechaInicio = new Date().toISOString().split("T")[0];
@@ -32274,1188 +32011,112 @@ var app = (function (moment) {
     	}
     }
 
-    /* node_modules\svelte-lightbox\src\LightboxThumbnail.svelte generated by Svelte v3.23.0 */
-    const file$j = "node_modules\\svelte-lightbox\\src\\LightboxThumbnail.svelte";
+    /* src\Pages\Solicitudes\SolicitudDetalle.svelte generated by Svelte v3.23.0 */
+    const file$j = "src\\Pages\\Solicitudes\\SolicitudDetalle.svelte";
 
-    function create_fragment$k(ctx) {
-    	let div1;
-    	let div0;
-    	let div0_class_value;
-    	let current;
-    	let mounted;
-    	let dispose;
-    	const default_slot_template = /*$$slots*/ ctx[5].default;
-    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[4], null);
-
-    	const block = {
-    		c: function create() {
-    			div1 = element("div");
-    			div0 = element("div");
-    			if (default_slot) default_slot.c();
-    			attr_dev(div0, "class", div0_class_value = "" + (null_to_empty(/*thumbnailClasses*/ ctx[0]) + " svelte-1u332e1"));
-    			attr_dev(div0, "style", /*thumbnailStyle*/ ctx[1]);
-    			toggle_class(div0, "svelte-lightbox-unselectable", /*protect*/ ctx[2]);
-    			add_location(div0, file$j, 10, 4, 290);
-    			attr_dev(div1, "class", "clickable svelte-1u332e1");
-    			add_location(div1, file$j, 9, 0, 225);
-    		},
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div1, anchor);
-    			append_dev(div1, div0);
-
-    			if (default_slot) {
-    				default_slot.m(div0, null);
-    			}
-
-    			current = true;
-
-    			if (!mounted) {
-    				dispose = listen_dev(div1, "click", /*click_handler*/ ctx[6], false, false, false);
-    				mounted = true;
-    			}
-    		},
-    		p: function update(ctx, [dirty]) {
-    			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope*/ 16) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[4], dirty, null, null);
-    				}
-    			}
-
-    			if (!current || dirty & /*thumbnailClasses*/ 1 && div0_class_value !== (div0_class_value = "" + (null_to_empty(/*thumbnailClasses*/ ctx[0]) + " svelte-1u332e1"))) {
-    				attr_dev(div0, "class", div0_class_value);
-    			}
-
-    			if (!current || dirty & /*thumbnailStyle*/ 2) {
-    				attr_dev(div0, "style", /*thumbnailStyle*/ ctx[1]);
-    			}
-
-    			if (dirty & /*thumbnailClasses, protect*/ 5) {
-    				toggle_class(div0, "svelte-lightbox-unselectable", /*protect*/ ctx[2]);
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(default_slot, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(default_slot, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div1);
-    			if (default_slot) default_slot.d(detaching);
-    			mounted = false;
-    			dispose();
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_fragment$k.name,
-    		type: "component",
-    		source: "",
-    		ctx
-    	});
-
-    	return block;
+    function get_each_context$b(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[16] = list[i];
+    	return child_ctx;
     }
 
-    function instance$k($$self, $$props, $$invalidate) {
-    	const dispatch = createEventDispatcher();
-    	let { thumbnailClasses = "" } = $$props;
-    	let { thumbnailStyle = "" } = $$props;
-    	let { protect = false } = $$props;
-    	const writable_props = ["thumbnailClasses", "thumbnailStyle", "protect"];
-
-    	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<LightboxThumbnail> was created with unknown prop '${key}'`);
-    	});
-
-    	let { $$slots = {}, $$scope } = $$props;
-    	validate_slots("LightboxThumbnail", $$slots, ['default']);
-    	const click_handler = () => dispatch("click");
-
-    	$$self.$set = $$props => {
-    		if ("thumbnailClasses" in $$props) $$invalidate(0, thumbnailClasses = $$props.thumbnailClasses);
-    		if ("thumbnailStyle" in $$props) $$invalidate(1, thumbnailStyle = $$props.thumbnailStyle);
-    		if ("protect" in $$props) $$invalidate(2, protect = $$props.protect);
-    		if ("$$scope" in $$props) $$invalidate(4, $$scope = $$props.$$scope);
-    	};
-
-    	$$self.$capture_state = () => ({
-    		createEventDispatcher,
-    		dispatch,
-    		thumbnailClasses,
-    		thumbnailStyle,
-    		protect
-    	});
-
-    	$$self.$inject_state = $$props => {
-    		if ("thumbnailClasses" in $$props) $$invalidate(0, thumbnailClasses = $$props.thumbnailClasses);
-    		if ("thumbnailStyle" in $$props) $$invalidate(1, thumbnailStyle = $$props.thumbnailStyle);
-    		if ("protect" in $$props) $$invalidate(2, protect = $$props.protect);
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [
-    		thumbnailClasses,
-    		thumbnailStyle,
-    		protect,
-    		dispatch,
-    		$$scope,
-    		$$slots,
-    		click_handler
-    	];
+    function get_each_context_1$a(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[19] = list[i];
+    	return child_ctx;
     }
 
-    class LightboxThumbnail extends SvelteComponentDev {
-    	constructor(options) {
-    		super(options);
-
-    		init(this, options, instance$k, create_fragment$k, safe_not_equal, {
-    			thumbnailClasses: 0,
-    			thumbnailStyle: 1,
-    			protect: 2
-    		});
-
-    		dispatch_dev("SvelteRegisterComponent", {
-    			component: this,
-    			tagName: "LightboxThumbnail",
-    			options,
-    			id: create_fragment$k.name
-    		});
-    	}
-
-    	get thumbnailClasses() {
-    		throw new Error("<LightboxThumbnail>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set thumbnailClasses(value) {
-    		throw new Error("<LightboxThumbnail>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get thumbnailStyle() {
-    		throw new Error("<LightboxThumbnail>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set thumbnailStyle(value) {
-    		throw new Error("<LightboxThumbnail>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get protect() {
-    		throw new Error("<LightboxThumbnail>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set protect(value) {
-    		throw new Error("<LightboxThumbnail>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
+    function get_each_context_2$8(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[22] = list[i];
+    	return child_ctx;
     }
 
-    function fade(node, { delay = 0, duration = 400, easing = identity }) {
-        const o = +getComputedStyle(node).opacity;
-        return {
-            delay,
-            duration,
-            easing,
-            css: t => `opacity: ${t * o}`
-        };
-    }
-
-    /* node_modules\svelte-lightbox\src\Modal\LightboxHeader.svelte generated by Svelte v3.23.0 */
-    const file$k = "node_modules\\svelte-lightbox\\src\\Modal\\LightboxHeader.svelte";
-
-    function create_fragment$l(ctx) {
+    // (91:20) {#each estados as estado}
+    function create_each_block_2$8(ctx) {
     	let div;
-    	let button;
-    	let t;
-    	let button_class_value;
-    	let div_class_value;
-    	let mounted;
-    	let dispose;
-
-    	const block = {
-    		c: function create() {
-    			div = element("div");
-    			button = element("button");
-    			t = text("×");
-    			attr_dev(button, "size", /*size*/ ctx[0]);
-    			attr_dev(button, "style", /*style*/ ctx[1]);
-    			attr_dev(button, "class", button_class_value = "" + (null_to_empty(/*buttonClasses*/ ctx[3]) + " svelte-19gvo37"));
-    			add_location(button, file$k, 11, 4, 304);
-    			attr_dev(div, "class", div_class_value = "" + (null_to_empty("svelte-lightbox-header " + /*headerClasses*/ ctx[2]) + " svelte-19gvo37"));
-    			add_location(div, file$k, 10, 0, 244);
-    		},
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, button);
-    			append_dev(button, t);
-
-    			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*click_handler*/ ctx[5], false, false, false);
-    				mounted = true;
-    			}
-    		},
-    		p: function update(ctx, [dirty]) {
-    			if (dirty & /*size*/ 1) {
-    				attr_dev(button, "size", /*size*/ ctx[0]);
-    			}
-
-    			if (dirty & /*style*/ 2) {
-    				attr_dev(button, "style", /*style*/ ctx[1]);
-    			}
-
-    			if (dirty & /*buttonClasses*/ 8 && button_class_value !== (button_class_value = "" + (null_to_empty(/*buttonClasses*/ ctx[3]) + " svelte-19gvo37"))) {
-    				attr_dev(button, "class", button_class_value);
-    			}
-
-    			if (dirty & /*headerClasses*/ 4 && div_class_value !== (div_class_value = "" + (null_to_empty("svelte-lightbox-header " + /*headerClasses*/ ctx[2]) + " svelte-19gvo37"))) {
-    				attr_dev(div, "class", div_class_value);
-    			}
-    		},
-    		i: noop,
-    		o: noop,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
-    			mounted = false;
-    			dispose();
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_fragment$l.name,
-    		type: "component",
-    		source: "",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function instance$l($$self, $$props, $$invalidate) {
-    	const dispatch = createEventDispatcher();
-    	let { size = "xs" } = $$props;
-    	let { style = "" } = $$props;
-    	let { headerClasses = "" } = $$props;
-    	let { buttonClasses = "" } = $$props;
-    	const writable_props = ["size", "style", "headerClasses", "buttonClasses"];
-
-    	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<LightboxHeader> was created with unknown prop '${key}'`);
-    	});
-
-    	let { $$slots = {}, $$scope } = $$props;
-    	validate_slots("LightboxHeader", $$slots, []);
-    	const click_handler = () => dispatch("close");
-
-    	$$self.$set = $$props => {
-    		if ("size" in $$props) $$invalidate(0, size = $$props.size);
-    		if ("style" in $$props) $$invalidate(1, style = $$props.style);
-    		if ("headerClasses" in $$props) $$invalidate(2, headerClasses = $$props.headerClasses);
-    		if ("buttonClasses" in $$props) $$invalidate(3, buttonClasses = $$props.buttonClasses);
-    	};
-
-    	$$self.$capture_state = () => ({
-    		createEventDispatcher,
-    		dispatch,
-    		size,
-    		style,
-    		headerClasses,
-    		buttonClasses
-    	});
-
-    	$$self.$inject_state = $$props => {
-    		if ("size" in $$props) $$invalidate(0, size = $$props.size);
-    		if ("style" in $$props) $$invalidate(1, style = $$props.style);
-    		if ("headerClasses" in $$props) $$invalidate(2, headerClasses = $$props.headerClasses);
-    		if ("buttonClasses" in $$props) $$invalidate(3, buttonClasses = $$props.buttonClasses);
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [size, style, headerClasses, buttonClasses, dispatch, click_handler];
-    }
-
-    class LightboxHeader extends SvelteComponentDev {
-    	constructor(options) {
-    		super(options);
-
-    		init(this, options, instance$l, create_fragment$l, safe_not_equal, {
-    			size: 0,
-    			style: 1,
-    			headerClasses: 2,
-    			buttonClasses: 3
-    		});
-
-    		dispatch_dev("SvelteRegisterComponent", {
-    			component: this,
-    			tagName: "LightboxHeader",
-    			options,
-    			id: create_fragment$l.name
-    		});
-    	}
-
-    	get size() {
-    		throw new Error("<LightboxHeader>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set size(value) {
-    		throw new Error("<LightboxHeader>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get style() {
-    		throw new Error("<LightboxHeader>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set style(value) {
-    		throw new Error("<LightboxHeader>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get headerClasses() {
-    		throw new Error("<LightboxHeader>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set headerClasses(value) {
-    		throw new Error("<LightboxHeader>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get buttonClasses() {
-    		throw new Error("<LightboxHeader>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set buttonClasses(value) {
-    		throw new Error("<LightboxHeader>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-    }
-
-    /* node_modules\svelte-lightbox\src\Modal\LightboxBody.svelte generated by Svelte v3.23.0 */
-
-    const file$l = "node_modules\\svelte-lightbox\\src\\Modal\\LightboxBody.svelte";
-
-    // (10:4) {:else}
-    function create_else_block$1(ctx) {
-    	let div;
-    	let current;
-    	const default_slot_template = /*$$slots*/ ctx[4].default;
-    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[3], null);
-
-    	const block = {
-    		c: function create() {
-    			div = element("div");
-    			if (default_slot) default_slot.c();
-    			attr_dev(div, "class", "svelte-x9zrc7");
-    			toggle_class(div, "svelte-lightbox-image-portrait", /*portrait*/ ctx[2]);
-    			add_location(div, file$l, 10, 8, 318);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-
-    			if (default_slot) {
-    				default_slot.m(div, null);
-    			}
-
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope*/ 8) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[3], dirty, null, null);
-    				}
-    			}
-
-    			if (dirty & /*portrait*/ 4) {
-    				toggle_class(div, "svelte-lightbox-image-portrait", /*portrait*/ ctx[2]);
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(default_slot, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(default_slot, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
-    			if (default_slot) default_slot.d(detaching);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_else_block$1.name,
-    		type: "else",
-    		source: "(10:4) {:else}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (8:4) {#if image.src}
-    function create_if_block$9(ctx) {
-    	let img;
-    	let img_src_value;
-    	let img_alt_value;
-    	let img_style_value;
-    	let img_class_value;
-
-    	const block = {
-    		c: function create() {
-    			img = element("img");
-    			if (img.src !== (img_src_value = /*image*/ ctx[0].src)) attr_dev(img, "src", img_src_value);
-    			attr_dev(img, "alt", img_alt_value = /*image*/ ctx[0].alt);
-    			attr_dev(img, "style", img_style_value = /*image*/ ctx[0].style);
-    			attr_dev(img, "class", img_class_value = /*image*/ ctx[0].class);
-    			add_location(img, file$l, 8, 8, 220);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, img, anchor);
-    		},
-    		p: function update(ctx, dirty) {
-    			if (dirty & /*image*/ 1 && img.src !== (img_src_value = /*image*/ ctx[0].src)) {
-    				attr_dev(img, "src", img_src_value);
-    			}
-
-    			if (dirty & /*image*/ 1 && img_alt_value !== (img_alt_value = /*image*/ ctx[0].alt)) {
-    				attr_dev(img, "alt", img_alt_value);
-    			}
-
-    			if (dirty & /*image*/ 1 && img_style_value !== (img_style_value = /*image*/ ctx[0].style)) {
-    				attr_dev(img, "style", img_style_value);
-    			}
-
-    			if (dirty & /*image*/ 1 && img_class_value !== (img_class_value = /*image*/ ctx[0].class)) {
-    				attr_dev(img, "class", img_class_value);
-    			}
-    		},
-    		i: noop,
-    		o: noop,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(img);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block$9.name,
-    		type: "if",
-    		source: "(8:4) {#if image.src}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function create_fragment$m(ctx) {
-    	let div;
-    	let current_block_type_index;
-    	let if_block;
-    	let current;
-    	const if_block_creators = [create_if_block$9, create_else_block$1];
-    	const if_blocks = [];
-
-    	function select_block_type(ctx, dirty) {
-    		if (/*image*/ ctx[0].src) return 0;
-    		return 1;
-    	}
-
-    	current_block_type_index = select_block_type(ctx);
-    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-
-    	const block = {
-    		c: function create() {
-    			div = element("div");
-    			if_block.c();
-    			attr_dev(div, "class", "svelte-lightbox-body svelte-x9zrc7");
-    			toggle_class(div, "svelte-lightbox-unselectable", /*protect*/ ctx[1]);
-    			add_location(div, file$l, 6, 0, 112);
-    		},
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			if_blocks[current_block_type_index].m(div, null);
-    			current = true;
-    		},
-    		p: function update(ctx, [dirty]) {
-    			let previous_block_index = current_block_type_index;
-    			current_block_type_index = select_block_type(ctx);
-
-    			if (current_block_type_index === previous_block_index) {
-    				if_blocks[current_block_type_index].p(ctx, dirty);
-    			} else {
-    				group_outros();
-
-    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
-    					if_blocks[previous_block_index] = null;
-    				});
-
-    				check_outros();
-    				if_block = if_blocks[current_block_type_index];
-
-    				if (!if_block) {
-    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-    					if_block.c();
-    				}
-
-    				transition_in(if_block, 1);
-    				if_block.m(div, null);
-    			}
-
-    			if (dirty & /*protect*/ 2) {
-    				toggle_class(div, "svelte-lightbox-unselectable", /*protect*/ ctx[1]);
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(if_block);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(if_block);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
-    			if_blocks[current_block_type_index].d();
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_fragment$m.name,
-    		type: "component",
-    		source: "",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function instance$m($$self, $$props, $$invalidate) {
-    	let { image = {} } = $$props;
-    	let { protect = false } = $$props;
-    	let { portrait = false } = $$props;
-    	const writable_props = ["image", "protect", "portrait"];
-
-    	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<LightboxBody> was created with unknown prop '${key}'`);
-    	});
-
-    	let { $$slots = {}, $$scope } = $$props;
-    	validate_slots("LightboxBody", $$slots, ['default']);
-
-    	$$self.$set = $$props => {
-    		if ("image" in $$props) $$invalidate(0, image = $$props.image);
-    		if ("protect" in $$props) $$invalidate(1, protect = $$props.protect);
-    		if ("portrait" in $$props) $$invalidate(2, portrait = $$props.portrait);
-    		if ("$$scope" in $$props) $$invalidate(3, $$scope = $$props.$$scope);
-    	};
-
-    	$$self.$capture_state = () => ({ image, protect, portrait });
-
-    	$$self.$inject_state = $$props => {
-    		if ("image" in $$props) $$invalidate(0, image = $$props.image);
-    		if ("protect" in $$props) $$invalidate(1, protect = $$props.protect);
-    		if ("portrait" in $$props) $$invalidate(2, portrait = $$props.portrait);
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [image, protect, portrait, $$scope, $$slots];
-    }
-
-    class LightboxBody extends SvelteComponentDev {
-    	constructor(options) {
-    		super(options);
-    		init(this, options, instance$m, create_fragment$m, safe_not_equal, { image: 0, protect: 1, portrait: 2 });
-
-    		dispatch_dev("SvelteRegisterComponent", {
-    			component: this,
-    			tagName: "LightboxBody",
-    			options,
-    			id: create_fragment$m.name
-    		});
-    	}
-
-    	get image() {
-    		throw new Error("<LightboxBody>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set image(value) {
-    		throw new Error("<LightboxBody>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get protect() {
-    		throw new Error("<LightboxBody>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set protect(value) {
-    		throw new Error("<LightboxBody>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get portrait() {
-    		throw new Error("<LightboxBody>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set portrait(value) {
-    		throw new Error("<LightboxBody>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-    }
-
-    /* node_modules\svelte-lightbox\src\Modal\LightboxFooter.svelte generated by Svelte v3.23.0 */
-
-    const file$m = "node_modules\\svelte-lightbox\\src\\Modal\\LightboxFooter.svelte";
-
-    // (18:4) {#if gallery[0]}
-    function create_if_block$a(ctx) {
-    	let p;
+    	let input;
+    	let input_id_value;
+    	let input_value_value;
     	let t0;
-    	let t1_value = /*activeImage*/ ctx[3] + 1 + "";
+    	let label;
+    	let t1_value = /*estado*/ ctx[22].descripcion + "";
     	let t1;
+    	let label_for_value;
     	let t2;
-    	let t3_value = /*gallery*/ ctx[2].length - 1 + "";
-    	let t3;
+    	let mounted;
+    	let dispose;
 
-    	const block = {
-    		c: function create() {
-    			p = element("p");
-    			t0 = text("Image ");
-    			t1 = text(t1_value);
-    			t2 = text(" of ");
-    			t3 = text(t3_value);
-    			add_location(p, file$m, 18, 8, 364);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, p, anchor);
-    			append_dev(p, t0);
-    			append_dev(p, t1);
-    			append_dev(p, t2);
-    			append_dev(p, t3);
-    		},
-    		p: function update(ctx, dirty) {
-    			if (dirty & /*activeImage*/ 8 && t1_value !== (t1_value = /*activeImage*/ ctx[3] + 1 + "")) set_data_dev(t1, t1_value);
-    			if (dirty & /*gallery*/ 4 && t3_value !== (t3_value = /*gallery*/ ctx[2].length - 1 + "")) set_data_dev(t3, t3_value);
-    		},
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(p);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block$a.name,
-    		type: "if",
-    		source: "(18:4) {#if gallery[0]}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function create_fragment$n(ctx) {
-    	let div;
-    	let h2;
-    	let t0;
-    	let h5;
-    	let t1;
-    	let div_class_value;
-    	let if_block = /*gallery*/ ctx[2][0] && create_if_block$a(ctx);
+    	function click_handler(...args) {
+    		return /*click_handler*/ ctx[15](/*estado*/ ctx[22], ...args);
+    	}
 
     	const block = {
     		c: function create() {
     			div = element("div");
-    			h2 = element("h2");
+    			input = element("input");
     			t0 = space();
-    			h5 = element("h5");
-    			t1 = space();
-    			if (if_block) if_block.c();
-    			add_location(h2, file$m, 11, 4, 251);
-    			add_location(h5, file$m, 14, 4, 292);
-    			attr_dev(div, "class", div_class_value = "" + (null_to_empty("svelte-lightbox-footer " + /*classes*/ ctx[4]) + " svelte-1u8lh7d"));
-    			attr_dev(div, "style", /*style*/ ctx[5]);
-    			add_location(div, file$m, 10, 0, 189);
-    		},
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    			label = element("label");
+    			t1 = text(t1_value);
+    			t2 = space();
+    			attr_dev(input, "type", "radio");
+    			attr_dev(input, "id", input_id_value = /*estado*/ ctx[22].id);
+    			input.__value = input_value_value = /*estado*/ ctx[22].id;
+    			input.value = input.__value;
+    			attr_dev(input, "name", "Estado");
+    			attr_dev(input, "class", "custom-control-input");
+    			/*$$binding_groups*/ ctx[14][0].push(input);
+    			add_location(input, file$j, 92, 29, 3182);
+    			attr_dev(label, "class", "custom-control-label");
+    			attr_dev(label, "for", label_for_value = /*estado*/ ctx[22].id);
+    			add_location(label, file$j, 93, 29, 3399);
+    			attr_dev(div, "class", "custom-control custom-radio custom-control-inline");
+    			add_location(div, file$j, 91, 25, 3088);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
-    			append_dev(div, h2);
-    			h2.innerHTML = /*title*/ ctx[0];
+    			append_dev(div, input);
+    			input.checked = input.__value === /*solicitudDetalle*/ ctx[0].estadoId;
     			append_dev(div, t0);
-    			append_dev(div, h5);
-    			h5.innerHTML = /*description*/ ctx[1];
-    			append_dev(div, t1);
-    			if (if_block) if_block.m(div, null);
-    		},
-    		p: function update(ctx, [dirty]) {
-    			if (dirty & /*title*/ 1) h2.innerHTML = /*title*/ ctx[0];			if (dirty & /*description*/ 2) h5.innerHTML = /*description*/ ctx[1];
-    			if (/*gallery*/ ctx[2][0]) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
-    				} else {
-    					if_block = create_if_block$a(ctx);
-    					if_block.c();
-    					if_block.m(div, null);
-    				}
-    			} else if (if_block) {
-    				if_block.d(1);
-    				if_block = null;
-    			}
-
-    			if (dirty & /*classes*/ 16 && div_class_value !== (div_class_value = "" + (null_to_empty("svelte-lightbox-footer " + /*classes*/ ctx[4]) + " svelte-1u8lh7d"))) {
-    				attr_dev(div, "class", div_class_value);
-    			}
-
-    			if (dirty & /*style*/ 32) {
-    				attr_dev(div, "style", /*style*/ ctx[5]);
-    			}
-    		},
-    		i: noop,
-    		o: noop,
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
-    			if (if_block) if_block.d();
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_fragment$n.name,
-    		type: "component",
-    		source: "",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function instance$n($$self, $$props, $$invalidate) {
-    	let { title = "" } = $$props;
-    	let { description = "" } = $$props;
-    	let { gallery } = $$props;
-    	let { activeImage } = $$props;
-    	let { classes = "" } = $$props;
-    	let { style = "" } = $$props;
-    	const writable_props = ["title", "description", "gallery", "activeImage", "classes", "style"];
-
-    	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<LightboxFooter> was created with unknown prop '${key}'`);
-    	});
-
-    	let { $$slots = {}, $$scope } = $$props;
-    	validate_slots("LightboxFooter", $$slots, []);
-
-    	$$self.$set = $$props => {
-    		if ("title" in $$props) $$invalidate(0, title = $$props.title);
-    		if ("description" in $$props) $$invalidate(1, description = $$props.description);
-    		if ("gallery" in $$props) $$invalidate(2, gallery = $$props.gallery);
-    		if ("activeImage" in $$props) $$invalidate(3, activeImage = $$props.activeImage);
-    		if ("classes" in $$props) $$invalidate(4, classes = $$props.classes);
-    		if ("style" in $$props) $$invalidate(5, style = $$props.style);
-    	};
-
-    	$$self.$capture_state = () => ({
-    		title,
-    		description,
-    		gallery,
-    		activeImage,
-    		classes,
-    		style
-    	});
-
-    	$$self.$inject_state = $$props => {
-    		if ("title" in $$props) $$invalidate(0, title = $$props.title);
-    		if ("description" in $$props) $$invalidate(1, description = $$props.description);
-    		if ("gallery" in $$props) $$invalidate(2, gallery = $$props.gallery);
-    		if ("activeImage" in $$props) $$invalidate(3, activeImage = $$props.activeImage);
-    		if ("classes" in $$props) $$invalidate(4, classes = $$props.classes);
-    		if ("style" in $$props) $$invalidate(5, style = $$props.style);
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [title, description, gallery, activeImage, classes, style];
-    }
-
-    class LightboxFooter extends SvelteComponentDev {
-    	constructor(options) {
-    		super(options);
-
-    		init(this, options, instance$n, create_fragment$n, safe_not_equal, {
-    			title: 0,
-    			description: 1,
-    			gallery: 2,
-    			activeImage: 3,
-    			classes: 4,
-    			style: 5
-    		});
-
-    		dispatch_dev("SvelteRegisterComponent", {
-    			component: this,
-    			tagName: "LightboxFooter",
-    			options,
-    			id: create_fragment$n.name
-    		});
-
-    		const { ctx } = this.$$;
-    		const props = options.props || {};
-
-    		if (/*gallery*/ ctx[2] === undefined && !("gallery" in props)) {
-    			console.warn("<LightboxFooter> was created without expected prop 'gallery'");
-    		}
-
-    		if (/*activeImage*/ ctx[3] === undefined && !("activeImage" in props)) {
-    			console.warn("<LightboxFooter> was created without expected prop 'activeImage'");
-    		}
-    	}
-
-    	get title() {
-    		throw new Error("<LightboxFooter>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set title(value) {
-    		throw new Error("<LightboxFooter>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get description() {
-    		throw new Error("<LightboxFooter>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set description(value) {
-    		throw new Error("<LightboxFooter>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get gallery() {
-    		throw new Error("<LightboxFooter>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set gallery(value) {
-    		throw new Error("<LightboxFooter>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get activeImage() {
-    		throw new Error("<LightboxFooter>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set activeImage(value) {
-    		throw new Error("<LightboxFooter>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get classes() {
-    		throw new Error("<LightboxFooter>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set classes(value) {
-    		throw new Error("<LightboxFooter>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get style() {
-    		throw new Error("<LightboxFooter>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set style(value) {
-    		throw new Error("<LightboxFooter>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-    }
-
-    /* node_modules\svelte-lightbox\src\Modal\Index.svelte generated by Svelte v3.23.0 */
-    const file$n = "node_modules\\svelte-lightbox\\src\\Modal\\Index.svelte";
-
-    // (33:12) <Body bind:image={image} bind:protect={protect} bind:portrait={portrait}>
-    function create_default_slot(ctx) {
-    	let current;
-    	const default_slot_template = /*$$slots*/ ctx[12].default;
-    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[23], null);
-
-    	const block = {
-    		c: function create() {
-    			if (default_slot) default_slot.c();
-    		},
-    		m: function mount(target, anchor) {
-    			if (default_slot) {
-    				default_slot.m(target, anchor);
-    			}
-
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			if (default_slot) {
-    				if (default_slot.p && dirty & /*$$scope*/ 8388608) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[23], dirty, null, null);
-    				}
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(default_slot, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(default_slot, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (default_slot) default_slot.d(detaching);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_default_slot.name,
-    		type: "slot",
-    		source: "(33:12) <Body bind:image={image} bind:protect={protect} bind:portrait={portrait}>",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function create_fragment$o(ctx) {
-    	let div2;
-    	let div1;
-    	let div0;
-    	let t0;
-    	let updating_image;
-    	let updating_protect;
-    	let updating_portrait;
-    	let t1;
-    	let updating_title;
-    	let updating_description;
-    	let updating_gallery;
-    	let updating_activeImage;
-    	let div1_class_value;
-    	let div1_transition;
-    	let current;
-    	let mounted;
-    	let dispose;
-    	const header = new LightboxHeader({ $$inline: true });
-    	header.$on("close", /*close_handler*/ ctx[13]);
-
-    	function body_image_binding(value) {
-    		/*body_image_binding*/ ctx[14].call(null, value);
-    	}
-
-    	function body_protect_binding(value) {
-    		/*body_protect_binding*/ ctx[15].call(null, value);
-    	}
-
-    	function body_portrait_binding(value) {
-    		/*body_portrait_binding*/ ctx[16].call(null, value);
-    	}
-
-    	let body_props = {
-    		$$slots: { default: [create_default_slot] },
-    		$$scope: { ctx }
-    	};
-
-    	if (/*image*/ ctx[0] !== void 0) {
-    		body_props.image = /*image*/ ctx[0];
-    	}
-
-    	if (/*protect*/ ctx[1] !== void 0) {
-    		body_props.protect = /*protect*/ ctx[1];
-    	}
-
-    	if (/*portrait*/ ctx[2] !== void 0) {
-    		body_props.portrait = /*portrait*/ ctx[2];
-    	}
-
-    	const body = new LightboxBody({ props: body_props, $$inline: true });
-    	binding_callbacks.push(() => bind(body, "image", body_image_binding));
-    	binding_callbacks.push(() => bind(body, "protect", body_protect_binding));
-    	binding_callbacks.push(() => bind(body, "portrait", body_portrait_binding));
-
-    	function footer_title_binding(value) {
-    		/*footer_title_binding*/ ctx[17].call(null, value);
-    	}
-
-    	function footer_description_binding(value) {
-    		/*footer_description_binding*/ ctx[18].call(null, value);
-    	}
-
-    	function footer_gallery_binding(value) {
-    		/*footer_gallery_binding*/ ctx[19].call(null, value);
-    	}
-
-    	function footer_activeImage_binding(value) {
-    		/*footer_activeImage_binding*/ ctx[20].call(null, value);
-    	}
-
-    	let footer_props = {};
-
-    	if (/*title*/ ctx[3] !== void 0) {
-    		footer_props.title = /*title*/ ctx[3];
-    	}
-
-    	if (/*description*/ ctx[4] !== void 0) {
-    		footer_props.description = /*description*/ ctx[4];
-    	}
-
-    	if (/*gallery*/ ctx[5] !== void 0) {
-    		footer_props.gallery = /*gallery*/ ctx[5];
-    	}
-
-    	if (/*activeImage*/ ctx[6] !== void 0) {
-    		footer_props.activeImage = /*activeImage*/ ctx[6];
-    	}
-
-    	const footer = new LightboxFooter({ props: footer_props, $$inline: true });
-    	binding_callbacks.push(() => bind(footer, "title", footer_title_binding));
-    	binding_callbacks.push(() => bind(footer, "description", footer_description_binding));
-    	binding_callbacks.push(() => bind(footer, "gallery", footer_gallery_binding));
-    	binding_callbacks.push(() => bind(footer, "activeImage", footer_activeImage_binding));
-
-    	const block = {
-    		c: function create() {
-    			div2 = element("div");
-    			div1 = element("div");
-    			div0 = element("div");
-    			create_component(header.$$.fragment);
-    			t0 = space();
-    			create_component(body.$$.fragment);
-    			t1 = space();
-    			create_component(footer.$$.fragment);
-    			attr_dev(div0, "class", "svelte-lightbox svelte-1nywnxo");
-    			add_location(div0, file$n, 28, 8, 926);
-    			attr_dev(div1, "class", div1_class_value = "" + (null_to_empty(/*allModalClasses*/ ctx[9]) + " svelte-1nywnxo"));
-    			attr_dev(div1, "style", /*modalStyle*/ ctx[7]);
-    			add_location(div1, file$n, 26, 4, 775);
-    			attr_dev(div2, "class", "cover clearfix svelte-1nywnxo");
-    			add_location(div2, file$n, 24, 0, 741);
-    		},
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div2, anchor);
-    			append_dev(div2, div1);
-    			append_dev(div1, div0);
-    			mount_component(header, div0, null);
-    			append_dev(div0, t0);
-    			mount_component(body, div0, null);
-    			append_dev(div0, t1);
-    			mount_component(footer, div0, null);
-    			current = true;
+    			append_dev(div, label);
+    			append_dev(label, t1);
+    			append_dev(div, t2);
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(div0, "click", /*click_handler*/ ctx[21], false, false, false),
-    					listen_dev(div1, "click", /*click_handler_1*/ ctx[22], false, false, false)
+    					listen_dev(input, "change", /*input_change_handler*/ ctx[13]),
+    					listen_dev(input, "click", click_handler, false, false, false)
     				];
 
     				mounted = true;
     			}
     		},
-    		p: function update(ctx, [dirty]) {
-    			const body_changes = {};
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
 
-    			if (dirty & /*$$scope*/ 8388608) {
-    				body_changes.$$scope = { dirty, ctx };
+    			if (dirty & /*estados*/ 16 && input_id_value !== (input_id_value = /*estado*/ ctx[22].id)) {
+    				attr_dev(input, "id", input_id_value);
     			}
 
-    			if (!updating_image && dirty & /*image*/ 1) {
-    				updating_image = true;
-    				body_changes.image = /*image*/ ctx[0];
-    				add_flush_callback(() => updating_image = false);
+    			if (dirty & /*estados*/ 16 && input_value_value !== (input_value_value = /*estado*/ ctx[22].id)) {
+    				prop_dev(input, "__value", input_value_value);
     			}
 
-    			if (!updating_protect && dirty & /*protect*/ 2) {
-    				updating_protect = true;
-    				body_changes.protect = /*protect*/ ctx[1];
-    				add_flush_callback(() => updating_protect = false);
+    			input.value = input.__value;
+
+    			if (dirty & /*solicitudDetalle*/ 1) {
+    				input.checked = input.__value === /*solicitudDetalle*/ ctx[0].estadoId;
     			}
 
-    			if (!updating_portrait && dirty & /*portrait*/ 4) {
-    				updating_portrait = true;
-    				body_changes.portrait = /*portrait*/ ctx[2];
-    				add_flush_callback(() => updating_portrait = false);
+    			if (dirty & /*estados*/ 16 && t1_value !== (t1_value = /*estado*/ ctx[22].descripcion + "")) set_data_dev(t1, t1_value);
+
+    			if (dirty & /*estados*/ 16 && label_for_value !== (label_for_value = /*estado*/ ctx[22].id)) {
+    				attr_dev(label, "for", label_for_value);
     			}
-
-    			body.$set(body_changes);
-    			const footer_changes = {};
-
-    			if (!updating_title && dirty & /*title*/ 8) {
-    				updating_title = true;
-    				footer_changes.title = /*title*/ ctx[3];
-    				add_flush_callback(() => updating_title = false);
-    			}
-
-    			if (!updating_description && dirty & /*description*/ 16) {
-    				updating_description = true;
-    				footer_changes.description = /*description*/ ctx[4];
-    				add_flush_callback(() => updating_description = false);
-    			}
-
-    			if (!updating_gallery && dirty & /*gallery*/ 32) {
-    				updating_gallery = true;
-    				footer_changes.gallery = /*gallery*/ ctx[5];
-    				add_flush_callback(() => updating_gallery = false);
-    			}
-
-    			if (!updating_activeImage && dirty & /*activeImage*/ 64) {
-    				updating_activeImage = true;
-    				footer_changes.activeImage = /*activeImage*/ ctx[6];
-    				add_flush_callback(() => updating_activeImage = false);
-    			}
-
-    			footer.$set(footer_changes);
-
-    			if (!current || dirty & /*allModalClasses*/ 512 && div1_class_value !== (div1_class_value = "" + (null_to_empty(/*allModalClasses*/ ctx[9]) + " svelte-1nywnxo"))) {
-    				attr_dev(div1, "class", div1_class_value);
-    			}
-
-    			if (!current || dirty & /*modalStyle*/ 128) {
-    				attr_dev(div1, "style", /*modalStyle*/ ctx[7]);
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(header.$$.fragment, local);
-    			transition_in(body.$$.fragment, local);
-    			transition_in(footer.$$.fragment, local);
-
-    			add_render_callback(() => {
-    				if (!div1_transition) div1_transition = create_bidirectional_transition(div1, fade, { duration: /*transitionDuration*/ ctx[8] }, true);
-    				div1_transition.run(1);
-    			});
-
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(header.$$.fragment, local);
-    			transition_out(body.$$.fragment, local);
-    			transition_out(footer.$$.fragment, local);
-    			if (!div1_transition) div1_transition = create_bidirectional_transition(div1, fade, { duration: /*transitionDuration*/ ctx[8] }, false);
-    			div1_transition.run(0);
-    			current = false;
     		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div2);
-    			destroy_component(header);
-    			destroy_component(body);
-    			destroy_component(footer);
-    			if (detaching && div1_transition) div1_transition.end();
+    			if (detaching) detach_dev(div);
+    			/*$$binding_groups*/ ctx[14][0].splice(/*$$binding_groups*/ ctx[14][0].indexOf(input), 1);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -33463,1411 +32124,21 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$o.name,
-    		type: "component",
-    		source: "",
+    		id: create_each_block_2$8.name,
+    		type: "each",
+    		source: "(91:20) {#each estados as estado}",
     		ctx
     	});
 
     	return block;
     }
 
-    function instance$o($$self, $$props, $$invalidate) {
-    	const dispatch = createEventDispatcher();
-    	let { modalClasses = "" } = $$props;
-    	let { modalStyle = "" } = $$props;
-    	let { transitionDuration = 500 } = $$props;
-    	let { image = {} } = $$props;
-    	let { protect = false } = $$props;
-    	let { portrait = false } = $$props;
-    	let { title = "" } = $$props;
-    	let { description = "" } = $$props;
-    	let { gallery } = $$props;
-    	let { activeImage } = $$props;
-
-    	const writable_props = [
-    		"modalClasses",
-    		"modalStyle",
-    		"transitionDuration",
-    		"image",
-    		"protect",
-    		"portrait",
-    		"title",
-    		"description",
-    		"gallery",
-    		"activeImage"
-    	];
-
-    	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Index> was created with unknown prop '${key}'`);
-    	});
-
-    	let { $$slots = {}, $$scope } = $$props;
-    	validate_slots("Index", $$slots, ['default']);
-    	const close_handler = () => dispatch("close");
-
-    	function body_image_binding(value) {
-    		image = value;
-    		$$invalidate(0, image);
-    	}
-
-    	function body_protect_binding(value) {
-    		protect = value;
-    		$$invalidate(1, protect);
-    	}
-
-    	function body_portrait_binding(value) {
-    		portrait = value;
-    		$$invalidate(2, portrait);
-    	}
-
-    	function footer_title_binding(value) {
-    		title = value;
-    		$$invalidate(3, title);
-    	}
-
-    	function footer_description_binding(value) {
-    		description = value;
-    		$$invalidate(4, description);
-    	}
-
-    	function footer_gallery_binding(value) {
-    		gallery = value;
-    		$$invalidate(5, gallery);
-    	}
-
-    	function footer_activeImage_binding(value) {
-    		activeImage = value;
-    		$$invalidate(6, activeImage);
-    	}
-
-    	const click_handler = () => dispatch("modalClick");
-    	const click_handler_1 = () => dispatch("topModalClick");
-
-    	$$self.$set = $$props => {
-    		if ("modalClasses" in $$props) $$invalidate(11, modalClasses = $$props.modalClasses);
-    		if ("modalStyle" in $$props) $$invalidate(7, modalStyle = $$props.modalStyle);
-    		if ("transitionDuration" in $$props) $$invalidate(8, transitionDuration = $$props.transitionDuration);
-    		if ("image" in $$props) $$invalidate(0, image = $$props.image);
-    		if ("protect" in $$props) $$invalidate(1, protect = $$props.protect);
-    		if ("portrait" in $$props) $$invalidate(2, portrait = $$props.portrait);
-    		if ("title" in $$props) $$invalidate(3, title = $$props.title);
-    		if ("description" in $$props) $$invalidate(4, description = $$props.description);
-    		if ("gallery" in $$props) $$invalidate(5, gallery = $$props.gallery);
-    		if ("activeImage" in $$props) $$invalidate(6, activeImage = $$props.activeImage);
-    		if ("$$scope" in $$props) $$invalidate(23, $$scope = $$props.$$scope);
-    	};
-
-    	$$self.$capture_state = () => ({
-    		fade,
-    		createEventDispatcher,
-    		dispatch,
-    		Header: LightboxHeader,
-    		Body: LightboxBody,
-    		Footer: LightboxFooter,
-    		modalClasses,
-    		modalStyle,
-    		transitionDuration,
-    		image,
-    		protect,
-    		portrait,
-    		title,
-    		description,
-    		gallery,
-    		activeImage,
-    		allModalClasses
-    	});
-
-    	$$self.$inject_state = $$props => {
-    		if ("modalClasses" in $$props) $$invalidate(11, modalClasses = $$props.modalClasses);
-    		if ("modalStyle" in $$props) $$invalidate(7, modalStyle = $$props.modalStyle);
-    		if ("transitionDuration" in $$props) $$invalidate(8, transitionDuration = $$props.transitionDuration);
-    		if ("image" in $$props) $$invalidate(0, image = $$props.image);
-    		if ("protect" in $$props) $$invalidate(1, protect = $$props.protect);
-    		if ("portrait" in $$props) $$invalidate(2, portrait = $$props.portrait);
-    		if ("title" in $$props) $$invalidate(3, title = $$props.title);
-    		if ("description" in $$props) $$invalidate(4, description = $$props.description);
-    		if ("gallery" in $$props) $$invalidate(5, gallery = $$props.gallery);
-    		if ("activeImage" in $$props) $$invalidate(6, activeImage = $$props.activeImage);
-    		if ("allModalClasses" in $$props) $$invalidate(9, allModalClasses = $$props.allModalClasses);
-    	};
-
-    	let allModalClasses;
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*modalClasses*/ 2048) {
-    			//let allModalClasses = modalClasses;
-    			 $$invalidate(9, allModalClasses = `${modalClasses} svelte-lightbox-overlay clearfix`);
-    		}
-    	};
-
-    	return [
-    		image,
-    		protect,
-    		portrait,
-    		title,
-    		description,
-    		gallery,
-    		activeImage,
-    		modalStyle,
-    		transitionDuration,
-    		allModalClasses,
-    		dispatch,
-    		modalClasses,
-    		$$slots,
-    		close_handler,
-    		body_image_binding,
-    		body_protect_binding,
-    		body_portrait_binding,
-    		footer_title_binding,
-    		footer_description_binding,
-    		footer_gallery_binding,
-    		footer_activeImage_binding,
-    		click_handler,
-    		click_handler_1,
-    		$$scope
-    	];
-    }
-
-    class Index$4 extends SvelteComponentDev {
-    	constructor(options) {
-    		super(options);
-
-    		init(this, options, instance$o, create_fragment$o, safe_not_equal, {
-    			modalClasses: 11,
-    			modalStyle: 7,
-    			transitionDuration: 8,
-    			image: 0,
-    			protect: 1,
-    			portrait: 2,
-    			title: 3,
-    			description: 4,
-    			gallery: 5,
-    			activeImage: 6
-    		});
-
-    		dispatch_dev("SvelteRegisterComponent", {
-    			component: this,
-    			tagName: "Index",
-    			options,
-    			id: create_fragment$o.name
-    		});
-
-    		const { ctx } = this.$$;
-    		const props = options.props || {};
-
-    		if (/*gallery*/ ctx[5] === undefined && !("gallery" in props)) {
-    			console.warn("<Index> was created without expected prop 'gallery'");
-    		}
-
-    		if (/*activeImage*/ ctx[6] === undefined && !("activeImage" in props)) {
-    			console.warn("<Index> was created without expected prop 'activeImage'");
-    		}
-    	}
-
-    	get modalClasses() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set modalClasses(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get modalStyle() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set modalStyle(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get transitionDuration() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set transitionDuration(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get image() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set image(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get protect() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set protect(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get portrait() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set portrait(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get title() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set title(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get description() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set description(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get gallery() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set gallery(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get activeImage() {
-    		throw new Error("<Index>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set activeImage(value) {
-    		throw new Error("<Index>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-    }
-
-    /* node_modules\svelte-lightbox\src\Lightbox.svelte generated by Svelte v3.23.0 */
-    const get_image_slot_changes = dirty => ({});
-    const get_image_slot_context = ctx => ({});
-    const get_thumbnail_slot_changes = dirty => ({});
-    const get_thumbnail_slot_context = ctx => ({});
-
-    // (56:4) {:else}
-    function create_else_block_1(ctx) {
-    	let current;
-    	const default_slot_template = /*$$slots*/ ctx[17].default;
-    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[31], null);
-
-    	const block = {
-    		c: function create() {
-    			if (default_slot) default_slot.c();
-    		},
-    		m: function mount(target, anchor) {
-    			if (default_slot) {
-    				default_slot.m(target, anchor);
-    			}
-
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			if (default_slot) {
-    				if (default_slot.p && dirty[1] & /*$$scope*/ 1) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[31], dirty, null, null);
-    				}
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(default_slot, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(default_slot, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (default_slot) default_slot.d(detaching);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_else_block_1.name,
-    		type: "else",
-    		source: "(56:4) {:else}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (54:4) {#if thumbnail}
-    function create_if_block_2$4(ctx) {
-    	let current;
-    	const thumbnail_slot_template = /*$$slots*/ ctx[17].thumbnail;
-    	const thumbnail_slot = create_slot(thumbnail_slot_template, ctx, /*$$scope*/ ctx[31], get_thumbnail_slot_context);
-
-    	const block = {
-    		c: function create() {
-    			if (thumbnail_slot) thumbnail_slot.c();
-    		},
-    		m: function mount(target, anchor) {
-    			if (thumbnail_slot) {
-    				thumbnail_slot.m(target, anchor);
-    			}
-
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			if (thumbnail_slot) {
-    				if (thumbnail_slot.p && dirty[1] & /*$$scope*/ 1) {
-    					update_slot(thumbnail_slot, thumbnail_slot_template, ctx, /*$$scope*/ ctx[31], dirty, get_thumbnail_slot_changes, get_thumbnail_slot_context);
-    				}
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(thumbnail_slot, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(thumbnail_slot, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (thumbnail_slot) thumbnail_slot.d(detaching);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block_2$4.name,
-    		type: "if",
-    		source: "(54:4) {#if thumbnail}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (53:0) <Thumbnail bind:thumbnailClasses bind:thumbnailStyle bind:protect on:click={toggle}>
-    function create_default_slot_1(ctx) {
-    	let current_block_type_index;
-    	let if_block;
-    	let if_block_anchor;
-    	let current;
-    	const if_block_creators = [create_if_block_2$4, create_else_block_1];
-    	const if_blocks = [];
-
-    	function select_block_type(ctx, dirty) {
-    		if (/*thumbnail*/ ctx[12]) return 0;
-    		return 1;
-    	}
-
-    	current_block_type_index = select_block_type(ctx);
-    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-
-    	const block = {
-    		c: function create() {
-    			if_block.c();
-    			if_block_anchor = empty();
-    		},
-    		m: function mount(target, anchor) {
-    			if_blocks[current_block_type_index].m(target, anchor);
-    			insert_dev(target, if_block_anchor, anchor);
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			let previous_block_index = current_block_type_index;
-    			current_block_type_index = select_block_type(ctx);
-
-    			if (current_block_type_index === previous_block_index) {
-    				if_blocks[current_block_type_index].p(ctx, dirty);
-    			} else {
-    				group_outros();
-
-    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
-    					if_blocks[previous_block_index] = null;
-    				});
-
-    				check_outros();
-    				if_block = if_blocks[current_block_type_index];
-
-    				if (!if_block) {
-    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-    					if_block.c();
-    				}
-
-    				transition_in(if_block, 1);
-    				if_block.m(if_block_anchor.parentNode, if_block_anchor);
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(if_block);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(if_block);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if_blocks[current_block_type_index].d(detaching);
-    			if (detaching) detach_dev(if_block_anchor);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_default_slot_1.name,
-    		type: "slot",
-    		source: "(53:0) <Thumbnail bind:thumbnailClasses bind:thumbnailStyle bind:protect on:click={toggle}>",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (61:0) {#if visible}
-    function create_if_block$b(ctx) {
-    	let updating_modalClasses;
-    	let updating_modalStyle;
-    	let updating_transitionDuration;
-    	let updating_image;
-    	let updating_protect;
-    	let updating_portrait;
-    	let updating_title;
-    	let updating_description;
-    	let updating_gallery;
-    	let updating_activeImage;
-    	let current;
-
-    	function modal_modalClasses_binding(value) {
-    		/*modal_modalClasses_binding*/ ctx[21].call(null, value);
-    	}
-
-    	function modal_modalStyle_binding(value) {
-    		/*modal_modalStyle_binding*/ ctx[22].call(null, value);
-    	}
-
-    	function modal_transitionDuration_binding(value) {
-    		/*modal_transitionDuration_binding*/ ctx[23].call(null, value);
-    	}
-
-    	function modal_image_binding(value) {
-    		/*modal_image_binding*/ ctx[24].call(null, value);
-    	}
-
-    	function modal_protect_binding(value) {
-    		/*modal_protect_binding*/ ctx[25].call(null, value);
-    	}
-
-    	function modal_portrait_binding(value) {
-    		/*modal_portrait_binding*/ ctx[26].call(null, value);
-    	}
-
-    	function modal_title_binding(value) {
-    		/*modal_title_binding*/ ctx[27].call(null, value);
-    	}
-
-    	function modal_description_binding(value) {
-    		/*modal_description_binding*/ ctx[28].call(null, value);
-    	}
-
-    	function modal_gallery_binding(value) {
-    		/*modal_gallery_binding*/ ctx[29].call(null, value);
-    	}
-
-    	function modal_activeImage_binding(value) {
-    		/*modal_activeImage_binding*/ ctx[30].call(null, value);
-    	}
-
-    	let modal_props = {
-    		$$slots: { default: [create_default_slot$1] },
-    		$$scope: { ctx }
-    	};
-
-    	if (/*modalClasses*/ ctx[2] !== void 0) {
-    		modal_props.modalClasses = /*modalClasses*/ ctx[2];
-    	}
-
-    	if (/*modalStyle*/ ctx[3] !== void 0) {
-    		modal_props.modalStyle = /*modalStyle*/ ctx[3];
-    	}
-
-    	if (/*transitionDuration*/ ctx[8] !== void 0) {
-    		modal_props.transitionDuration = /*transitionDuration*/ ctx[8];
-    	}
-
-    	if (/*image*/ ctx[10] !== void 0) {
-    		modal_props.image = /*image*/ ctx[10];
-    	}
-
-    	if (/*protect*/ ctx[9] !== void 0) {
-    		modal_props.protect = /*protect*/ ctx[9];
-    	}
-
-    	if (/*portrait*/ ctx[11] !== void 0) {
-    		modal_props.portrait = /*portrait*/ ctx[11];
-    	}
-
-    	if (/*title*/ ctx[6] !== void 0) {
-    		modal_props.title = /*title*/ ctx[6];
-    	}
-
-    	if (/*description*/ ctx[7] !== void 0) {
-    		modal_props.description = /*description*/ ctx[7];
-    	}
-
-    	if (/*gallery*/ ctx[5] !== void 0) {
-    		modal_props.gallery = /*gallery*/ ctx[5];
-    	}
-
-    	if (/*activeImage*/ ctx[4] !== void 0) {
-    		modal_props.activeImage = /*activeImage*/ ctx[4];
-    	}
-
-    	const modal = new Index$4({ props: modal_props, $$inline: true });
-    	binding_callbacks.push(() => bind(modal, "modalClasses", modal_modalClasses_binding));
-    	binding_callbacks.push(() => bind(modal, "modalStyle", modal_modalStyle_binding));
-    	binding_callbacks.push(() => bind(modal, "transitionDuration", modal_transitionDuration_binding));
-    	binding_callbacks.push(() => bind(modal, "image", modal_image_binding));
-    	binding_callbacks.push(() => bind(modal, "protect", modal_protect_binding));
-    	binding_callbacks.push(() => bind(modal, "portrait", modal_portrait_binding));
-    	binding_callbacks.push(() => bind(modal, "title", modal_title_binding));
-    	binding_callbacks.push(() => bind(modal, "description", modal_description_binding));
-    	binding_callbacks.push(() => bind(modal, "gallery", modal_gallery_binding));
-    	binding_callbacks.push(() => bind(modal, "activeImage", modal_activeImage_binding));
-    	modal.$on("close", /*toggle*/ ctx[14]);
-    	modal.$on("topModalClick", /*toggle*/ ctx[14]);
-    	modal.$on("modalClick", /*toggle*/ ctx[14]);
-
-    	const block = {
-    		c: function create() {
-    			create_component(modal.$$.fragment);
-    		},
-    		m: function mount(target, anchor) {
-    			mount_component(modal, target, anchor);
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			const modal_changes = {};
-
-    			if (dirty[0] & /*thumbnail*/ 4096 | dirty[1] & /*$$scope*/ 1) {
-    				modal_changes.$$scope = { dirty, ctx };
-    			}
-
-    			if (!updating_modalClasses && dirty[0] & /*modalClasses*/ 4) {
-    				updating_modalClasses = true;
-    				modal_changes.modalClasses = /*modalClasses*/ ctx[2];
-    				add_flush_callback(() => updating_modalClasses = false);
-    			}
-
-    			if (!updating_modalStyle && dirty[0] & /*modalStyle*/ 8) {
-    				updating_modalStyle = true;
-    				modal_changes.modalStyle = /*modalStyle*/ ctx[3];
-    				add_flush_callback(() => updating_modalStyle = false);
-    			}
-
-    			if (!updating_transitionDuration && dirty[0] & /*transitionDuration*/ 256) {
-    				updating_transitionDuration = true;
-    				modal_changes.transitionDuration = /*transitionDuration*/ ctx[8];
-    				add_flush_callback(() => updating_transitionDuration = false);
-    			}
-
-    			if (!updating_image && dirty[0] & /*image*/ 1024) {
-    				updating_image = true;
-    				modal_changes.image = /*image*/ ctx[10];
-    				add_flush_callback(() => updating_image = false);
-    			}
-
-    			if (!updating_protect && dirty[0] & /*protect*/ 512) {
-    				updating_protect = true;
-    				modal_changes.protect = /*protect*/ ctx[9];
-    				add_flush_callback(() => updating_protect = false);
-    			}
-
-    			if (!updating_portrait && dirty[0] & /*portrait*/ 2048) {
-    				updating_portrait = true;
-    				modal_changes.portrait = /*portrait*/ ctx[11];
-    				add_flush_callback(() => updating_portrait = false);
-    			}
-
-    			if (!updating_title && dirty[0] & /*title*/ 64) {
-    				updating_title = true;
-    				modal_changes.title = /*title*/ ctx[6];
-    				add_flush_callback(() => updating_title = false);
-    			}
-
-    			if (!updating_description && dirty[0] & /*description*/ 128) {
-    				updating_description = true;
-    				modal_changes.description = /*description*/ ctx[7];
-    				add_flush_callback(() => updating_description = false);
-    			}
-
-    			if (!updating_gallery && dirty[0] & /*gallery*/ 32) {
-    				updating_gallery = true;
-    				modal_changes.gallery = /*gallery*/ ctx[5];
-    				add_flush_callback(() => updating_gallery = false);
-    			}
-
-    			if (!updating_activeImage && dirty[0] & /*activeImage*/ 16) {
-    				updating_activeImage = true;
-    				modal_changes.activeImage = /*activeImage*/ ctx[4];
-    				add_flush_callback(() => updating_activeImage = false);
-    			}
-
-    			modal.$set(modal_changes);
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(modal.$$.fragment, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(modal.$$.fragment, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			destroy_component(modal, detaching);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block$b.name,
-    		type: "if",
-    		source: "(61:0) {#if visible}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (67:8) {:else}
-    function create_else_block$2(ctx) {
-    	let current;
-    	const default_slot_template = /*$$slots*/ ctx[17].default;
-    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[31], null);
-
-    	const block = {
-    		c: function create() {
-    			if (default_slot) default_slot.c();
-    		},
-    		m: function mount(target, anchor) {
-    			if (default_slot) {
-    				default_slot.m(target, anchor);
-    			}
-
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			if (default_slot) {
-    				if (default_slot.p && dirty[1] & /*$$scope*/ 1) {
-    					update_slot(default_slot, default_slot_template, ctx, /*$$scope*/ ctx[31], dirty, null, null);
-    				}
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(default_slot, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(default_slot, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (default_slot) default_slot.d(detaching);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_else_block$2.name,
-    		type: "else",
-    		source: "(67:8) {:else}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (65:8) {#if thumbnail}
-    function create_if_block_1$5(ctx) {
-    	let current;
-    	const image_slot_template = /*$$slots*/ ctx[17].image;
-    	const image_slot = create_slot(image_slot_template, ctx, /*$$scope*/ ctx[31], get_image_slot_context);
-
-    	const block = {
-    		c: function create() {
-    			if (image_slot) image_slot.c();
-    		},
-    		m: function mount(target, anchor) {
-    			if (image_slot) {
-    				image_slot.m(target, anchor);
-    			}
-
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			if (image_slot) {
-    				if (image_slot.p && dirty[1] & /*$$scope*/ 1) {
-    					update_slot(image_slot, image_slot_template, ctx, /*$$scope*/ ctx[31], dirty, get_image_slot_changes, get_image_slot_context);
-    				}
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(image_slot, local);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(image_slot, local);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if (image_slot) image_slot.d(detaching);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_if_block_1$5.name,
-    		type: "if",
-    		source: "(65:8) {#if thumbnail}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (62:4) <Modal bind:modalClasses bind:modalStyle bind:transitionDuration bind:image bind:protect            bind:portrait bind:title bind:description bind:gallery bind:activeImage            on:close={toggle} on:topModalClick={toggle} on:modalClick={toggle}>
-    function create_default_slot$1(ctx) {
-    	let current_block_type_index;
-    	let if_block;
-    	let if_block_anchor;
-    	let current;
-    	const if_block_creators = [create_if_block_1$5, create_else_block$2];
-    	const if_blocks = [];
-
-    	function select_block_type_1(ctx, dirty) {
-    		if (/*thumbnail*/ ctx[12]) return 0;
-    		return 1;
-    	}
-
-    	current_block_type_index = select_block_type_1(ctx);
-    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-
-    	const block = {
-    		c: function create() {
-    			if_block.c();
-    			if_block_anchor = empty();
-    		},
-    		m: function mount(target, anchor) {
-    			if_blocks[current_block_type_index].m(target, anchor);
-    			insert_dev(target, if_block_anchor, anchor);
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			let previous_block_index = current_block_type_index;
-    			current_block_type_index = select_block_type_1(ctx);
-
-    			if (current_block_type_index === previous_block_index) {
-    				if_blocks[current_block_type_index].p(ctx, dirty);
-    			} else {
-    				group_outros();
-
-    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
-    					if_blocks[previous_block_index] = null;
-    				});
-
-    				check_outros();
-    				if_block = if_blocks[current_block_type_index];
-
-    				if (!if_block) {
-    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-    					if_block.c();
-    				}
-
-    				transition_in(if_block, 1);
-    				if_block.m(if_block_anchor.parentNode, if_block_anchor);
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(if_block);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(if_block);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			if_blocks[current_block_type_index].d(detaching);
-    			if (detaching) detach_dev(if_block_anchor);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_default_slot$1.name,
-    		type: "slot",
-    		source: "(62:4) <Modal bind:modalClasses bind:modalStyle bind:transitionDuration bind:image bind:protect            bind:portrait bind:title bind:description bind:gallery bind:activeImage            on:close={toggle} on:topModalClick={toggle} on:modalClick={toggle}>",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function create_fragment$p(ctx) {
-    	let updating_thumbnailClasses;
-    	let updating_thumbnailStyle;
-    	let updating_protect;
-    	let t;
-    	let if_block_anchor;
-    	let current;
-
-    	function thumbnail_1_thumbnailClasses_binding(value) {
-    		/*thumbnail_1_thumbnailClasses_binding*/ ctx[18].call(null, value);
-    	}
-
-    	function thumbnail_1_thumbnailStyle_binding(value) {
-    		/*thumbnail_1_thumbnailStyle_binding*/ ctx[19].call(null, value);
-    	}
-
-    	function thumbnail_1_protect_binding(value) {
-    		/*thumbnail_1_protect_binding*/ ctx[20].call(null, value);
-    	}
-
-    	let thumbnail_1_props = {
-    		$$slots: { default: [create_default_slot_1] },
-    		$$scope: { ctx }
-    	};
-
-    	if (/*thumbnailClasses*/ ctx[0] !== void 0) {
-    		thumbnail_1_props.thumbnailClasses = /*thumbnailClasses*/ ctx[0];
-    	}
-
-    	if (/*thumbnailStyle*/ ctx[1] !== void 0) {
-    		thumbnail_1_props.thumbnailStyle = /*thumbnailStyle*/ ctx[1];
-    	}
-
-    	if (/*protect*/ ctx[9] !== void 0) {
-    		thumbnail_1_props.protect = /*protect*/ ctx[9];
-    	}
-
-    	const thumbnail_1 = new LightboxThumbnail({ props: thumbnail_1_props, $$inline: true });
-    	binding_callbacks.push(() => bind(thumbnail_1, "thumbnailClasses", thumbnail_1_thumbnailClasses_binding));
-    	binding_callbacks.push(() => bind(thumbnail_1, "thumbnailStyle", thumbnail_1_thumbnailStyle_binding));
-    	binding_callbacks.push(() => bind(thumbnail_1, "protect", thumbnail_1_protect_binding));
-    	thumbnail_1.$on("click", /*toggle*/ ctx[14]);
-    	let if_block = /*visible*/ ctx[13] && create_if_block$b(ctx);
-
-    	const block = {
-    		c: function create() {
-    			create_component(thumbnail_1.$$.fragment);
-    			t = space();
-    			if (if_block) if_block.c();
-    			if_block_anchor = empty();
-    		},
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-    		},
-    		m: function mount(target, anchor) {
-    			mount_component(thumbnail_1, target, anchor);
-    			insert_dev(target, t, anchor);
-    			if (if_block) if_block.m(target, anchor);
-    			insert_dev(target, if_block_anchor, anchor);
-    			current = true;
-    		},
-    		p: function update(ctx, dirty) {
-    			const thumbnail_1_changes = {};
-
-    			if (dirty[0] & /*thumbnail*/ 4096 | dirty[1] & /*$$scope*/ 1) {
-    				thumbnail_1_changes.$$scope = { dirty, ctx };
-    			}
-
-    			if (!updating_thumbnailClasses && dirty[0] & /*thumbnailClasses*/ 1) {
-    				updating_thumbnailClasses = true;
-    				thumbnail_1_changes.thumbnailClasses = /*thumbnailClasses*/ ctx[0];
-    				add_flush_callback(() => updating_thumbnailClasses = false);
-    			}
-
-    			if (!updating_thumbnailStyle && dirty[0] & /*thumbnailStyle*/ 2) {
-    				updating_thumbnailStyle = true;
-    				thumbnail_1_changes.thumbnailStyle = /*thumbnailStyle*/ ctx[1];
-    				add_flush_callback(() => updating_thumbnailStyle = false);
-    			}
-
-    			if (!updating_protect && dirty[0] & /*protect*/ 512) {
-    				updating_protect = true;
-    				thumbnail_1_changes.protect = /*protect*/ ctx[9];
-    				add_flush_callback(() => updating_protect = false);
-    			}
-
-    			thumbnail_1.$set(thumbnail_1_changes);
-
-    			if (/*visible*/ ctx[13]) {
-    				if (if_block) {
-    					if_block.p(ctx, dirty);
-
-    					if (dirty[0] & /*visible*/ 8192) {
-    						transition_in(if_block, 1);
-    					}
-    				} else {
-    					if_block = create_if_block$b(ctx);
-    					if_block.c();
-    					transition_in(if_block, 1);
-    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
-    				}
-    			} else if (if_block) {
-    				group_outros();
-
-    				transition_out(if_block, 1, 1, () => {
-    					if_block = null;
-    				});
-
-    				check_outros();
-    			}
-    		},
-    		i: function intro(local) {
-    			if (current) return;
-    			transition_in(thumbnail_1.$$.fragment, local);
-    			transition_in(if_block);
-    			current = true;
-    		},
-    		o: function outro(local) {
-    			transition_out(thumbnail_1.$$.fragment, local);
-    			transition_out(if_block);
-    			current = false;
-    		},
-    		d: function destroy(detaching) {
-    			destroy_component(thumbnail_1, detaching);
-    			if (detaching) detach_dev(t);
-    			if (if_block) if_block.d(detaching);
-    			if (detaching) detach_dev(if_block_anchor);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_fragment$p.name,
-    		type: "component",
-    		source: "",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    function instance$p($$self, $$props, $$invalidate) {
-    	let { thumbnailClasses = "" } = $$props;
-    	let { thumbnailStyle = "" } = $$props;
-    	let { modalClasses = "" } = $$props;
-    	let { modalStyle = "" } = $$props;
-    	let { activeImage = 0 } = $$props;
-    	let { gallery = [] } = $$props;
-    	let { title = "" } = $$props;
-    	let { description = "" } = $$props;
-    	let { transitionDuration = 500 } = $$props;
-    	let { protect = false } = $$props;
-    	let { image = {} } = $$props;
-    	let { portrait = false } = $$props;
-    	let { noScroll = true } = $$props;
-    	let { thumbnail = false } = $$props;
-    	let visible = false;
-
-    	const toggle = () => {
-    		$$invalidate(13, visible = !visible);
-
-    		if (noScroll) {
-    			mountedT();
-    		}
-    	};
-
-    	let mountedT = () => {
-    		
-    	};
-
-    	onMount(() => {
-    		let defaultOverflow = document.body.style.overflow;
-
-    		mountedT = () => {
-    			if (visible) {
-    				document.body.style.overflow = "hidden";
-    			} else {
-    				document.body.style.overflow = defaultOverflow;
-    			}
-    		};
-    	});
-
-    	const writable_props = [
-    		"thumbnailClasses",
-    		"thumbnailStyle",
-    		"modalClasses",
-    		"modalStyle",
-    		"activeImage",
-    		"gallery",
-    		"title",
-    		"description",
-    		"transitionDuration",
-    		"protect",
-    		"image",
-    		"portrait",
-    		"noScroll",
-    		"thumbnail"
-    	];
-
-    	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<Lightbox> was created with unknown prop '${key}'`);
-    	});
-
-    	let { $$slots = {}, $$scope } = $$props;
-    	validate_slots("Lightbox", $$slots, ['thumbnail','default','image']);
-
-    	function thumbnail_1_thumbnailClasses_binding(value) {
-    		thumbnailClasses = value;
-    		$$invalidate(0, thumbnailClasses);
-    	}
-
-    	function thumbnail_1_thumbnailStyle_binding(value) {
-    		thumbnailStyle = value;
-    		$$invalidate(1, thumbnailStyle);
-    	}
-
-    	function thumbnail_1_protect_binding(value) {
-    		protect = value;
-    		$$invalidate(9, protect);
-    	}
-
-    	function modal_modalClasses_binding(value) {
-    		modalClasses = value;
-    		$$invalidate(2, modalClasses);
-    	}
-
-    	function modal_modalStyle_binding(value) {
-    		modalStyle = value;
-    		$$invalidate(3, modalStyle);
-    	}
-
-    	function modal_transitionDuration_binding(value) {
-    		transitionDuration = value;
-    		$$invalidate(8, transitionDuration);
-    	}
-
-    	function modal_image_binding(value) {
-    		image = value;
-    		$$invalidate(10, image);
-    	}
-
-    	function modal_protect_binding(value) {
-    		protect = value;
-    		$$invalidate(9, protect);
-    	}
-
-    	function modal_portrait_binding(value) {
-    		portrait = value;
-    		$$invalidate(11, portrait);
-    	}
-
-    	function modal_title_binding(value) {
-    		title = value;
-    		$$invalidate(6, title);
-    	}
-
-    	function modal_description_binding(value) {
-    		description = value;
-    		$$invalidate(7, description);
-    	}
-
-    	function modal_gallery_binding(value) {
-    		gallery = value;
-    		$$invalidate(5, gallery);
-    	}
-
-    	function modal_activeImage_binding(value) {
-    		activeImage = value;
-    		$$invalidate(4, activeImage);
-    	}
-
-    	$$self.$set = $$props => {
-    		if ("thumbnailClasses" in $$props) $$invalidate(0, thumbnailClasses = $$props.thumbnailClasses);
-    		if ("thumbnailStyle" in $$props) $$invalidate(1, thumbnailStyle = $$props.thumbnailStyle);
-    		if ("modalClasses" in $$props) $$invalidate(2, modalClasses = $$props.modalClasses);
-    		if ("modalStyle" in $$props) $$invalidate(3, modalStyle = $$props.modalStyle);
-    		if ("activeImage" in $$props) $$invalidate(4, activeImage = $$props.activeImage);
-    		if ("gallery" in $$props) $$invalidate(5, gallery = $$props.gallery);
-    		if ("title" in $$props) $$invalidate(6, title = $$props.title);
-    		if ("description" in $$props) $$invalidate(7, description = $$props.description);
-    		if ("transitionDuration" in $$props) $$invalidate(8, transitionDuration = $$props.transitionDuration);
-    		if ("protect" in $$props) $$invalidate(9, protect = $$props.protect);
-    		if ("image" in $$props) $$invalidate(10, image = $$props.image);
-    		if ("portrait" in $$props) $$invalidate(11, portrait = $$props.portrait);
-    		if ("noScroll" in $$props) $$invalidate(15, noScroll = $$props.noScroll);
-    		if ("thumbnail" in $$props) $$invalidate(12, thumbnail = $$props.thumbnail);
-    		if ("$$scope" in $$props) $$invalidate(31, $$scope = $$props.$$scope);
-    	};
-
-    	$$self.$capture_state = () => ({
-    		Thumbnail: LightboxThumbnail,
-    		Modal: Index$4,
-    		onMount,
-    		thumbnailClasses,
-    		thumbnailStyle,
-    		modalClasses,
-    		modalStyle,
-    		activeImage,
-    		gallery,
-    		title,
-    		description,
-    		transitionDuration,
-    		protect,
-    		image,
-    		portrait,
-    		noScroll,
-    		thumbnail,
-    		visible,
-    		toggle,
-    		mountedT
-    	});
-
-    	$$self.$inject_state = $$props => {
-    		if ("thumbnailClasses" in $$props) $$invalidate(0, thumbnailClasses = $$props.thumbnailClasses);
-    		if ("thumbnailStyle" in $$props) $$invalidate(1, thumbnailStyle = $$props.thumbnailStyle);
-    		if ("modalClasses" in $$props) $$invalidate(2, modalClasses = $$props.modalClasses);
-    		if ("modalStyle" in $$props) $$invalidate(3, modalStyle = $$props.modalStyle);
-    		if ("activeImage" in $$props) $$invalidate(4, activeImage = $$props.activeImage);
-    		if ("gallery" in $$props) $$invalidate(5, gallery = $$props.gallery);
-    		if ("title" in $$props) $$invalidate(6, title = $$props.title);
-    		if ("description" in $$props) $$invalidate(7, description = $$props.description);
-    		if ("transitionDuration" in $$props) $$invalidate(8, transitionDuration = $$props.transitionDuration);
-    		if ("protect" in $$props) $$invalidate(9, protect = $$props.protect);
-    		if ("image" in $$props) $$invalidate(10, image = $$props.image);
-    		if ("portrait" in $$props) $$invalidate(11, portrait = $$props.portrait);
-    		if ("noScroll" in $$props) $$invalidate(15, noScroll = $$props.noScroll);
-    		if ("thumbnail" in $$props) $$invalidate(12, thumbnail = $$props.thumbnail);
-    		if ("visible" in $$props) $$invalidate(13, visible = $$props.visible);
-    		if ("mountedT" in $$props) mountedT = $$props.mountedT;
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [
-    		thumbnailClasses,
-    		thumbnailStyle,
-    		modalClasses,
-    		modalStyle,
-    		activeImage,
-    		gallery,
-    		title,
-    		description,
-    		transitionDuration,
-    		protect,
-    		image,
-    		portrait,
-    		thumbnail,
-    		visible,
-    		toggle,
-    		noScroll,
-    		mountedT,
-    		$$slots,
-    		thumbnail_1_thumbnailClasses_binding,
-    		thumbnail_1_thumbnailStyle_binding,
-    		thumbnail_1_protect_binding,
-    		modal_modalClasses_binding,
-    		modal_modalStyle_binding,
-    		modal_transitionDuration_binding,
-    		modal_image_binding,
-    		modal_protect_binding,
-    		modal_portrait_binding,
-    		modal_title_binding,
-    		modal_description_binding,
-    		modal_gallery_binding,
-    		modal_activeImage_binding,
-    		$$scope
-    	];
-    }
-
-    class Lightbox extends SvelteComponentDev {
-    	constructor(options) {
-    		super(options);
-
-    		init(
-    			this,
-    			options,
-    			instance$p,
-    			create_fragment$p,
-    			safe_not_equal,
-    			{
-    				thumbnailClasses: 0,
-    				thumbnailStyle: 1,
-    				modalClasses: 2,
-    				modalStyle: 3,
-    				activeImage: 4,
-    				gallery: 5,
-    				title: 6,
-    				description: 7,
-    				transitionDuration: 8,
-    				protect: 9,
-    				image: 10,
-    				portrait: 11,
-    				noScroll: 15,
-    				thumbnail: 12
-    			},
-    			[-1, -1]
-    		);
-
-    		dispatch_dev("SvelteRegisterComponent", {
-    			component: this,
-    			tagName: "Lightbox",
-    			options,
-    			id: create_fragment$p.name
-    		});
-    	}
-
-    	get thumbnailClasses() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set thumbnailClasses(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get thumbnailStyle() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set thumbnailStyle(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get modalClasses() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set modalClasses(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get modalStyle() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set modalStyle(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get activeImage() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set activeImage(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get gallery() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set gallery(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get title() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set title(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get description() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set description(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get transitionDuration() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set transitionDuration(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get protect() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set protect(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get image() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set image(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get portrait() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set portrait(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get noScroll() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set noScroll(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get thumbnail() {
-    		throw new Error("<Lightbox>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set thumbnail(value) {
-    		throw new Error("<Lightbox>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-    }
-
-    /* src\Pages\Solicitudes\SolicitudDetalle.svelte generated by Svelte v3.23.0 */
-
-    const { console: console_1$d } = globals;
-    const file$o = "src\\Pages\\Solicitudes\\SolicitudDetalle.svelte";
-
-    function get_each_context$b(ctx, list, i) {
-    	const child_ctx = ctx.slice();
-    	child_ctx[9] = list[i];
-    	return child_ctx;
-    }
-
-    function get_each_context_1$a(ctx, list, i) {
-    	const child_ctx = ctx.slice();
-    	child_ctx[12] = list[i];
-    	return child_ctx;
-    }
-
-    // (164:12) {#each parentescos as parentesco}
+    // (210:12) {#each parentescos as parentesco}
     function create_each_block_1$a(ctx) {
     	let h5;
     	let span;
     	let t0;
-    	let t1_value = /*parentesco*/ ctx[12].tipoParentesco + "";
+    	let t1_value = /*parentesco*/ ctx[19].tipoParentesco + "";
     	let t1;
     	let t2;
     	let div6;
@@ -34931,50 +32202,50 @@ var app = (function (moment) {
     			t13 = space();
     			input3 = element("input");
     			attr_dev(span, "class", "badge badge-primary");
-    			add_location(span, file$o, 164, 16, 9061);
-    			add_location(h5, file$o, 164, 12, 9057);
+    			add_location(span, file$j, 210, 16, 11064);
+    			add_location(h5, file$j, 210, 12, 11060);
     			attr_dev(label0, "for", "codigo");
-    			add_location(label0, file$o, 169, 33, 9390);
+    			add_location(label0, file$j, 215, 33, 11393);
     			attr_dev(input0, "type", "text");
     			attr_dev(input0, "class", "form-control");
-    			input0.value = input0_value_value = /*parentesco*/ ctx[12].nombre;
+    			input0.value = input0_value_value = /*parentesco*/ ctx[19].nombre;
     			input0.readOnly = true;
-    			add_location(input0, file$o, 170, 33, 9459);
+    			add_location(input0, file$j, 216, 33, 11462);
     			attr_dev(div0, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div0, file$o, 168, 29, 9313);
+    			add_location(div0, file$j, 214, 29, 11316);
     			attr_dev(label1, "for", "catAfiliado");
-    			add_location(label1, file$o, 173, 33, 9679);
+    			add_location(label1, file$j, 219, 33, 11682);
     			attr_dev(input1, "type", "text");
     			attr_dev(input1, "class", "form-control");
-    			input1.value = input1_value_value = /*parentesco*/ ctx[12].apellidos;
+    			input1.value = input1_value_value = /*parentesco*/ ctx[19].apellidos;
     			input1.readOnly = true;
-    			add_location(input1, file$o, 174, 33, 9756);
+    			add_location(input1, file$j, 220, 33, 11759);
     			attr_dev(div1, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div1, file$o, 172, 29, 9602);
+    			add_location(div1, file$j, 218, 29, 11605);
     			attr_dev(label2, "for", "colectivo");
-    			add_location(label2, file$o, 177, 33, 9979);
+    			add_location(label2, file$j, 223, 33, 11982);
     			attr_dev(input2, "type", "text");
     			attr_dev(input2, "class", "form-control");
-    			input2.value = input2_value_value = /*parentesco*/ ctx[12].cedula;
+    			input2.value = input2_value_value = /*parentesco*/ ctx[19].cedula;
     			input2.readOnly = true;
-    			add_location(input2, file$o, 178, 33, 10051);
+    			add_location(input2, file$j, 224, 33, 12054);
     			attr_dev(div2, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div2, file$o, 176, 29, 9902);
+    			add_location(div2, file$j, 222, 29, 11905);
     			attr_dev(label3, "for", "colectivo");
-    			add_location(label3, file$o, 181, 32, 10270);
+    			add_location(label3, file$j, 227, 32, 12273);
     			attr_dev(input3, "type", "text");
     			attr_dev(input3, "class", "form-control");
-    			input3.value = input3_value_value = /*parentesco*/ ctx[12].telefono;
+    			input3.value = input3_value_value = /*parentesco*/ ctx[19].telefono;
     			input3.readOnly = true;
-    			add_location(input3, file$o, 182, 32, 10343);
+    			add_location(input3, file$j, 228, 32, 12346);
     			attr_dev(div3, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div3, file$o, 180, 29, 10194);
+    			add_location(div3, file$j, 226, 29, 12197);
     			attr_dev(div4, "class", "form-row");
-    			add_location(div4, file$o, 167, 25, 9260);
+    			add_location(div4, file$j, 213, 25, 11263);
     			attr_dev(div5, "class", "card-body");
-    			add_location(div5, file$o, 166, 21, 9210);
+    			add_location(div5, file$j, 212, 21, 11213);
     			attr_dev(div6, "class", "card m-b-30");
-    			add_location(div6, file$o, 165, 17, 9162);
+    			add_location(div6, file$j, 211, 17, 11165);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h5, anchor);
@@ -35006,21 +32277,21 @@ var app = (function (moment) {
     			append_dev(div3, input3);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*parentescos*/ 8 && t1_value !== (t1_value = /*parentesco*/ ctx[12].tipoParentesco + "")) set_data_dev(t1, t1_value);
+    			if (dirty & /*parentescos*/ 8 && t1_value !== (t1_value = /*parentesco*/ ctx[19].tipoParentesco + "")) set_data_dev(t1, t1_value);
 
-    			if (dirty & /*parentescos*/ 8 && input0_value_value !== (input0_value_value = /*parentesco*/ ctx[12].nombre) && input0.value !== input0_value_value) {
+    			if (dirty & /*parentescos*/ 8 && input0_value_value !== (input0_value_value = /*parentesco*/ ctx[19].nombre) && input0.value !== input0_value_value) {
     				prop_dev(input0, "value", input0_value_value);
     			}
 
-    			if (dirty & /*parentescos*/ 8 && input1_value_value !== (input1_value_value = /*parentesco*/ ctx[12].apellidos) && input1.value !== input1_value_value) {
+    			if (dirty & /*parentescos*/ 8 && input1_value_value !== (input1_value_value = /*parentesco*/ ctx[19].apellidos) && input1.value !== input1_value_value) {
     				prop_dev(input1, "value", input1_value_value);
     			}
 
-    			if (dirty & /*parentescos*/ 8 && input2_value_value !== (input2_value_value = /*parentesco*/ ctx[12].cedula) && input2.value !== input2_value_value) {
+    			if (dirty & /*parentescos*/ 8 && input2_value_value !== (input2_value_value = /*parentesco*/ ctx[19].cedula) && input2.value !== input2_value_value) {
     				prop_dev(input2, "value", input2_value_value);
     			}
 
-    			if (dirty & /*parentescos*/ 8 && input3_value_value !== (input3_value_value = /*parentesco*/ ctx[12].telefono) && input3.value !== input3_value_value) {
+    			if (dirty & /*parentescos*/ 8 && input3_value_value !== (input3_value_value = /*parentesco*/ ctx[19].telefono) && input3.value !== input3_value_value) {
     				prop_dev(input3, "value", input3_value_value);
     			}
     		},
@@ -35035,14 +32306,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_1$a.name,
     		type: "each",
-    		source: "(164:12) {#each parentescos as parentesco}",
+    		source: "(210:12) {#each parentescos as parentesco}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (202:24) {#each imagenesRecetas as img}
+    // (248:24) {#each imagenesRecetas as img}
     function create_each_block$b(ctx) {
     	let a;
     	let img;
@@ -35055,14 +32326,14 @@ var app = (function (moment) {
     			a = element("a");
     			img = element("img");
     			t = space();
-    			if (img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name)) attr_dev(img, "src", img_src_value);
+    			if (img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[16].name)) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img, "alt", "cedula");
-    			add_location(img, file$o, 203, 32, 11755);
-    			attr_dev(a, "href", a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name);
+    			add_location(img, file$j, 249, 32, 13758);
+    			attr_dev(a, "href", a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[16].name);
     			attr_dev(a, "target", "_blank");
     			attr_dev(a, "class", "col-lg-4");
-    			add_location(a, file$o, 202, 28, 11612);
+    			add_location(a, file$j, 248, 28, 13615);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -35070,11 +32341,11 @@ var app = (function (moment) {
     			append_dev(a, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*imagenesRecetas*/ 4 && img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name)) {
+    			if (dirty & /*imagenesRecetas*/ 4 && img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[16].name)) {
     				attr_dev(img, "src", img_src_value);
     			}
 
-    			if (dirty & /*imagenesRecetas*/ 4 && a_href_value !== (a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name)) {
+    			if (dirty & /*imagenesRecetas*/ 4 && a_href_value !== (a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[16].name)) {
     				attr_dev(a, "href", a_href_value);
     			}
     		},
@@ -35087,196 +32358,207 @@ var app = (function (moment) {
     		block,
     		id: create_each_block$b.name,
     		type: "each",
-    		source: "(202:24) {#each imagenesRecetas as img}",
+    		source: "(248:24) {#each imagenesRecetas as img}",
     		ctx
     	});
 
     	return block;
     }
 
-    function create_fragment$q(ctx) {
+    function create_fragment$k(ctx) {
     	let t0;
     	let main;
     	let t1;
     	let section;
-    	let div36;
+    	let div38;
     	let h4;
     	let t2;
     	let span0;
     	let t3_value = /*solicitudDetalle*/ ctx[0].codigo + "";
     	let t3;
     	let t4;
-    	let div11;
     	let div1;
     	let div0;
-    	let span1;
     	let t5;
-    	let t6_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "";
-    	let t6;
-    	let t7;
-    	let div10;
-    	let div9;
+    	let div13;
+    	let div3;
     	let div2;
+    	let span1;
+    	let t6;
+    	let t7_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "";
+    	let t7;
+    	let t8;
+    	let div12;
+    	let div11;
+    	let div4;
     	let label0;
-    	let t9;
+    	let t10;
     	let input0;
     	let input0_value_value;
-    	let t10;
-    	let div3;
+    	let t11;
+    	let div5;
     	let label1;
-    	let t12;
+    	let t13;
     	let input1;
     	let input1_value_value;
-    	let t13;
-    	let div4;
+    	let t14;
+    	let div6;
     	let label2;
-    	let t15;
+    	let t16;
     	let input2;
     	let input2_value_value;
-    	let t16;
-    	let div5;
+    	let t17;
+    	let div7;
     	let label3;
-    	let t18;
+    	let t19;
     	let input3;
     	let input3_value_value;
-    	let t19;
-    	let div6;
+    	let t20;
+    	let div8;
     	let label4;
-    	let t21;
+    	let t22;
     	let input4;
     	let input4_value_value;
-    	let t22;
-    	let div8;
-    	let div7;
+    	let t23;
+    	let div10;
+    	let div9;
     	let label5;
-    	let t24;
+    	let t25;
     	let textarea;
     	let textarea_value_value;
-    	let t25;
-    	let div31;
-    	let div12;
+    	let t26;
+    	let div33;
+    	let div14;
     	let h50;
-    	let t27;
-    	let div30;
-    	let div29;
-    	let div13;
+    	let t28;
+    	let div32;
+    	let div31;
+    	let div15;
     	let label6;
-    	let t29;
+    	let t30;
     	let input5;
     	let input5_value_value;
-    	let t30;
-    	let div14;
+    	let t31;
+    	let div16;
     	let label7;
-    	let t32;
+    	let t33;
     	let input6;
     	let input6_value_value;
-    	let t33;
-    	let div15;
+    	let t34;
+    	let div17;
     	let label8;
-    	let t35;
+    	let t36;
     	let input7;
     	let input7_value_value;
-    	let t36;
-    	let div16;
+    	let t37;
+    	let div18;
     	let label9;
-    	let t38;
+    	let t39;
     	let input8;
     	let input8_value_value;
-    	let t39;
-    	let div17;
+    	let t40;
+    	let div19;
     	let label10;
-    	let t41;
+    	let t42;
     	let input9;
     	let input9_value_value;
-    	let t42;
-    	let div18;
+    	let t43;
+    	let div20;
     	let label11;
-    	let t44;
+    	let t45;
     	let input10;
     	let input10_value_value;
-    	let t45;
-    	let div19;
+    	let t46;
+    	let div21;
     	let label12;
-    	let t47;
+    	let t48;
     	let input11;
     	let input11_value_value;
-    	let t48;
-    	let div20;
+    	let t49;
+    	let div22;
     	let label13;
-    	let t50;
+    	let t51;
     	let input12;
     	let input12_value_value;
-    	let t51;
-    	let div21;
+    	let t52;
+    	let div23;
     	let label14;
-    	let t53;
+    	let t54;
     	let input13;
     	let input13_value_value;
-    	let t54;
-    	let div22;
+    	let t55;
+    	let div24;
     	let label15;
-    	let t56;
+    	let t57;
     	let input14;
     	let input14_value_value;
-    	let t57;
-    	let div23;
+    	let t58;
+    	let div25;
     	let label16;
-    	let t59;
+    	let t60;
     	let input15;
     	let input15_value_value;
-    	let t60;
-    	let div24;
+    	let t61;
+    	let div26;
     	let label17;
-    	let t62;
+    	let t63;
     	let input16;
     	let input16_value_value;
-    	let t63;
-    	let div25;
+    	let t64;
+    	let div27;
     	let label18;
-    	let t65;
+    	let t66;
     	let input17;
     	let input17_value_value;
-    	let t66;
-    	let div26;
+    	let t67;
+    	let div28;
     	let label19;
-    	let t68;
+    	let t69;
     	let input18;
     	let input18_value_value;
-    	let t69;
-    	let div27;
+    	let t70;
+    	let div29;
     	let label20;
-    	let t71;
+    	let t72;
     	let input19;
     	let input19_value_value;
-    	let t72;
-    	let div28;
+    	let t73;
+    	let div30;
     	let label21;
-    	let t74;
+    	let t75;
     	let input20;
     	let input20_value_value;
-    	let t75;
     	let t76;
-    	let div35;
-    	let div32;
-    	let h51;
-    	let t78;
+    	let t77;
+    	let div37;
     	let div34;
-    	let div33;
+    	let h51;
+    	let t79;
+    	let div36;
+    	let div35;
     	let a0;
     	let img0;
     	let img0_src_value;
     	let a0_href_value;
-    	let t79;
+    	let t80;
     	let a1;
     	let img1;
     	let img1_src_value;
     	let a1_href_value;
-    	let t80;
     	let t81;
+    	let t82;
     	let br;
     	let current;
     	const aside = new Aside({ $$inline: true });
     	const header = new Header({ $$inline: true });
+    	let each_value_2 = /*estados*/ ctx[4];
+    	validate_each_argument(each_value_2);
+    	let each_blocks_2 = [];
+
+    	for (let i = 0; i < each_value_2.length; i += 1) {
+    		each_blocks_2[i] = create_each_block_2$8(get_each_context_2$8(ctx, each_value_2, i));
+    	}
+
     	let each_value_1 = /*parentescos*/ ctx[3];
     	validate_each_argument(each_value_1);
     	let each_blocks_1 = [];
@@ -35301,468 +32583,480 @@ var app = (function (moment) {
     			create_component(header.$$.fragment);
     			t1 = space();
     			section = element("section");
-    			div36 = element("div");
+    			div38 = element("div");
     			h4 = element("h4");
     			t2 = text("Detalle Solicitud ");
     			span0 = element("span");
     			t3 = text(t3_value);
     			t4 = space();
-    			div11 = element("div");
     			div1 = element("div");
     			div0 = element("div");
-    			span1 = element("span");
-    			t5 = text("Fecha: ");
-    			t6 = text(t6_value);
-    			t7 = space();
-    			div10 = element("div");
-    			div9 = element("div");
+
+    			for (let i = 0; i < each_blocks_2.length; i += 1) {
+    				each_blocks_2[i].c();
+    			}
+
+    			t5 = space();
+    			div13 = element("div");
+    			div3 = element("div");
     			div2 = element("div");
+    			span1 = element("span");
+    			t6 = text("Fecha: ");
+    			t7 = text(t7_value);
+    			t8 = space();
+    			div12 = element("div");
+    			div11 = element("div");
+    			div4 = element("div");
     			label0 = element("label");
     			label0.textContent = "Codigo Solicitud";
-    			t9 = space();
-    			input0 = element("input");
     			t10 = space();
-    			div3 = element("div");
+    			input0 = element("input");
+    			t11 = space();
+    			div5 = element("div");
     			label1 = element("label");
     			label1.textContent = "Categoria de afiliado";
-    			t12 = space();
-    			input1 = element("input");
     			t13 = space();
-    			div4 = element("div");
+    			input1 = element("input");
+    			t14 = space();
+    			div6 = element("div");
     			label2 = element("label");
     			label2.textContent = "Colectivo";
-    			t15 = space();
-    			input2 = element("input");
     			t16 = space();
-    			div5 = element("div");
+    			input2 = element("input");
+    			t17 = space();
+    			div7 = element("div");
     			label3 = element("label");
     			label3.textContent = "Motivo";
-    			t18 = space();
-    			input3 = element("input");
     			t19 = space();
-    			div6 = element("div");
+    			input3 = element("input");
+    			t20 = space();
+    			div8 = element("div");
     			label4 = element("label");
     			label4.textContent = "Modalidad";
-    			t21 = space();
-    			input4 = element("input");
     			t22 = space();
-    			div8 = element("div");
-    			div7 = element("div");
+    			input4 = element("input");
+    			t23 = space();
+    			div10 = element("div");
+    			div9 = element("div");
     			label5 = element("label");
     			label5.textContent = "Sintomas";
-    			t24 = space();
-    			textarea = element("textarea");
     			t25 = space();
-    			div31 = element("div");
-    			div12 = element("div");
+    			textarea = element("textarea");
+    			t26 = space();
+    			div33 = element("div");
+    			div14 = element("div");
     			h50 = element("h5");
     			h50.textContent = "Datos personales";
-    			t27 = space();
-    			div30 = element("div");
-    			div29 = element("div");
-    			div13 = element("div");
+    			t28 = space();
+    			div32 = element("div");
+    			div31 = element("div");
+    			div15 = element("div");
     			label6 = element("label");
     			label6.textContent = "Nombre";
-    			t29 = space();
-    			input5 = element("input");
     			t30 = space();
-    			div14 = element("div");
+    			input5 = element("input");
+    			t31 = space();
+    			div16 = element("div");
     			label7 = element("label");
     			label7.textContent = "Apellidos";
-    			t32 = space();
-    			input6 = element("input");
     			t33 = space();
-    			div15 = element("div");
+    			input6 = element("input");
+    			t34 = space();
+    			div17 = element("div");
     			label8 = element("label");
     			label8.textContent = "Apodo";
-    			t35 = space();
-    			input7 = element("input");
     			t36 = space();
-    			div16 = element("div");
+    			input7 = element("input");
+    			t37 = space();
+    			div18 = element("div");
     			label9 = element("label");
     			label9.textContent = "Cedula";
-    			t38 = space();
-    			input8 = element("input");
     			t39 = space();
-    			div17 = element("div");
+    			input8 = element("input");
+    			t40 = space();
+    			div19 = element("div");
     			label10 = element("label");
     			label10.textContent = "Aseguradora";
-    			t41 = space();
-    			input9 = element("input");
     			t42 = space();
-    			div18 = element("div");
+    			input9 = element("input");
+    			t43 = space();
+    			div20 = element("div");
     			label11 = element("label");
     			label11.textContent = "No. Afiliado / NSS";
-    			t44 = space();
-    			input10 = element("input");
     			t45 = space();
-    			div19 = element("div");
+    			input10 = element("input");
+    			t46 = space();
+    			div21 = element("div");
     			label12 = element("label");
     			label12.textContent = "Fecha de nacimiento";
-    			t47 = space();
-    			input11 = element("input");
     			t48 = space();
-    			div20 = element("div");
+    			input11 = element("input");
+    			t49 = space();
+    			div22 = element("div");
     			label13 = element("label");
     			label13.textContent = "Sexo";
-    			t50 = space();
-    			input12 = element("input");
     			t51 = space();
-    			div21 = element("div");
+    			input12 = element("input");
+    			t52 = space();
+    			div23 = element("div");
     			label14 = element("label");
     			label14.textContent = "Telefono";
-    			t53 = space();
-    			input13 = element("input");
     			t54 = space();
-    			div22 = element("div");
+    			input13 = element("input");
+    			t55 = space();
+    			div24 = element("div");
     			label15 = element("label");
     			label15.textContent = "Celular";
-    			t56 = space();
-    			input14 = element("input");
     			t57 = space();
-    			div23 = element("div");
+    			input14 = element("input");
+    			t58 = space();
+    			div25 = element("div");
     			label16 = element("label");
     			label16.textContent = "Correo electronico";
-    			t59 = space();
-    			input15 = element("input");
     			t60 = space();
-    			div24 = element("div");
+    			input15 = element("input");
+    			t61 = space();
+    			div26 = element("div");
     			label17 = element("label");
     			label17.textContent = "Provincia";
-    			t62 = space();
-    			input16 = element("input");
     			t63 = space();
-    			div25 = element("div");
+    			input16 = element("input");
+    			t64 = space();
+    			div27 = element("div");
     			label18 = element("label");
     			label18.textContent = "Municipio";
-    			t65 = space();
-    			input17 = element("input");
     			t66 = space();
-    			div26 = element("div");
+    			input17 = element("input");
+    			t67 = space();
+    			div28 = element("div");
     			label19 = element("label");
     			label19.textContent = "Ciudad";
-    			t68 = space();
-    			input18 = element("input");
     			t69 = space();
-    			div27 = element("div");
+    			input18 = element("input");
+    			t70 = space();
+    			div29 = element("div");
     			label20 = element("label");
     			label20.textContent = "Barrio";
-    			t71 = space();
-    			input19 = element("input");
     			t72 = space();
-    			div28 = element("div");
+    			input19 = element("input");
+    			t73 = space();
+    			div30 = element("div");
     			label21 = element("label");
     			label21.textContent = "Direccion";
-    			t74 = space();
-    			input20 = element("input");
     			t75 = space();
+    			input20 = element("input");
+    			t76 = space();
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].c();
     			}
 
-    			t76 = space();
-    			div35 = element("div");
-    			div32 = element("div");
+    			t77 = space();
+    			div37 = element("div");
+    			div34 = element("div");
     			h51 = element("h5");
     			h51.textContent = "Archivos";
-    			t78 = space();
-    			div34 = element("div");
-    			div33 = element("div");
+    			t79 = space();
+    			div36 = element("div");
+    			div35 = element("div");
     			a0 = element("a");
     			img0 = element("img");
-    			t79 = space();
+    			t80 = space();
     			a1 = element("a");
     			img1 = element("img");
-    			t80 = space();
+    			t81 = space();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t81 = space();
+    			t82 = space();
     			br = element("br");
     			attr_dev(span0, "class", "badge badge-primary");
-    			add_location(span0, file$o, 51, 34, 1511);
-    			add_location(h4, file$o, 51, 12, 1489);
+    			add_location(span0, file$j, 87, 34, 2861);
+    			add_location(h4, file$j, 87, 12, 2839);
+    			attr_dev(div0, "class", "col-lg-12 mb-4 mt-3");
+    			add_location(div0, file$j, 89, 16, 2981);
+    			attr_dev(div1, "class", "row");
+    			add_location(div1, file$j, 88, 12, 2946);
     			attr_dev(span1, "class", "badge badge-primary");
-    			add_location(span1, file$o, 55, 24, 1739);
-    			attr_dev(div0, "class", "card-controls");
-    			add_location(div0, file$o, 54, 20, 1686);
-    			attr_dev(div1, "class", "card-header");
-    			add_location(div1, file$o, 53, 16, 1639);
+    			add_location(span1, file$j, 101, 24, 3742);
+    			attr_dev(div2, "class", "card-controls");
+    			add_location(div2, file$j, 100, 20, 3689);
+    			attr_dev(div3, "class", "card-header");
+    			add_location(div3, file$j, 99, 16, 3642);
     			attr_dev(label0, "for", "codigo");
-    			add_location(label0, file$o, 61, 28, 2077);
+    			add_location(label0, file$j, 107, 28, 4080);
     			attr_dev(input0, "type", "text");
     			attr_dev(input0, "class", "form-control");
     			input0.value = input0_value_value = /*solicitudDetalle*/ ctx[0].codigo;
     			input0.readOnly = true;
     			attr_dev(input0, "id", "codigo");
-    			add_location(input0, file$o, 62, 28, 2151);
-    			attr_dev(div2, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div2, file$o, 60, 24, 2005);
+    			add_location(input0, file$j, 108, 28, 4154);
+    			attr_dev(div4, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div4, file$j, 106, 24, 4008);
     			attr_dev(label1, "for", "catAfiliado");
-    			add_location(label1, file$o, 65, 28, 2374);
+    			add_location(label1, file$j, 111, 28, 4377);
     			attr_dev(input1, "type", "text");
     			attr_dev(input1, "class", "form-control");
     			input1.value = input1_value_value = /*solicitudDetalle*/ ctx[0].categoriaAfiliado;
     			input1.readOnly = true;
     			attr_dev(input1, "id", "catAfiliado");
-    			add_location(input1, file$o, 66, 28, 2458);
-    			attr_dev(div3, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div3, file$o, 64, 24, 2302);
+    			add_location(input1, file$j, 112, 28, 4461);
+    			attr_dev(div5, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div5, file$j, 110, 24, 4305);
     			attr_dev(label2, "for", "colectivo");
-    			add_location(label2, file$o, 69, 28, 2697);
+    			add_location(label2, file$j, 115, 28, 4700);
     			attr_dev(input2, "type", "text");
     			attr_dev(input2, "class", "form-control");
     			input2.value = input2_value_value = /*solicitudDetalle*/ ctx[0].colectivo;
     			input2.readOnly = true;
     			attr_dev(input2, "id", "colectivo");
-    			add_location(input2, file$o, 70, 28, 2767);
-    			attr_dev(div4, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div4, file$o, 68, 24, 2625);
+    			add_location(input2, file$j, 116, 28, 4770);
+    			attr_dev(div6, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div6, file$j, 114, 24, 4628);
     			attr_dev(label3, "for", "colectivo");
-    			add_location(label3, file$o, 73, 28, 2996);
+    			add_location(label3, file$j, 119, 28, 4999);
     			attr_dev(input3, "type", "text");
     			attr_dev(input3, "class", "form-control");
     			input3.value = input3_value_value = /*solicitudDetalle*/ ctx[0].motivoSolicitud;
     			input3.readOnly = true;
     			attr_dev(input3, "id", "motivo");
-    			add_location(input3, file$o, 74, 28, 3063);
-    			attr_dev(div5, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div5, file$o, 72, 24, 2924);
+    			add_location(input3, file$j, 120, 28, 5066);
+    			attr_dev(div7, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div7, file$j, 118, 24, 4927);
     			attr_dev(label4, "for", "modalidad");
-    			add_location(label4, file$o, 77, 28, 3295);
+    			add_location(label4, file$j, 123, 28, 5298);
     			attr_dev(input4, "type", "text");
     			attr_dev(input4, "class", "form-control");
     			input4.value = input4_value_value = /*solicitudDetalle*/ ctx[0].modalidad;
     			input4.readOnly = true;
     			attr_dev(input4, "id", "modalidad");
-    			add_location(input4, file$o, 78, 28, 3365);
-    			attr_dev(div6, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div6, file$o, 76, 24, 3223);
+    			add_location(input4, file$j, 124, 28, 5368);
+    			attr_dev(div8, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div8, file$j, 122, 24, 5226);
     			attr_dev(label5, "for", "exampleFormControlTextarea1");
-    			add_location(label5, file$o, 82, 32, 3654);
+    			add_location(label5, file$j, 128, 32, 5657);
     			attr_dev(textarea, "class", "form-control");
     			set_style(textarea, "width", "100%");
     			textarea.disabled = true;
     			attr_dev(textarea, "rows", "3");
     			textarea.value = textarea_value_value = /*solicitudDetalle*/ ctx[0].comentario;
-    			add_location(textarea, file$o, 83, 32, 3745);
-    			attr_dev(div7, "class", "form-group");
-    			add_location(div7, file$o, 81, 28, 3596);
-    			attr_dev(div8, "class", "form-group col-lg-12 col-md-12");
-    			add_location(div8, file$o, 80, 24, 3522);
-    			attr_dev(div9, "class", "form-row");
-    			add_location(div9, file$o, 59, 20, 1957);
-    			attr_dev(div10, "class", "card-body");
-    			add_location(div10, file$o, 58, 16, 1912);
-    			attr_dev(div11, "class", "card m-b-30");
-    			add_location(div11, file$o, 52, 12, 1596);
+    			add_location(textarea, file$j, 129, 32, 5748);
+    			attr_dev(div9, "class", "form-group");
+    			add_location(div9, file$j, 127, 28, 5599);
+    			attr_dev(div10, "class", "form-group col-lg-12 col-md-12");
+    			add_location(div10, file$j, 126, 24, 5525);
+    			attr_dev(div11, "class", "form-row");
+    			add_location(div11, file$j, 105, 20, 3960);
+    			attr_dev(div12, "class", "card-body");
+    			add_location(div12, file$j, 104, 16, 3915);
+    			attr_dev(div13, "class", "card m-b-30");
+    			add_location(div13, file$j, 98, 12, 3599);
     			attr_dev(h50, "class", "card-title m-b-0");
-    			add_location(h50, file$o, 91, 20, 4099);
-    			attr_dev(div12, "class", "card-header");
-    			add_location(div12, file$o, 90, 16, 4052);
+    			add_location(h50, file$j, 137, 20, 6102);
+    			attr_dev(div14, "class", "card-header");
+    			add_location(div14, file$j, 136, 16, 6055);
     			attr_dev(label6, "for", "nombre");
-    			add_location(label6, file$o, 96, 28, 4357);
+    			add_location(label6, file$j, 142, 28, 6360);
     			attr_dev(input5, "type", "text");
     			attr_dev(input5, "class", "form-control");
     			input5.value = input5_value_value = /*paciente*/ ctx[1].nombre;
     			input5.readOnly = true;
     			attr_dev(input5, "id", "nombre");
     			attr_dev(input5, "placeholder", "Email");
-    			add_location(input5, file$o, 97, 28, 4421);
-    			attr_dev(div13, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div13, file$o, 95, 24, 4285);
+    			add_location(input5, file$j, 143, 28, 6424);
+    			attr_dev(div15, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div15, file$j, 141, 24, 6288);
     			attr_dev(label7, "for", "apellido");
-    			add_location(label7, file$o, 100, 28, 4656);
+    			add_location(label7, file$j, 146, 28, 6659);
     			attr_dev(input6, "type", "text");
     			attr_dev(input6, "class", "form-control");
     			input6.value = input6_value_value = /*paciente*/ ctx[1].apellidos;
     			input6.readOnly = true;
     			attr_dev(input6, "id", "apellido");
-    			add_location(input6, file$o, 101, 28, 4725);
-    			attr_dev(div14, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div14, file$o, 99, 24, 4584);
+    			add_location(input6, file$j, 147, 28, 6728);
+    			attr_dev(div16, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div16, file$j, 145, 24, 6587);
     			attr_dev(label8, "for", "apodo");
-    			add_location(label8, file$o, 104, 28, 4945);
+    			add_location(label8, file$j, 150, 28, 6948);
     			attr_dev(input7, "type", "text");
     			attr_dev(input7, "class", "form-control");
     			input7.value = input7_value_value = /*paciente*/ ctx[1].apodo;
     			input7.readOnly = true;
     			attr_dev(input7, "id", "apodo");
-    			add_location(input7, file$o, 105, 28, 5007);
-    			attr_dev(div15, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div15, file$o, 103, 24, 4873);
+    			add_location(input7, file$j, 151, 28, 7010);
+    			attr_dev(div17, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div17, file$j, 149, 24, 6876);
     			attr_dev(label9, "for", "cedula");
-    			add_location(label9, file$o, 108, 28, 5220);
+    			add_location(label9, file$j, 154, 28, 7223);
     			attr_dev(input8, "type", "text");
     			attr_dev(input8, "class", "form-control");
     			input8.value = input8_value_value = /*paciente*/ ctx[1].cedula;
     			input8.readOnly = true;
     			attr_dev(input8, "id", "cedula");
-    			add_location(input8, file$o, 109, 28, 5284);
-    			attr_dev(div16, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div16, file$o, 107, 24, 5148);
+    			add_location(input8, file$j, 155, 28, 7287);
+    			attr_dev(div18, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div18, file$j, 153, 24, 7151);
     			attr_dev(label10, "for", "aseguradora");
-    			add_location(label10, file$o, 112, 28, 5499);
+    			add_location(label10, file$j, 158, 28, 7502);
     			attr_dev(input9, "type", "text");
     			attr_dev(input9, "class", "form-control");
     			input9.value = input9_value_value = /*paciente*/ ctx[1].aseguradora;
     			input9.readOnly = true;
     			attr_dev(input9, "id", "aseguradora");
-    			add_location(input9, file$o, 113, 28, 5573);
-    			attr_dev(div17, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div17, file$o, 111, 24, 5427);
+    			add_location(input9, file$j, 159, 28, 7576);
+    			attr_dev(div19, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div19, file$j, 157, 24, 7430);
     			attr_dev(label11, "for", "afiliado");
-    			add_location(label11, file$o, 116, 28, 5798);
+    			add_location(label11, file$j, 162, 28, 7801);
     			attr_dev(input10, "type", "text");
     			attr_dev(input10, "class", "form-control");
     			input10.value = input10_value_value = /*paciente*/ ctx[1].noAfiliado;
     			input10.readOnly = true;
     			attr_dev(input10, "id", "afiliado");
-    			add_location(input10, file$o, 117, 28, 5876);
-    			attr_dev(div18, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div18, file$o, 115, 24, 5726);
+    			add_location(input10, file$j, 163, 28, 7879);
+    			attr_dev(div20, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div20, file$j, 161, 24, 7729);
     			attr_dev(label12, "for", "nacimiento");
-    			add_location(label12, file$o, 120, 28, 6097);
+    			add_location(label12, file$j, 166, 28, 8100);
     			attr_dev(input11, "type", "text");
     			attr_dev(input11, "class", "form-control");
     			input11.value = input11_value_value = new Date(/*paciente*/ ctx[1].fechaNacimiento).toLocaleDateString("es-DO");
     			input11.readOnly = true;
     			attr_dev(input11, "id", "nacimiento");
-    			add_location(input11, file$o, 121, 28, 6178);
-    			attr_dev(div19, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div19, file$o, 119, 24, 6025);
+    			add_location(input11, file$j, 167, 28, 8181);
+    			attr_dev(div21, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div21, file$j, 165, 24, 8028);
     			attr_dev(label13, "for", "sexo");
-    			add_location(label13, file$o, 124, 28, 6444);
+    			add_location(label13, file$j, 170, 28, 8447);
     			attr_dev(input12, "type", "text");
     			attr_dev(input12, "class", "form-control");
     			input12.value = input12_value_value = /*paciente*/ ctx[1].sexo;
     			input12.readOnly = true;
     			attr_dev(input12, "id", "sexo");
-    			add_location(input12, file$o, 125, 28, 6504);
-    			attr_dev(div20, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div20, file$o, 123, 24, 6372);
+    			add_location(input12, file$j, 171, 28, 8507);
+    			attr_dev(div22, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div22, file$j, 169, 24, 8375);
     			attr_dev(label14, "for", "email");
-    			add_location(label14, file$o, 128, 28, 6715);
+    			add_location(label14, file$j, 174, 28, 8718);
     			attr_dev(input13, "type", "text");
     			attr_dev(input13, "class", "form-control");
     			input13.value = input13_value_value = /*paciente*/ ctx[1].telefono;
     			input13.readOnly = true;
     			attr_dev(input13, "id", "telefono");
-    			add_location(input13, file$o, 129, 28, 6780);
-    			attr_dev(div21, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div21, file$o, 127, 24, 6643);
+    			add_location(input13, file$j, 175, 28, 8783);
+    			attr_dev(div23, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div23, file$j, 173, 24, 8646);
     			attr_dev(label15, "for", "email");
-    			add_location(label15, file$o, 132, 28, 6999);
+    			add_location(label15, file$j, 178, 28, 9002);
     			attr_dev(input14, "type", "text");
     			attr_dev(input14, "class", "form-control");
     			input14.value = input14_value_value = /*paciente*/ ctx[1].celular;
     			input14.readOnly = true;
     			attr_dev(input14, "id", "celular");
-    			add_location(input14, file$o, 133, 28, 7063);
-    			attr_dev(div22, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div22, file$o, 131, 24, 6927);
+    			add_location(input14, file$j, 179, 28, 9066);
+    			attr_dev(div24, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div24, file$j, 177, 24, 8930);
     			attr_dev(label16, "for", "email");
-    			add_location(label16, file$o, 136, 28, 7280);
+    			add_location(label16, file$j, 182, 28, 9283);
     			attr_dev(input15, "type", "text");
     			attr_dev(input15, "class", "form-control");
     			input15.value = input15_value_value = /*paciente*/ ctx[1].email;
     			input15.readOnly = true;
     			attr_dev(input15, "id", "email");
-    			add_location(input15, file$o, 137, 28, 7355);
-    			attr_dev(div23, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div23, file$o, 135, 24, 7208);
+    			add_location(input15, file$j, 183, 28, 9358);
+    			attr_dev(div25, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div25, file$j, 181, 24, 9211);
     			attr_dev(label17, "for", "provincia");
-    			add_location(label17, file$o, 140, 28, 7568);
+    			add_location(label17, file$j, 186, 28, 9571);
     			attr_dev(input16, "type", "text");
     			attr_dev(input16, "class", "form-control");
     			input16.value = input16_value_value = /*paciente*/ ctx[1].provincia;
     			input16.readOnly = true;
     			attr_dev(input16, "id", "provincia");
-    			add_location(input16, file$o, 141, 28, 7638);
-    			attr_dev(div24, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div24, file$o, 139, 24, 7496);
+    			add_location(input16, file$j, 187, 28, 9641);
+    			attr_dev(div26, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div26, file$j, 185, 24, 9499);
     			attr_dev(label18, "for", "municipio");
-    			add_location(label18, file$o, 144, 28, 7859);
+    			add_location(label18, file$j, 190, 28, 9862);
     			attr_dev(input17, "type", "text");
     			attr_dev(input17, "class", "form-control");
     			input17.value = input17_value_value = /*paciente*/ ctx[1].municipio;
     			input17.readOnly = true;
     			attr_dev(input17, "id", "municipio");
-    			add_location(input17, file$o, 145, 28, 7929);
-    			attr_dev(div25, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div25, file$o, 143, 24, 7787);
+    			add_location(input17, file$j, 191, 28, 9932);
+    			attr_dev(div27, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div27, file$j, 189, 24, 9790);
     			attr_dev(label19, "for", "ciudad");
-    			add_location(label19, file$o, 148, 28, 8150);
+    			add_location(label19, file$j, 194, 28, 10153);
     			attr_dev(input18, "type", "text");
     			attr_dev(input18, "class", "form-control");
     			input18.value = input18_value_value = /*paciente*/ ctx[1].ciudad;
     			input18.readOnly = true;
     			attr_dev(input18, "id", "ciudad");
-    			add_location(input18, file$o, 149, 28, 8214);
-    			attr_dev(div26, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div26, file$o, 147, 24, 8078);
+    			add_location(input18, file$j, 195, 28, 10217);
+    			attr_dev(div28, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div28, file$j, 193, 24, 10081);
     			attr_dev(label20, "for", "barrio");
-    			add_location(label20, file$o, 152, 28, 8429);
+    			add_location(label20, file$j, 198, 28, 10432);
     			attr_dev(input19, "type", "text");
     			attr_dev(input19, "class", "form-control");
     			input19.value = input19_value_value = /*paciente*/ ctx[1].barrio;
     			input19.readOnly = true;
     			attr_dev(input19, "id", "barrio");
-    			add_location(input19, file$o, 153, 28, 8493);
-    			attr_dev(div27, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div27, file$o, 151, 24, 8357);
+    			add_location(input19, file$j, 199, 28, 10496);
+    			attr_dev(div29, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div29, file$j, 197, 24, 10360);
     			attr_dev(label21, "for", "direccion");
-    			add_location(label21, file$o, 157, 28, 8734);
+    			add_location(label21, file$j, 203, 28, 10737);
     			attr_dev(input20, "type", "text");
     			attr_dev(input20, "class", "form-control");
     			input20.value = input20_value_value = /*paciente*/ ctx[1].ciudad;
     			input20.readOnly = true;
     			attr_dev(input20, "id", "direccion");
-    			add_location(input20, file$o, 158, 28, 8804);
-    			attr_dev(div28, "class", "form-group col-lg-8 col-md-6");
-    			add_location(div28, file$o, 156, 24, 8662);
-    			attr_dev(div29, "class", "form-row");
-    			add_location(div29, file$o, 94, 20, 4237);
-    			attr_dev(div30, "class", "card-body");
-    			add_location(div30, file$o, 93, 16, 4192);
-    			attr_dev(div31, "class", "card m-b-30");
-    			add_location(div31, file$o, 89, 12, 4009);
+    			add_location(input20, file$j, 204, 28, 10807);
+    			attr_dev(div30, "class", "form-group col-lg-8 col-md-6");
+    			add_location(div30, file$j, 202, 24, 10665);
+    			attr_dev(div31, "class", "form-row");
+    			add_location(div31, file$j, 140, 20, 6240);
+    			attr_dev(div32, "class", "card-body");
+    			add_location(div32, file$j, 139, 16, 6195);
+    			attr_dev(div33, "class", "card m-b-30");
+    			add_location(div33, file$j, 135, 12, 6012);
     			attr_dev(h51, "class", "card-title m-b-0");
-    			add_location(h51, file$o, 191, 20, 10687);
-    			attr_dev(div32, "class", "card-header");
-    			add_location(div32, file$o, 190, 16, 10640);
+    			add_location(h51, file$j, 237, 20, 12690);
+    			attr_dev(div34, "class", "card-header");
+    			add_location(div34, file$j, 236, 16, 12643);
     			if (img0.src !== (img0_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenCedula)) attr_dev(img0, "src", img0_src_value);
     			attr_dev(img0, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img0, "alt", "cedula");
-    			add_location(img0, file$o, 196, 28, 11012);
+    			add_location(img0, file$j, 242, 28, 13015);
     			attr_dev(a0, "href", a0_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenCedula);
     			attr_dev(a0, "target", "_blank");
     			attr_dev(a0, "class", "col-lg-4");
-    			add_location(a0, file$o, 195, 24, 10860);
+    			add_location(a0, file$j, 241, 24, 12863);
     			if (img1.src !== (img1_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenSeguro)) attr_dev(img1, "src", img1_src_value);
     			attr_dev(img1, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img1, "alt", "cedula");
-    			add_location(img1, file$o, 199, 28, 11358);
+    			add_location(img1, file$j, 245, 28, 13361);
     			attr_dev(a1, "href", a1_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenSeguro);
     			attr_dev(a1, "target", "_blank");
     			attr_dev(a1, "class", "col-lg-4");
-    			add_location(a1, file$o, 198, 24, 11206);
-    			attr_dev(div33, "class", "row");
-    			add_location(div33, file$o, 194, 20, 10817);
-    			attr_dev(div34, "class", "card-body");
-    			add_location(div34, file$o, 193, 16, 10772);
-    			attr_dev(div35, "class", "card m-b-30 mb-5");
-    			add_location(div35, file$o, 189, 12, 10592);
-    			attr_dev(div36, "class", "container-fluid mt-3");
-    			add_location(div36, file$o, 50, 8, 1441);
-    			add_location(br, file$o, 209, 14, 12035);
+    			add_location(a1, file$j, 244, 24, 13209);
+    			attr_dev(div35, "class", "row");
+    			add_location(div35, file$j, 240, 20, 12820);
+    			attr_dev(div36, "class", "card-body");
+    			add_location(div36, file$j, 239, 16, 12775);
+    			attr_dev(div37, "class", "card m-b-30 mb-5");
+    			add_location(div37, file$j, 235, 12, 12595);
+    			attr_dev(div38, "class", "container-fluid mt-3");
+    			add_location(div38, file$j, 86, 8, 2791);
+    			add_location(br, file$j, 255, 14, 14038);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$o, 49, 4, 1400);
+    			add_location(section, file$j, 85, 4, 2750);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$o, 47, 2, 1353);
+    			add_location(main, file$j, 83, 2, 2703);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -35774,168 +33068,201 @@ var app = (function (moment) {
     			mount_component(header, main, null);
     			append_dev(main, t1);
     			append_dev(main, section);
-    			append_dev(section, div36);
-    			append_dev(div36, h4);
+    			append_dev(section, div38);
+    			append_dev(div38, h4);
     			append_dev(h4, t2);
     			append_dev(h4, span0);
     			append_dev(span0, t3);
-    			append_dev(div36, t4);
-    			append_dev(div36, div11);
-    			append_dev(div11, div1);
+    			append_dev(div38, t4);
+    			append_dev(div38, div1);
     			append_dev(div1, div0);
-    			append_dev(div0, span1);
-    			append_dev(span1, t5);
+
+    			for (let i = 0; i < each_blocks_2.length; i += 1) {
+    				each_blocks_2[i].m(div0, null);
+    			}
+
+    			append_dev(div38, t5);
+    			append_dev(div38, div13);
+    			append_dev(div13, div3);
+    			append_dev(div3, div2);
+    			append_dev(div2, span1);
     			append_dev(span1, t6);
-    			append_dev(div11, t7);
+    			append_dev(span1, t7);
+    			append_dev(div13, t8);
+    			append_dev(div13, div12);
+    			append_dev(div12, div11);
+    			append_dev(div11, div4);
+    			append_dev(div4, label0);
+    			append_dev(div4, t10);
+    			append_dev(div4, input0);
+    			append_dev(div11, t11);
+    			append_dev(div11, div5);
+    			append_dev(div5, label1);
+    			append_dev(div5, t13);
+    			append_dev(div5, input1);
+    			append_dev(div11, t14);
+    			append_dev(div11, div6);
+    			append_dev(div6, label2);
+    			append_dev(div6, t16);
+    			append_dev(div6, input2);
+    			append_dev(div11, t17);
+    			append_dev(div11, div7);
+    			append_dev(div7, label3);
+    			append_dev(div7, t19);
+    			append_dev(div7, input3);
+    			append_dev(div11, t20);
+    			append_dev(div11, div8);
+    			append_dev(div8, label4);
+    			append_dev(div8, t22);
+    			append_dev(div8, input4);
+    			append_dev(div11, t23);
     			append_dev(div11, div10);
     			append_dev(div10, div9);
-    			append_dev(div9, div2);
-    			append_dev(div2, label0);
-    			append_dev(div2, t9);
-    			append_dev(div2, input0);
-    			append_dev(div9, t10);
-    			append_dev(div9, div3);
-    			append_dev(div3, label1);
-    			append_dev(div3, t12);
-    			append_dev(div3, input1);
-    			append_dev(div9, t13);
-    			append_dev(div9, div4);
-    			append_dev(div4, label2);
-    			append_dev(div4, t15);
-    			append_dev(div4, input2);
-    			append_dev(div9, t16);
-    			append_dev(div9, div5);
-    			append_dev(div5, label3);
-    			append_dev(div5, t18);
-    			append_dev(div5, input3);
-    			append_dev(div9, t19);
-    			append_dev(div9, div6);
-    			append_dev(div6, label4);
-    			append_dev(div6, t21);
-    			append_dev(div6, input4);
-    			append_dev(div9, t22);
-    			append_dev(div9, div8);
-    			append_dev(div8, div7);
-    			append_dev(div7, label5);
-    			append_dev(div7, t24);
-    			append_dev(div7, textarea);
-    			append_dev(div36, t25);
-    			append_dev(div36, div31);
-    			append_dev(div31, div12);
-    			append_dev(div12, h50);
-    			append_dev(div31, t27);
-    			append_dev(div31, div30);
-    			append_dev(div30, div29);
-    			append_dev(div29, div13);
-    			append_dev(div13, label6);
-    			append_dev(div13, t29);
-    			append_dev(div13, input5);
-    			append_dev(div29, t30);
-    			append_dev(div29, div14);
-    			append_dev(div14, label7);
-    			append_dev(div14, t32);
-    			append_dev(div14, input6);
-    			append_dev(div29, t33);
-    			append_dev(div29, div15);
-    			append_dev(div15, label8);
-    			append_dev(div15, t35);
-    			append_dev(div15, input7);
-    			append_dev(div29, t36);
-    			append_dev(div29, div16);
-    			append_dev(div16, label9);
-    			append_dev(div16, t38);
-    			append_dev(div16, input8);
-    			append_dev(div29, t39);
-    			append_dev(div29, div17);
-    			append_dev(div17, label10);
-    			append_dev(div17, t41);
-    			append_dev(div17, input9);
-    			append_dev(div29, t42);
-    			append_dev(div29, div18);
-    			append_dev(div18, label11);
-    			append_dev(div18, t44);
-    			append_dev(div18, input10);
-    			append_dev(div29, t45);
-    			append_dev(div29, div19);
-    			append_dev(div19, label12);
-    			append_dev(div19, t47);
-    			append_dev(div19, input11);
-    			append_dev(div29, t48);
-    			append_dev(div29, div20);
-    			append_dev(div20, label13);
-    			append_dev(div20, t50);
-    			append_dev(div20, input12);
-    			append_dev(div29, t51);
-    			append_dev(div29, div21);
-    			append_dev(div21, label14);
-    			append_dev(div21, t53);
-    			append_dev(div21, input13);
-    			append_dev(div29, t54);
-    			append_dev(div29, div22);
-    			append_dev(div22, label15);
-    			append_dev(div22, t56);
-    			append_dev(div22, input14);
-    			append_dev(div29, t57);
-    			append_dev(div29, div23);
-    			append_dev(div23, label16);
-    			append_dev(div23, t59);
-    			append_dev(div23, input15);
-    			append_dev(div29, t60);
-    			append_dev(div29, div24);
-    			append_dev(div24, label17);
-    			append_dev(div24, t62);
-    			append_dev(div24, input16);
-    			append_dev(div29, t63);
-    			append_dev(div29, div25);
-    			append_dev(div25, label18);
-    			append_dev(div25, t65);
-    			append_dev(div25, input17);
-    			append_dev(div29, t66);
-    			append_dev(div29, div26);
-    			append_dev(div26, label19);
-    			append_dev(div26, t68);
-    			append_dev(div26, input18);
-    			append_dev(div29, t69);
-    			append_dev(div29, div27);
-    			append_dev(div27, label20);
-    			append_dev(div27, t71);
-    			append_dev(div27, input19);
+    			append_dev(div9, label5);
+    			append_dev(div9, t25);
+    			append_dev(div9, textarea);
+    			append_dev(div38, t26);
+    			append_dev(div38, div33);
+    			append_dev(div33, div14);
+    			append_dev(div14, h50);
+    			append_dev(div33, t28);
+    			append_dev(div33, div32);
+    			append_dev(div32, div31);
+    			append_dev(div31, div15);
+    			append_dev(div15, label6);
+    			append_dev(div15, t30);
+    			append_dev(div15, input5);
+    			append_dev(div31, t31);
+    			append_dev(div31, div16);
+    			append_dev(div16, label7);
+    			append_dev(div16, t33);
+    			append_dev(div16, input6);
+    			append_dev(div31, t34);
+    			append_dev(div31, div17);
+    			append_dev(div17, label8);
+    			append_dev(div17, t36);
+    			append_dev(div17, input7);
+    			append_dev(div31, t37);
+    			append_dev(div31, div18);
+    			append_dev(div18, label9);
+    			append_dev(div18, t39);
+    			append_dev(div18, input8);
+    			append_dev(div31, t40);
+    			append_dev(div31, div19);
+    			append_dev(div19, label10);
+    			append_dev(div19, t42);
+    			append_dev(div19, input9);
+    			append_dev(div31, t43);
+    			append_dev(div31, div20);
+    			append_dev(div20, label11);
+    			append_dev(div20, t45);
+    			append_dev(div20, input10);
+    			append_dev(div31, t46);
+    			append_dev(div31, div21);
+    			append_dev(div21, label12);
+    			append_dev(div21, t48);
+    			append_dev(div21, input11);
+    			append_dev(div31, t49);
+    			append_dev(div31, div22);
+    			append_dev(div22, label13);
+    			append_dev(div22, t51);
+    			append_dev(div22, input12);
+    			append_dev(div31, t52);
+    			append_dev(div31, div23);
+    			append_dev(div23, label14);
+    			append_dev(div23, t54);
+    			append_dev(div23, input13);
+    			append_dev(div31, t55);
+    			append_dev(div31, div24);
+    			append_dev(div24, label15);
+    			append_dev(div24, t57);
+    			append_dev(div24, input14);
+    			append_dev(div31, t58);
+    			append_dev(div31, div25);
+    			append_dev(div25, label16);
+    			append_dev(div25, t60);
+    			append_dev(div25, input15);
+    			append_dev(div31, t61);
+    			append_dev(div31, div26);
+    			append_dev(div26, label17);
+    			append_dev(div26, t63);
+    			append_dev(div26, input16);
+    			append_dev(div31, t64);
+    			append_dev(div31, div27);
+    			append_dev(div27, label18);
+    			append_dev(div27, t66);
+    			append_dev(div27, input17);
+    			append_dev(div31, t67);
+    			append_dev(div31, div28);
+    			append_dev(div28, label19);
+    			append_dev(div28, t69);
+    			append_dev(div28, input18);
+    			append_dev(div31, t70);
+    			append_dev(div31, div29);
+    			append_dev(div29, label20);
     			append_dev(div29, t72);
-    			append_dev(div29, div28);
-    			append_dev(div28, label21);
-    			append_dev(div28, t74);
-    			append_dev(div28, input20);
-    			append_dev(div36, t75);
+    			append_dev(div29, input19);
+    			append_dev(div31, t73);
+    			append_dev(div31, div30);
+    			append_dev(div30, label21);
+    			append_dev(div30, t75);
+    			append_dev(div30, input20);
+    			append_dev(div38, t76);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(div36, null);
+    				each_blocks_1[i].m(div38, null);
     			}
 
-    			append_dev(div36, t76);
+    			append_dev(div38, t77);
+    			append_dev(div38, div37);
+    			append_dev(div37, div34);
+    			append_dev(div34, h51);
+    			append_dev(div37, t79);
+    			append_dev(div37, div36);
     			append_dev(div36, div35);
-    			append_dev(div35, div32);
-    			append_dev(div32, h51);
-    			append_dev(div35, t78);
-    			append_dev(div35, div34);
-    			append_dev(div34, div33);
-    			append_dev(div33, a0);
+    			append_dev(div35, a0);
     			append_dev(a0, img0);
-    			append_dev(div33, t79);
-    			append_dev(div33, a1);
+    			append_dev(div35, t80);
+    			append_dev(div35, a1);
     			append_dev(a1, img1);
-    			append_dev(div33, t80);
+    			append_dev(div35, t81);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div33, null);
+    				each_blocks[i].m(div35, null);
     			}
 
-    			append_dev(div36, t81);
+    			append_dev(div38, t82);
     			append_dev(section, br);
     			current = true;
     		},
     		p: function update(ctx, [dirty]) {
     			if ((!current || dirty & /*solicitudDetalle*/ 1) && t3_value !== (t3_value = /*solicitudDetalle*/ ctx[0].codigo + "")) set_data_dev(t3, t3_value);
-    			if ((!current || dirty & /*solicitudDetalle*/ 1) && t6_value !== (t6_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "")) set_data_dev(t6, t6_value);
+
+    			if (dirty & /*estados, solicitudDetalle, cambiarEstadoSolicitud*/ 49) {
+    				each_value_2 = /*estados*/ ctx[4];
+    				validate_each_argument(each_value_2);
+    				let i;
+
+    				for (i = 0; i < each_value_2.length; i += 1) {
+    					const child_ctx = get_each_context_2$8(ctx, each_value_2, i);
+
+    					if (each_blocks_2[i]) {
+    						each_blocks_2[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks_2[i] = create_each_block_2$8(child_ctx);
+    						each_blocks_2[i].c();
+    						each_blocks_2[i].m(div0, null);
+    					}
+    				}
+
+    				for (; i < each_blocks_2.length; i += 1) {
+    					each_blocks_2[i].d(1);
+    				}
+
+    				each_blocks_2.length = each_value_2.length;
+    			}
+
+    			if ((!current || dirty & /*solicitudDetalle*/ 1) && t7_value !== (t7_value = new Date(/*solicitudDetalle*/ ctx[0].createdAt).toLocaleString() + "")) set_data_dev(t7, t7_value);
 
     			if (!current || dirty & /*solicitudDetalle*/ 1 && input0_value_value !== (input0_value_value = /*solicitudDetalle*/ ctx[0].codigo) && input0.value !== input0_value_value) {
     				prop_dev(input0, "value", input0_value_value);
@@ -36038,7 +33365,7 @@ var app = (function (moment) {
     					} else {
     						each_blocks_1[i] = create_each_block_1$a(child_ctx);
     						each_blocks_1[i].c();
-    						each_blocks_1[i].m(div36, t76);
+    						each_blocks_1[i].m(div38, t77);
     					}
     				}
 
@@ -36078,7 +33405,7 @@ var app = (function (moment) {
     					} else {
     						each_blocks[i] = create_each_block$b(child_ctx);
     						each_blocks[i].c();
-    						each_blocks[i].m(div33, null);
+    						each_blocks[i].m(div35, null);
     					}
     				}
 
@@ -36105,6 +33432,7 @@ var app = (function (moment) {
     			if (detaching) detach_dev(t0);
     			if (detaching) detach_dev(main);
     			destroy_component(header);
+    			destroy_each(each_blocks_2, detaching);
     			destroy_each(each_blocks_1, detaching);
     			destroy_each(each_blocks, detaching);
     		}
@@ -36112,7 +33440,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$q.name,
+    		id: create_fragment$k.name,
     		type: "component",
     		source: "",
     		ctx
@@ -36121,29 +33449,37 @@ var app = (function (moment) {
     	return block;
     }
 
-    function instance$q($$self, $$props, $$invalidate) {
+    function instance$k($$self, $$props, $$invalidate) {
     	let $axios;
+    	let $toast;
     	validate_store(axios$2, "axios");
-    	component_subscribe($$self, axios$2, $$value => $$invalidate(5, $axios = $$value));
+    	component_subscribe($$self, axios$2, $$value => $$invalidate(7, $axios = $$value));
+    	validate_store(toast, "toast");
+    	component_subscribe($$self, toast, $$value => $$invalidate(8, $toast = $$value));
     	let { params = {} } = $$props;
     	let solicitudDetalle = [];
     	let paciente = [];
     	let imagenesRecetas = [];
     	let parentescos = [];
+    	let estados = [];
 
     	function cargarDetalleSolicitud() {
     		$axios.get(`/solicitudes/${params.id}`).then(res => {
     			$$invalidate(0, solicitudDetalle = res.data);
-    			console.log(solicitudDetalle);
     			$$invalidate(1, paciente = res.data.paciente);
     			cargarParentesco();
+    		});
+    	}
+
+    	function cargarEstados() {
+    		$axios.get(`/estadossolicitud`).then(res => {
+    			$$invalidate(4, estados = res.data);
     		});
     	}
 
     	function cargarParentesco() {
     		$axios.get(`/pacientes/${paciente.id}/parentescos`).then(res => {
     			$$invalidate(3, parentescos = res.data);
-    			console.log(parentescos);
     		});
     	}
 
@@ -36153,22 +33489,62 @@ var app = (function (moment) {
     		});
     	}
 
+    	function cambiarEstadoSolicitud(estado) {
+    		const datosSolicitud = {
+    			Id: solicitudDetalle.id,
+    			PacienteId: solicitudDetalle.pacienteId,
+    			AseguradoraId: solicitudDetalle.aseguradoraId,
+    			CategoriaAfiliado: solicitudDetalle.categoriaAfiliado,
+    			NumeroAsegurado: solicitudDetalle.numeroAsegurado,
+    			Colectivo: solicitudDetalle.colectivo,
+    			EstadoId: estado,
+    			Flag: solicitudDetalle.flag,
+    			Codigo: solicitudDetalle.codigo,
+    			Comentario: solicitudDetalle.comentario,
+    			CreatedAt: solicitudDetalle.createdAt,
+    			Autorizado: solicitudDetalle.autorizado,
+    			NumeroAutorizacion: solicitudDetalle.numeroAutorizacion,
+    			Modalidad: solicitudDetalle.modalidad,
+    			MotivoSolicitud: solicitudDetalle.motivoSolicitud
+    		};
+
+    		$axios.put(`/solicitudes/${solicitudDetalle.id}`, datosSolicitud).then(res => {
+    			if (res.status == 200) {
+    				$toast(5000).fire({
+    					icon: "success",
+    					title: "Se actualizado la solicitud"
+    				});
+    			} else {
+    				alert("Ocurrio un error en el servidor");
+    			}
+    		});
+    	}
+
     	onMount(() => {
     		cargarDetalleSolicitud();
     		cargarImagenSolicitud();
+    		cargarEstados();
     	});
 
     	const writable_props = ["params"];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$d.warn(`<SolicitudDetalle> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<SolicitudDetalle> was created with unknown prop '${key}'`);
     	});
 
     	let { $$slots = {}, $$scope } = $$props;
     	validate_slots("SolicitudDetalle", $$slots, []);
+    	const $$binding_groups = [[]];
+
+    	function input_change_handler() {
+    		solicitudDetalle.estadoId = this.__value;
+    		$$invalidate(0, solicitudDetalle);
+    	}
+
+    	const click_handler = estado => cambiarEstadoSolicitud(estado.id);
 
     	$$self.$set = $$props => {
-    		if ("params" in $$props) $$invalidate(4, params = $$props.params);
+    		if ("params" in $$props) $$invalidate(6, params = $$props.params);
     	};
 
     	$$self.$capture_state = () => ({
@@ -36177,47 +33553,67 @@ var app = (function (moment) {
     		activePage,
     		session,
     		axios: axios$2,
+    		toast,
     		onDestroy,
     		onMount,
-    		push,
-    		link,
-    		Lightbox,
     		params,
     		solicitudDetalle,
     		paciente,
     		imagenesRecetas,
     		parentescos,
+    		estados,
     		cargarDetalleSolicitud,
+    		cargarEstados,
     		cargarParentesco,
     		cargarImagenSolicitud,
-    		$axios
+    		cambiarEstadoSolicitud,
+    		$axios,
+    		$toast
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ("params" in $$props) $$invalidate(4, params = $$props.params);
+    		if ("params" in $$props) $$invalidate(6, params = $$props.params);
     		if ("solicitudDetalle" in $$props) $$invalidate(0, solicitudDetalle = $$props.solicitudDetalle);
     		if ("paciente" in $$props) $$invalidate(1, paciente = $$props.paciente);
     		if ("imagenesRecetas" in $$props) $$invalidate(2, imagenesRecetas = $$props.imagenesRecetas);
     		if ("parentescos" in $$props) $$invalidate(3, parentescos = $$props.parentescos);
+    		if ("estados" in $$props) $$invalidate(4, estados = $$props.estados);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [solicitudDetalle, paciente, imagenesRecetas, parentescos, params];
+    	return [
+    		solicitudDetalle,
+    		paciente,
+    		imagenesRecetas,
+    		parentescos,
+    		estados,
+    		cambiarEstadoSolicitud,
+    		params,
+    		$axios,
+    		$toast,
+    		cargarDetalleSolicitud,
+    		cargarEstados,
+    		cargarParentesco,
+    		cargarImagenSolicitud,
+    		input_change_handler,
+    		$$binding_groups,
+    		click_handler
+    	];
     }
 
     class SolicitudDetalle extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$q, create_fragment$q, safe_not_equal, { params: 4 });
+    		init(this, options, instance$k, create_fragment$k, safe_not_equal, { params: 6 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "SolicitudDetalle",
     			options,
-    			id: create_fragment$q.name
+    			id: create_fragment$k.name
     		});
     	}
 
@@ -36232,11 +33628,11 @@ var app = (function (moment) {
 
     /* src\Pages\Mantenimiento\Solicitudes.svelte generated by Svelte v3.23.0 */
 
-    const { console: console_1$e } = globals;
-    const file$p = "src\\Pages\\Mantenimiento\\Solicitudes.svelte";
+    const { console: console_1$d } = globals;
+    const file$k = "src\\Pages\\Mantenimiento\\Solicitudes.svelte";
 
     // (43:8) {#if cargando}
-    function create_if_block_1$6(ctx) {
+    function create_if_block_1$5(ctx) {
     	let div3;
     	let div2;
     	let div1;
@@ -36258,23 +33654,23 @@ var app = (function (moment) {
     			t1 = space();
     			p1 = element("p");
     			p1.textContent = "El formulario en la web para pruebas de PCR Covid-19 se desactivara y las personas no podran hacer mas solicitudes";
-    			add_location(strong, file$p, 47, 67, 1552);
+    			add_location(strong, file$k, 47, 67, 1552);
     			attr_dev(p0, "class", "font-flow");
     			set_style(p0, "margin", "0");
-    			add_location(p0, file$p, 47, 28, 1513);
+    			add_location(p0, file$k, 47, 28, 1513);
     			attr_dev(p1, "class", "font-flow");
     			set_style(p1, "font-size", "12px");
     			set_style(p1, "margin-bottom", "0");
     			set_style(p1, "font-weight", "lighter");
-    			add_location(p1, file$p, 48, 28, 1639);
+    			add_location(p1, file$k, 48, 28, 1639);
     			attr_dev(div0, "class", "col-lg-6");
-    			add_location(div0, file$p, 46, 24, 1461);
+    			add_location(div0, file$k, 46, 24, 1461);
     			attr_dev(div1, "class", "row");
-    			add_location(div1, file$p, 45, 20, 1418);
+    			add_location(div1, file$k, 45, 20, 1418);
     			attr_dev(div2, "class", "card-body");
-    			add_location(div2, file$p, 44, 16, 1373);
+    			add_location(div2, file$k, 44, 16, 1373);
     			attr_dev(div3, "class", "card mb-3");
-    			add_location(div3, file$p, 43, 12, 1332);
+    			add_location(div3, file$k, 43, 12, 1332);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -36293,7 +33689,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_1$6.name,
+    		id: create_if_block_1$5.name,
     		type: "if",
     		source: "(43:8) {#if cargando}",
     		ctx
@@ -36303,7 +33699,7 @@ var app = (function (moment) {
     }
 
     // (55:8) {#if !cargando}
-    function create_if_block$c(ctx) {
+    function create_if_block$9(ctx) {
     	let div4;
     	let div3;
     	let div2;
@@ -36339,33 +33735,33 @@ var app = (function (moment) {
     			input = element("input");
     			t4 = space();
     			span = element("span");
-    			add_location(strong, file$p, 59, 45, 2178);
+    			add_location(strong, file$k, 59, 45, 2178);
     			set_style(p0, "margin", "0");
-    			add_location(p0, file$p, 59, 24, 2157);
+    			add_location(p0, file$k, 59, 24, 2157);
     			set_style(p1, "font-size", "12px");
     			set_style(p1, "margin-bottom", "0");
     			set_style(p1, "font-weight", "lighter");
-    			add_location(p1, file$p, 60, 24, 2261);
+    			add_location(p1, file$k, 60, 24, 2261);
     			attr_dev(div0, "class", "col-lg-6");
-    			add_location(div0, file$p, 58, 20, 2109);
+    			add_location(div0, file$k, 58, 20, 2109);
     			attr_dev(input, "type", "checkbox");
     			attr_dev(input, "name", "option");
     			input.__value = "1";
     			input.value = input.__value;
     			attr_dev(input, "class", "cstm-switch-input");
-    			add_location(input, file$p, 64, 28, 2613);
+    			add_location(input, file$k, 64, 28, 2613);
     			attr_dev(span, "class", "cstm-switch-indicator bg-success ");
-    			add_location(span, file$p, 65, 28, 2782);
+    			add_location(span, file$k, 65, 28, 2782);
     			attr_dev(label, "class", "cstm-switch");
-    			add_location(label, file$p, 63, 24, 2556);
+    			add_location(label, file$k, 63, 24, 2556);
     			attr_dev(div1, "class", "col-lg-6 text-right");
-    			add_location(div1, file$p, 62, 20, 2497);
+    			add_location(div1, file$k, 62, 20, 2497);
     			attr_dev(div2, "class", "row");
-    			add_location(div2, file$p, 57, 16, 2070);
+    			add_location(div2, file$k, 57, 16, 2070);
     			attr_dev(div3, "class", "card-body");
-    			add_location(div3, file$p, 56, 12, 2029);
+    			add_location(div3, file$k, 56, 12, 2029);
     			attr_dev(div4, "class", "card");
-    			add_location(div4, file$p, 55, 8, 1997);
+    			add_location(div4, file$k, 55, 8, 1997);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div4, anchor);
@@ -36407,7 +33803,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block$c.name,
+    		id: create_if_block$9.name,
     		type: "if",
     		source: "(55:8) {#if !cargando}",
     		ctx
@@ -36416,7 +33812,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    function create_fragment$r(ctx) {
+    function create_fragment$l(ctx) {
     	let t0;
     	let main;
     	let t1;
@@ -36428,8 +33824,8 @@ var app = (function (moment) {
     	let current;
     	const aside = new Aside({ $$inline: true });
     	const header = new Header({ $$inline: true });
-    	let if_block0 = /*cargando*/ ctx[1] && create_if_block_1$6(ctx);
-    	let if_block1 = !/*cargando*/ ctx[1] && create_if_block$c(ctx);
+    	let if_block0 = /*cargando*/ ctx[1] && create_if_block_1$5(ctx);
+    	let if_block1 = !/*cargando*/ ctx[1] && create_if_block$9(ctx);
 
     	const block = {
     		c: function create() {
@@ -36446,13 +33842,13 @@ var app = (function (moment) {
     			if (if_block0) if_block0.c();
     			t4 = space();
     			if (if_block1) if_block1.c();
-    			add_location(h1, file$p, 41, 8, 1274);
+    			add_location(h1, file$k, 41, 8, 1274);
     			attr_dev(div, "class", "container mt-3");
-    			add_location(div, file$p, 40, 6, 1236);
+    			add_location(div, file$k, 40, 6, 1236);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$p, 39, 4, 1197);
+    			add_location(section, file$k, 39, 4, 1197);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$p, 37, 2, 1150);
+    			add_location(main, file$k, 37, 2, 1150);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -36475,7 +33871,7 @@ var app = (function (moment) {
     		p: function update(ctx, [dirty]) {
     			if (/*cargando*/ ctx[1]) {
     				if (if_block0) ; else {
-    					if_block0 = create_if_block_1$6(ctx);
+    					if_block0 = create_if_block_1$5(ctx);
     					if_block0.c();
     					if_block0.m(div, t4);
     				}
@@ -36488,7 +33884,7 @@ var app = (function (moment) {
     				if (if_block1) {
     					if_block1.p(ctx, dirty);
     				} else {
-    					if_block1 = create_if_block$c(ctx);
+    					if_block1 = create_if_block$9(ctx);
     					if_block1.c();
     					if_block1.m(div, null);
     				}
@@ -36520,7 +33916,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$r.name,
+    		id: create_fragment$l.name,
     		type: "component",
     		source: "",
     		ctx
@@ -36529,7 +33925,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    function instance$r($$self, $$props, $$invalidate) {
+    function instance$l($$self, $$props, $$invalidate) {
     	let $axios;
     	validate_store(axios$2, "axios");
     	component_subscribe($$self, axios$2, $$value => $$invalidate(4, $axios = $$value));
@@ -36569,7 +33965,7 @@ var app = (function (moment) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$e.warn(`<Solicitudes> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$d.warn(`<Solicitudes> was created with unknown prop '${key}'`);
     	});
 
     	let { $$slots = {}, $$scope } = $$props;
@@ -36621,29 +34017,29 @@ var app = (function (moment) {
     class Solicitudes extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$r, create_fragment$r, safe_not_equal, {});
+    		init(this, options, instance$l, create_fragment$l, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Solicitudes",
     			options,
-    			id: create_fragment$r.name
+    			id: create_fragment$l.name
     		});
     	}
     }
 
     /* src\Pages\Home\Error404.svelte generated by Svelte v3.23.0 */
 
-    const file$q = "src\\Pages\\Home\\Error404.svelte";
+    const file$l = "src\\Pages\\Home\\Error404.svelte";
 
-    function create_fragment$s(ctx) {
+    function create_fragment$m(ctx) {
     	let h1;
 
     	const block = {
     		c: function create() {
     			h1 = element("h1");
     			h1.textContent = "Error 404";
-    			add_location(h1, file$q, 0, 0, 0);
+    			add_location(h1, file$l, 0, 0, 0);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -36661,7 +34057,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$s.name,
+    		id: create_fragment$m.name,
     		type: "component",
     		source: "",
     		ctx
@@ -36670,7 +34066,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    function instance$s($$self, $$props) {
+    function instance$m($$self, $$props) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -36685,22 +34081,22 @@ var app = (function (moment) {
     class Error404 extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$s, create_fragment$s, safe_not_equal, {});
+    		init(this, options, instance$m, create_fragment$m, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Error404",
     			options,
-    			id: create_fragment$s.name
+    			id: create_fragment$m.name
     		});
     	}
     }
 
     /* src\Pages\Home\Unauthorized.svelte generated by Svelte v3.23.0 */
 
-    const file$r = "src\\Pages\\Home\\Unauthorized.svelte";
+    const file$m = "src\\Pages\\Home\\Unauthorized.svelte";
 
-    function create_fragment$t(ctx) {
+    function create_fragment$n(ctx) {
     	let h2;
     	let t1;
     	let a;
@@ -36713,10 +34109,10 @@ var app = (function (moment) {
     			a = element("a");
     			a.textContent = "Ir a inicio";
     			attr_dev(h2, "class", "ml-2 mt-2");
-    			add_location(h2, file$r, 0, 0, 0);
+    			add_location(h2, file$m, 0, 0, 0);
     			attr_dev(a, "class", "ml-2 mt-2");
     			attr_dev(a, "href", "#/");
-    			add_location(a, file$r, 2, 0, 46);
+    			add_location(a, file$m, 2, 0, 46);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -36738,7 +34134,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$t.name,
+    		id: create_fragment$n.name,
     		type: "component",
     		source: "",
     		ctx
@@ -36747,7 +34143,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    function instance$t($$self, $$props) {
+    function instance$n($$self, $$props) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -36762,13 +34158,13 @@ var app = (function (moment) {
     class Unauthorized extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$t, create_fragment$t, safe_not_equal, {});
+    		init(this, options, instance$n, create_fragment$n, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Unauthorized",
     			options,
-    			id: create_fragment$t.name
+    			id: create_fragment$n.name
     		});
     	}
     }
@@ -37096,9 +34492,9 @@ var app = (function (moment) {
 
     /* src\App.svelte generated by Svelte v3.23.0 */
 
-    const { console: console_1$f } = globals;
+    const { console: console_1$e } = globals;
 
-    function create_fragment$u(ctx) {
+    function create_fragment$o(ctx) {
     	let current;
     	const router = new Router({ props: { routes }, $$inline: true });
     	router.$on("routeLoaded", event);
@@ -37132,7 +34528,7 @@ var app = (function (moment) {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$u.name,
+    		id: create_fragment$o.name,
     		type: "component",
     		source: "",
     		ctx
@@ -37145,7 +34541,7 @@ var app = (function (moment) {
     	jQuery("body").removeClass("sidebar-open");
     }
 
-    function instance$u($$self, $$props, $$invalidate) {
+    function instance$o($$self, $$props, $$invalidate) {
     	let $session;
     	let $connection;
     	validate_store(session, "session");
@@ -37162,7 +34558,7 @@ var app = (function (moment) {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$f.warn(`<App> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$e.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
     	let { $$slots = {}, $$scope } = $$props;
@@ -37197,13 +34593,13 @@ var app = (function (moment) {
     class App extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$u, create_fragment$u, safe_not_equal, {});
+    		init(this, options, instance$o, create_fragment$o, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "App",
     			options,
-    			id: create_fragment$u.name
+    			id: create_fragment$o.name
     		});
     	}
     }
