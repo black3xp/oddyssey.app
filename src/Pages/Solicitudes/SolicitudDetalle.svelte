@@ -126,6 +126,14 @@
                             <input type="text" class="form-control" value={paciente.sexo} readonly id="sexo">
                         </div>
                         <div class="form-group col-lg-4 col-md-6">
+                            <label for="email">Telefono</label>
+                            <input type="text" class="form-control" value={paciente.telefono} readonly id="telefono">
+                        </div>
+                        <div class="form-group col-lg-4 col-md-6">
+                            <label for="email">Celular</label>
+                            <input type="text" class="form-control" value={paciente.celular} readonly id="celular">
+                        </div>
+                        <div class="form-group col-lg-4 col-md-6">
                             <label for="email">Correo electronico</label>
                             <input type="text" class="form-control" value={paciente.email} readonly id="email">
                         </div>

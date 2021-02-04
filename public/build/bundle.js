@@ -34862,7 +34862,7 @@ var app = (function (moment) {
     	return child_ctx;
     }
 
-    // (156:12) {#each parentescos as parentesco}
+    // (164:12) {#each parentescos as parentesco}
     function create_each_block_1$a(ctx) {
     	let h5;
     	let span;
@@ -34931,50 +34931,50 @@ var app = (function (moment) {
     			t13 = space();
     			input3 = element("input");
     			attr_dev(span, "class", "badge badge-primary");
-    			add_location(span, file$o, 156, 16, 8496);
-    			add_location(h5, file$o, 156, 12, 8492);
+    			add_location(span, file$o, 164, 16, 9061);
+    			add_location(h5, file$o, 164, 12, 9057);
     			attr_dev(label0, "for", "codigo");
-    			add_location(label0, file$o, 161, 33, 8825);
+    			add_location(label0, file$o, 169, 33, 9390);
     			attr_dev(input0, "type", "text");
     			attr_dev(input0, "class", "form-control");
     			input0.value = input0_value_value = /*parentesco*/ ctx[12].nombre;
     			input0.readOnly = true;
-    			add_location(input0, file$o, 162, 33, 8894);
+    			add_location(input0, file$o, 170, 33, 9459);
     			attr_dev(div0, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div0, file$o, 160, 29, 8748);
+    			add_location(div0, file$o, 168, 29, 9313);
     			attr_dev(label1, "for", "catAfiliado");
-    			add_location(label1, file$o, 165, 33, 9114);
+    			add_location(label1, file$o, 173, 33, 9679);
     			attr_dev(input1, "type", "text");
     			attr_dev(input1, "class", "form-control");
     			input1.value = input1_value_value = /*parentesco*/ ctx[12].apellidos;
     			input1.readOnly = true;
-    			add_location(input1, file$o, 166, 33, 9191);
+    			add_location(input1, file$o, 174, 33, 9756);
     			attr_dev(div1, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div1, file$o, 164, 29, 9037);
+    			add_location(div1, file$o, 172, 29, 9602);
     			attr_dev(label2, "for", "colectivo");
-    			add_location(label2, file$o, 169, 33, 9414);
+    			add_location(label2, file$o, 177, 33, 9979);
     			attr_dev(input2, "type", "text");
     			attr_dev(input2, "class", "form-control");
     			input2.value = input2_value_value = /*parentesco*/ ctx[12].cedula;
     			input2.readOnly = true;
-    			add_location(input2, file$o, 170, 33, 9486);
+    			add_location(input2, file$o, 178, 33, 10051);
     			attr_dev(div2, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div2, file$o, 168, 29, 9337);
+    			add_location(div2, file$o, 176, 29, 9902);
     			attr_dev(label3, "for", "colectivo");
-    			add_location(label3, file$o, 173, 32, 9705);
+    			add_location(label3, file$o, 181, 32, 10270);
     			attr_dev(input3, "type", "text");
     			attr_dev(input3, "class", "form-control");
     			input3.value = input3_value_value = /*parentesco*/ ctx[12].telefono;
     			input3.readOnly = true;
-    			add_location(input3, file$o, 174, 32, 9778);
+    			add_location(input3, file$o, 182, 32, 10343);
     			attr_dev(div3, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div3, file$o, 172, 29, 9629);
+    			add_location(div3, file$o, 180, 29, 10194);
     			attr_dev(div4, "class", "form-row");
-    			add_location(div4, file$o, 159, 25, 8695);
+    			add_location(div4, file$o, 167, 25, 9260);
     			attr_dev(div5, "class", "card-body");
-    			add_location(div5, file$o, 158, 21, 8645);
+    			add_location(div5, file$o, 166, 21, 9210);
     			attr_dev(div6, "class", "card m-b-30");
-    			add_location(div6, file$o, 157, 17, 8597);
+    			add_location(div6, file$o, 165, 17, 9162);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h5, anchor);
@@ -35035,14 +35035,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_1$a.name,
     		type: "each",
-    		source: "(156:12) {#each parentescos as parentesco}",
+    		source: "(164:12) {#each parentescos as parentesco}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (194:24) {#each imagenesRecetas as img}
+    // (202:24) {#each imagenesRecetas as img}
     function create_each_block$b(ctx) {
     	let a;
     	let img;
@@ -35058,11 +35058,11 @@ var app = (function (moment) {
     			if (img.src !== (img_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name)) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img, "alt", "cedula");
-    			add_location(img, file$o, 195, 32, 11190);
+    			add_location(img, file$o, 203, 32, 11755);
     			attr_dev(a, "href", a_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*img*/ ctx[9].name);
     			attr_dev(a, "target", "_blank");
     			attr_dev(a, "class", "col-lg-4");
-    			add_location(a, file$o, 194, 28, 11047);
+    			add_location(a, file$o, 202, 28, 11612);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
@@ -35087,7 +35087,7 @@ var app = (function (moment) {
     		block,
     		id: create_each_block$b.name,
     		type: "each",
-    		source: "(194:24) {#each imagenesRecetas as img}",
+    		source: "(202:24) {#each imagenesRecetas as img}",
     		ctx
     	});
 
@@ -35099,7 +35099,7 @@ var app = (function (moment) {
     	let main;
     	let t1;
     	let section;
-    	let div34;
+    	let div36;
     	let h4;
     	let t2;
     	let span0;
@@ -35153,12 +35153,12 @@ var app = (function (moment) {
     	let textarea;
     	let textarea_value_value;
     	let t25;
-    	let div29;
+    	let div31;
     	let div12;
     	let h50;
     	let t27;
-    	let div28;
-    	let div27;
+    	let div30;
+    	let div29;
     	let div13;
     	let label6;
     	let t29;
@@ -35243,24 +35243,36 @@ var app = (function (moment) {
     	let input18;
     	let input18_value_value;
     	let t69;
-    	let t70;
-    	let div33;
-    	let div30;
-    	let h51;
+    	let div27;
+    	let label20;
+    	let t71;
+    	let input19;
+    	let input19_value_value;
     	let t72;
+    	let div28;
+    	let label21;
+    	let t74;
+    	let input20;
+    	let input20_value_value;
+    	let t75;
+    	let t76;
+    	let div35;
     	let div32;
-    	let div31;
+    	let h51;
+    	let t78;
+    	let div34;
+    	let div33;
     	let a0;
     	let img0;
     	let img0_src_value;
     	let a0_href_value;
-    	let t73;
+    	let t79;
     	let a1;
     	let img1;
     	let img1_src_value;
     	let a1_href_value;
-    	let t74;
-    	let t75;
+    	let t80;
+    	let t81;
     	let br;
     	let current;
     	const aside = new Aside({ $$inline: true });
@@ -35289,7 +35301,7 @@ var app = (function (moment) {
     			create_component(header.$$.fragment);
     			t1 = space();
     			section = element("section");
-    			div34 = element("div");
+    			div36 = element("div");
     			h4 = element("h4");
     			t2 = text("Detalle Solicitud ");
     			span0 = element("span");
@@ -35341,13 +35353,13 @@ var app = (function (moment) {
     			t24 = space();
     			textarea = element("textarea");
     			t25 = space();
-    			div29 = element("div");
+    			div31 = element("div");
     			div12 = element("div");
     			h50 = element("h5");
     			h50.textContent = "Datos personales";
     			t27 = space();
-    			div28 = element("div");
-    			div27 = element("div");
+    			div30 = element("div");
+    			div29 = element("div");
     			div13 = element("div");
     			label6 = element("label");
     			label6.textContent = "Nombre";
@@ -35398,65 +35410,77 @@ var app = (function (moment) {
     			t51 = space();
     			div21 = element("div");
     			label14 = element("label");
-    			label14.textContent = "Correo electronico";
+    			label14.textContent = "Telefono";
     			t53 = space();
     			input13 = element("input");
     			t54 = space();
     			div22 = element("div");
     			label15 = element("label");
-    			label15.textContent = "Provincia";
+    			label15.textContent = "Celular";
     			t56 = space();
     			input14 = element("input");
     			t57 = space();
     			div23 = element("div");
     			label16 = element("label");
-    			label16.textContent = "Municipio";
+    			label16.textContent = "Correo electronico";
     			t59 = space();
     			input15 = element("input");
     			t60 = space();
     			div24 = element("div");
     			label17 = element("label");
-    			label17.textContent = "Ciudad";
+    			label17.textContent = "Provincia";
     			t62 = space();
     			input16 = element("input");
     			t63 = space();
     			div25 = element("div");
     			label18 = element("label");
-    			label18.textContent = "Barrio";
+    			label18.textContent = "Municipio";
     			t65 = space();
     			input17 = element("input");
     			t66 = space();
     			div26 = element("div");
     			label19 = element("label");
-    			label19.textContent = "Direccion";
+    			label19.textContent = "Ciudad";
     			t68 = space();
     			input18 = element("input");
     			t69 = space();
+    			div27 = element("div");
+    			label20 = element("label");
+    			label20.textContent = "Barrio";
+    			t71 = space();
+    			input19 = element("input");
+    			t72 = space();
+    			div28 = element("div");
+    			label21 = element("label");
+    			label21.textContent = "Direccion";
+    			t74 = space();
+    			input20 = element("input");
+    			t75 = space();
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].c();
     			}
 
-    			t70 = space();
-    			div33 = element("div");
-    			div30 = element("div");
+    			t76 = space();
+    			div35 = element("div");
+    			div32 = element("div");
     			h51 = element("h5");
     			h51.textContent = "Archivos";
-    			t72 = space();
-    			div32 = element("div");
-    			div31 = element("div");
+    			t78 = space();
+    			div34 = element("div");
+    			div33 = element("div");
     			a0 = element("a");
     			img0 = element("img");
-    			t73 = space();
+    			t79 = space();
     			a1 = element("a");
     			img1 = element("img");
-    			t74 = space();
+    			t80 = space();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			t75 = space();
+    			t81 = space();
     			br = element("br");
     			attr_dev(span0, "class", "badge badge-primary");
     			add_location(span0, file$o, 51, 34, 1511);
@@ -35624,97 +35648,117 @@ var app = (function (moment) {
     			add_location(label14, file$o, 128, 28, 6715);
     			attr_dev(input13, "type", "text");
     			attr_dev(input13, "class", "form-control");
-    			input13.value = input13_value_value = /*paciente*/ ctx[1].email;
+    			input13.value = input13_value_value = /*paciente*/ ctx[1].telefono;
     			input13.readOnly = true;
-    			attr_dev(input13, "id", "email");
-    			add_location(input13, file$o, 129, 28, 6790);
+    			attr_dev(input13, "id", "telefono");
+    			add_location(input13, file$o, 129, 28, 6780);
     			attr_dev(div21, "class", "form-group col-lg-4 col-md-6");
     			add_location(div21, file$o, 127, 24, 6643);
-    			attr_dev(label15, "for", "provincia");
-    			add_location(label15, file$o, 132, 28, 7003);
+    			attr_dev(label15, "for", "email");
+    			add_location(label15, file$o, 132, 28, 6999);
     			attr_dev(input14, "type", "text");
     			attr_dev(input14, "class", "form-control");
-    			input14.value = input14_value_value = /*paciente*/ ctx[1].provincia;
+    			input14.value = input14_value_value = /*paciente*/ ctx[1].celular;
     			input14.readOnly = true;
-    			attr_dev(input14, "id", "provincia");
-    			add_location(input14, file$o, 133, 28, 7073);
+    			attr_dev(input14, "id", "celular");
+    			add_location(input14, file$o, 133, 28, 7063);
     			attr_dev(div22, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div22, file$o, 131, 24, 6931);
-    			attr_dev(label16, "for", "municipio");
-    			add_location(label16, file$o, 136, 28, 7294);
+    			add_location(div22, file$o, 131, 24, 6927);
+    			attr_dev(label16, "for", "email");
+    			add_location(label16, file$o, 136, 28, 7280);
     			attr_dev(input15, "type", "text");
     			attr_dev(input15, "class", "form-control");
-    			input15.value = input15_value_value = /*paciente*/ ctx[1].municipio;
+    			input15.value = input15_value_value = /*paciente*/ ctx[1].email;
     			input15.readOnly = true;
-    			attr_dev(input15, "id", "municipio");
-    			add_location(input15, file$o, 137, 28, 7364);
+    			attr_dev(input15, "id", "email");
+    			add_location(input15, file$o, 137, 28, 7355);
     			attr_dev(div23, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div23, file$o, 135, 24, 7222);
-    			attr_dev(label17, "for", "ciudad");
-    			add_location(label17, file$o, 140, 28, 7585);
+    			add_location(div23, file$o, 135, 24, 7208);
+    			attr_dev(label17, "for", "provincia");
+    			add_location(label17, file$o, 140, 28, 7568);
     			attr_dev(input16, "type", "text");
     			attr_dev(input16, "class", "form-control");
-    			input16.value = input16_value_value = /*paciente*/ ctx[1].ciudad;
+    			input16.value = input16_value_value = /*paciente*/ ctx[1].provincia;
     			input16.readOnly = true;
-    			attr_dev(input16, "id", "ciudad");
-    			add_location(input16, file$o, 141, 28, 7649);
+    			attr_dev(input16, "id", "provincia");
+    			add_location(input16, file$o, 141, 28, 7638);
     			attr_dev(div24, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div24, file$o, 139, 24, 7513);
-    			attr_dev(label18, "for", "barrio");
-    			add_location(label18, file$o, 144, 28, 7864);
+    			add_location(div24, file$o, 139, 24, 7496);
+    			attr_dev(label18, "for", "municipio");
+    			add_location(label18, file$o, 144, 28, 7859);
     			attr_dev(input17, "type", "text");
     			attr_dev(input17, "class", "form-control");
-    			input17.value = input17_value_value = /*paciente*/ ctx[1].barrio;
+    			input17.value = input17_value_value = /*paciente*/ ctx[1].municipio;
     			input17.readOnly = true;
-    			attr_dev(input17, "id", "barrio");
-    			add_location(input17, file$o, 145, 28, 7928);
+    			attr_dev(input17, "id", "municipio");
+    			add_location(input17, file$o, 145, 28, 7929);
     			attr_dev(div25, "class", "form-group col-lg-4 col-md-6");
-    			add_location(div25, file$o, 143, 24, 7792);
-    			attr_dev(label19, "for", "direccion");
-    			add_location(label19, file$o, 149, 28, 8169);
+    			add_location(div25, file$o, 143, 24, 7787);
+    			attr_dev(label19, "for", "ciudad");
+    			add_location(label19, file$o, 148, 28, 8150);
     			attr_dev(input18, "type", "text");
     			attr_dev(input18, "class", "form-control");
     			input18.value = input18_value_value = /*paciente*/ ctx[1].ciudad;
     			input18.readOnly = true;
-    			attr_dev(input18, "id", "direccion");
-    			add_location(input18, file$o, 150, 28, 8239);
-    			attr_dev(div26, "class", "form-group col-lg-8 col-md-6");
-    			add_location(div26, file$o, 148, 24, 8097);
-    			attr_dev(div27, "class", "form-row");
-    			add_location(div27, file$o, 94, 20, 4237);
-    			attr_dev(div28, "class", "card-body");
-    			add_location(div28, file$o, 93, 16, 4192);
-    			attr_dev(div29, "class", "card m-b-30");
-    			add_location(div29, file$o, 89, 12, 4009);
+    			attr_dev(input18, "id", "ciudad");
+    			add_location(input18, file$o, 149, 28, 8214);
+    			attr_dev(div26, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div26, file$o, 147, 24, 8078);
+    			attr_dev(label20, "for", "barrio");
+    			add_location(label20, file$o, 152, 28, 8429);
+    			attr_dev(input19, "type", "text");
+    			attr_dev(input19, "class", "form-control");
+    			input19.value = input19_value_value = /*paciente*/ ctx[1].barrio;
+    			input19.readOnly = true;
+    			attr_dev(input19, "id", "barrio");
+    			add_location(input19, file$o, 153, 28, 8493);
+    			attr_dev(div27, "class", "form-group col-lg-4 col-md-6");
+    			add_location(div27, file$o, 151, 24, 8357);
+    			attr_dev(label21, "for", "direccion");
+    			add_location(label21, file$o, 157, 28, 8734);
+    			attr_dev(input20, "type", "text");
+    			attr_dev(input20, "class", "form-control");
+    			input20.value = input20_value_value = /*paciente*/ ctx[1].ciudad;
+    			input20.readOnly = true;
+    			attr_dev(input20, "id", "direccion");
+    			add_location(input20, file$o, 158, 28, 8804);
+    			attr_dev(div28, "class", "form-group col-lg-8 col-md-6");
+    			add_location(div28, file$o, 156, 24, 8662);
+    			attr_dev(div29, "class", "form-row");
+    			add_location(div29, file$o, 94, 20, 4237);
+    			attr_dev(div30, "class", "card-body");
+    			add_location(div30, file$o, 93, 16, 4192);
+    			attr_dev(div31, "class", "card m-b-30");
+    			add_location(div31, file$o, 89, 12, 4009);
     			attr_dev(h51, "class", "card-title m-b-0");
-    			add_location(h51, file$o, 183, 20, 10122);
-    			attr_dev(div30, "class", "card-header");
-    			add_location(div30, file$o, 182, 16, 10075);
+    			add_location(h51, file$o, 191, 20, 10687);
+    			attr_dev(div32, "class", "card-header");
+    			add_location(div32, file$o, 190, 16, 10640);
     			if (img0.src !== (img0_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenCedula)) attr_dev(img0, "src", img0_src_value);
     			attr_dev(img0, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img0, "alt", "cedula");
-    			add_location(img0, file$o, 188, 28, 10447);
+    			add_location(img0, file$o, 196, 28, 11012);
     			attr_dev(a0, "href", a0_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenCedula);
     			attr_dev(a0, "target", "_blank");
     			attr_dev(a0, "class", "col-lg-4");
-    			add_location(a0, file$o, 187, 24, 10295);
+    			add_location(a0, file$o, 195, 24, 10860);
     			if (img1.src !== (img1_src_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenSeguro)) attr_dev(img1, "src", img1_src_value);
     			attr_dev(img1, "class", "img-galeria img-thumbnail svelte-1slxryg");
     			attr_dev(img1, "alt", "cedula");
-    			add_location(img1, file$o, 191, 28, 10793);
+    			add_location(img1, file$o, 199, 28, 11358);
     			attr_dev(a1, "href", a1_href_value = "https://odyssey-api.cmsiglo21.app/api/archivos/storage/" + /*paciente*/ ctx[1].imagenSeguro);
     			attr_dev(a1, "target", "_blank");
     			attr_dev(a1, "class", "col-lg-4");
-    			add_location(a1, file$o, 190, 24, 10641);
-    			attr_dev(div31, "class", "row");
-    			add_location(div31, file$o, 186, 20, 10252);
-    			attr_dev(div32, "class", "card-body");
-    			add_location(div32, file$o, 185, 16, 10207);
-    			attr_dev(div33, "class", "card m-b-30 mb-5");
-    			add_location(div33, file$o, 181, 12, 10027);
-    			attr_dev(div34, "class", "container-fluid mt-3");
-    			add_location(div34, file$o, 50, 8, 1441);
-    			add_location(br, file$o, 201, 14, 11470);
+    			add_location(a1, file$o, 198, 24, 11206);
+    			attr_dev(div33, "class", "row");
+    			add_location(div33, file$o, 194, 20, 10817);
+    			attr_dev(div34, "class", "card-body");
+    			add_location(div34, file$o, 193, 16, 10772);
+    			attr_dev(div35, "class", "card m-b-30 mb-5");
+    			add_location(div35, file$o, 189, 12, 10592);
+    			attr_dev(div36, "class", "container-fluid mt-3");
+    			add_location(div36, file$o, 50, 8, 1441);
+    			add_location(br, file$o, 209, 14, 12035);
     			attr_dev(section, "class", "admin-content");
     			add_location(section, file$o, 49, 4, 1400);
     			attr_dev(main, "class", "admin-main");
@@ -35730,13 +35774,13 @@ var app = (function (moment) {
     			mount_component(header, main, null);
     			append_dev(main, t1);
     			append_dev(main, section);
-    			append_dev(section, div34);
-    			append_dev(div34, h4);
+    			append_dev(section, div36);
+    			append_dev(div36, h4);
     			append_dev(h4, t2);
     			append_dev(h4, span0);
     			append_dev(span0, t3);
-    			append_dev(div34, t4);
-    			append_dev(div34, div11);
+    			append_dev(div36, t4);
+    			append_dev(div36, div11);
     			append_dev(div11, div1);
     			append_dev(div1, div0);
     			append_dev(div0, span1);
@@ -35775,107 +35819,117 @@ var app = (function (moment) {
     			append_dev(div7, label5);
     			append_dev(div7, t24);
     			append_dev(div7, textarea);
-    			append_dev(div34, t25);
-    			append_dev(div34, div29);
-    			append_dev(div29, div12);
+    			append_dev(div36, t25);
+    			append_dev(div36, div31);
+    			append_dev(div31, div12);
     			append_dev(div12, h50);
-    			append_dev(div29, t27);
-    			append_dev(div29, div28);
-    			append_dev(div28, div27);
-    			append_dev(div27, div13);
+    			append_dev(div31, t27);
+    			append_dev(div31, div30);
+    			append_dev(div30, div29);
+    			append_dev(div29, div13);
     			append_dev(div13, label6);
     			append_dev(div13, t29);
     			append_dev(div13, input5);
-    			append_dev(div27, t30);
-    			append_dev(div27, div14);
+    			append_dev(div29, t30);
+    			append_dev(div29, div14);
     			append_dev(div14, label7);
     			append_dev(div14, t32);
     			append_dev(div14, input6);
-    			append_dev(div27, t33);
-    			append_dev(div27, div15);
+    			append_dev(div29, t33);
+    			append_dev(div29, div15);
     			append_dev(div15, label8);
     			append_dev(div15, t35);
     			append_dev(div15, input7);
-    			append_dev(div27, t36);
-    			append_dev(div27, div16);
+    			append_dev(div29, t36);
+    			append_dev(div29, div16);
     			append_dev(div16, label9);
     			append_dev(div16, t38);
     			append_dev(div16, input8);
-    			append_dev(div27, t39);
-    			append_dev(div27, div17);
+    			append_dev(div29, t39);
+    			append_dev(div29, div17);
     			append_dev(div17, label10);
     			append_dev(div17, t41);
     			append_dev(div17, input9);
-    			append_dev(div27, t42);
-    			append_dev(div27, div18);
+    			append_dev(div29, t42);
+    			append_dev(div29, div18);
     			append_dev(div18, label11);
     			append_dev(div18, t44);
     			append_dev(div18, input10);
-    			append_dev(div27, t45);
-    			append_dev(div27, div19);
+    			append_dev(div29, t45);
+    			append_dev(div29, div19);
     			append_dev(div19, label12);
     			append_dev(div19, t47);
     			append_dev(div19, input11);
-    			append_dev(div27, t48);
-    			append_dev(div27, div20);
+    			append_dev(div29, t48);
+    			append_dev(div29, div20);
     			append_dev(div20, label13);
     			append_dev(div20, t50);
     			append_dev(div20, input12);
-    			append_dev(div27, t51);
-    			append_dev(div27, div21);
+    			append_dev(div29, t51);
+    			append_dev(div29, div21);
     			append_dev(div21, label14);
     			append_dev(div21, t53);
     			append_dev(div21, input13);
-    			append_dev(div27, t54);
-    			append_dev(div27, div22);
+    			append_dev(div29, t54);
+    			append_dev(div29, div22);
     			append_dev(div22, label15);
     			append_dev(div22, t56);
     			append_dev(div22, input14);
-    			append_dev(div27, t57);
-    			append_dev(div27, div23);
+    			append_dev(div29, t57);
+    			append_dev(div29, div23);
     			append_dev(div23, label16);
     			append_dev(div23, t59);
     			append_dev(div23, input15);
-    			append_dev(div27, t60);
-    			append_dev(div27, div24);
+    			append_dev(div29, t60);
+    			append_dev(div29, div24);
     			append_dev(div24, label17);
     			append_dev(div24, t62);
     			append_dev(div24, input16);
-    			append_dev(div27, t63);
-    			append_dev(div27, div25);
+    			append_dev(div29, t63);
+    			append_dev(div29, div25);
     			append_dev(div25, label18);
     			append_dev(div25, t65);
     			append_dev(div25, input17);
-    			append_dev(div27, t66);
-    			append_dev(div27, div26);
+    			append_dev(div29, t66);
+    			append_dev(div29, div26);
     			append_dev(div26, label19);
     			append_dev(div26, t68);
     			append_dev(div26, input18);
-    			append_dev(div34, t69);
+    			append_dev(div29, t69);
+    			append_dev(div29, div27);
+    			append_dev(div27, label20);
+    			append_dev(div27, t71);
+    			append_dev(div27, input19);
+    			append_dev(div29, t72);
+    			append_dev(div29, div28);
+    			append_dev(div28, label21);
+    			append_dev(div28, t74);
+    			append_dev(div28, input20);
+    			append_dev(div36, t75);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(div34, null);
+    				each_blocks_1[i].m(div36, null);
     			}
 
-    			append_dev(div34, t70);
+    			append_dev(div36, t76);
+    			append_dev(div36, div35);
+    			append_dev(div35, div32);
+    			append_dev(div32, h51);
+    			append_dev(div35, t78);
+    			append_dev(div35, div34);
     			append_dev(div34, div33);
-    			append_dev(div33, div30);
-    			append_dev(div30, h51);
-    			append_dev(div33, t72);
-    			append_dev(div33, div32);
-    			append_dev(div32, div31);
-    			append_dev(div31, a0);
+    			append_dev(div33, a0);
     			append_dev(a0, img0);
-    			append_dev(div31, t73);
-    			append_dev(div31, a1);
+    			append_dev(div33, t79);
+    			append_dev(div33, a1);
     			append_dev(a1, img1);
-    			append_dev(div31, t74);
+    			append_dev(div33, t80);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div31, null);
+    				each_blocks[i].m(div33, null);
     			}
 
-    			append_dev(div34, t75);
+    			append_dev(div36, t81);
     			append_dev(section, br);
     			current = true;
     		},
@@ -35939,28 +35993,36 @@ var app = (function (moment) {
     				prop_dev(input12, "value", input12_value_value);
     			}
 
-    			if (!current || dirty & /*paciente*/ 2 && input13_value_value !== (input13_value_value = /*paciente*/ ctx[1].email) && input13.value !== input13_value_value) {
+    			if (!current || dirty & /*paciente*/ 2 && input13_value_value !== (input13_value_value = /*paciente*/ ctx[1].telefono) && input13.value !== input13_value_value) {
     				prop_dev(input13, "value", input13_value_value);
     			}
 
-    			if (!current || dirty & /*paciente*/ 2 && input14_value_value !== (input14_value_value = /*paciente*/ ctx[1].provincia) && input14.value !== input14_value_value) {
+    			if (!current || dirty & /*paciente*/ 2 && input14_value_value !== (input14_value_value = /*paciente*/ ctx[1].celular) && input14.value !== input14_value_value) {
     				prop_dev(input14, "value", input14_value_value);
     			}
 
-    			if (!current || dirty & /*paciente*/ 2 && input15_value_value !== (input15_value_value = /*paciente*/ ctx[1].municipio) && input15.value !== input15_value_value) {
+    			if (!current || dirty & /*paciente*/ 2 && input15_value_value !== (input15_value_value = /*paciente*/ ctx[1].email) && input15.value !== input15_value_value) {
     				prop_dev(input15, "value", input15_value_value);
     			}
 
-    			if (!current || dirty & /*paciente*/ 2 && input16_value_value !== (input16_value_value = /*paciente*/ ctx[1].ciudad) && input16.value !== input16_value_value) {
+    			if (!current || dirty & /*paciente*/ 2 && input16_value_value !== (input16_value_value = /*paciente*/ ctx[1].provincia) && input16.value !== input16_value_value) {
     				prop_dev(input16, "value", input16_value_value);
     			}
 
-    			if (!current || dirty & /*paciente*/ 2 && input17_value_value !== (input17_value_value = /*paciente*/ ctx[1].barrio) && input17.value !== input17_value_value) {
+    			if (!current || dirty & /*paciente*/ 2 && input17_value_value !== (input17_value_value = /*paciente*/ ctx[1].municipio) && input17.value !== input17_value_value) {
     				prop_dev(input17, "value", input17_value_value);
     			}
 
     			if (!current || dirty & /*paciente*/ 2 && input18_value_value !== (input18_value_value = /*paciente*/ ctx[1].ciudad) && input18.value !== input18_value_value) {
     				prop_dev(input18, "value", input18_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input19_value_value !== (input19_value_value = /*paciente*/ ctx[1].barrio) && input19.value !== input19_value_value) {
+    				prop_dev(input19, "value", input19_value_value);
+    			}
+
+    			if (!current || dirty & /*paciente*/ 2 && input20_value_value !== (input20_value_value = /*paciente*/ ctx[1].ciudad) && input20.value !== input20_value_value) {
+    				prop_dev(input20, "value", input20_value_value);
     			}
 
     			if (dirty & /*parentescos*/ 8) {
@@ -35976,7 +36038,7 @@ var app = (function (moment) {
     					} else {
     						each_blocks_1[i] = create_each_block_1$a(child_ctx);
     						each_blocks_1[i].c();
-    						each_blocks_1[i].m(div34, t70);
+    						each_blocks_1[i].m(div36, t76);
     					}
     				}
 
@@ -36016,7 +36078,7 @@ var app = (function (moment) {
     					} else {
     						each_blocks[i] = create_each_block$b(child_ctx);
     						each_blocks[i].c();
-    						each_blocks[i].m(div31, null);
+    						each_blocks[i].m(div33, null);
     					}
     				}
 
