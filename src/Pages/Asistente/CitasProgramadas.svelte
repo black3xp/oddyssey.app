@@ -162,7 +162,7 @@
   function reprogramarCita(item) {
     cita = item;
     if (fecha == "" || tandaID <= 0) {
-      fecha = moment().format("YYYY-MM-DD");
+      fecha = moment().format("YYYY-MM-DD"); // asignando fecha de hoy con un formato especifico
       tandaID = 1;
     }
 
@@ -281,6 +281,7 @@
                 <div class="row">
                   <div class="col-lg-6 col-md-6">
                     <label>Estados</label>
+                    <!-- svelte-ignore a11y-no-onchange -->
                     <select class="form-control" bind:value={filter.estadoID} on:change={cargarCitas}>
                       <option value="" disabled selected>- Buscar por estado -</option>
                       <option value={0}>Todos</option>
@@ -570,6 +571,7 @@
           <div class="col-lg-6">
             <div class="form-group ">
               <label class="font-secondary">Tanda</label>
+              <!-- svelte-ignore a11y-no-onchange -->
               <select
                 class="form-control form-control-sm js-select2"
                 bind:value={tandaID}
@@ -648,6 +650,7 @@
           <div class="col-lg-6">
             <div class="form-group ">
               <label class="font-secondary">Tanda</label>
+              <!-- svelte-ignore a11y-no-onchange -->
               <select
                 class="form-control form-control-sm js-select2"
                 bind:value={tandaID}

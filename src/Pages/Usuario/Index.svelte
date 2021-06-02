@@ -17,16 +17,16 @@
       id : x.id,
       name : x.name,
       displayName: x.displayName,
-      checked: rolesUser.some(y => y == x.name)
+      checked: rolesUser.some(y => y == x.name) // activando roles ya asignado al usuario
     }
-  }).filter(x => x.displayName.toLowerCase().includes(busquedaRoles.toLowerCase()));
+  }).filter(x => x.displayName.toLowerCase().includes(busquedaRoles.toLowerCase())); // filtro de busqueda
 
   let asistentesAsignado = [];
   let asistentes = [];
   let perfiles = [];
   let roles = [];
   let rolesUser = [];
-  let list = [];
+  let usuarios = [];
   let prefijos = [
     {value: 'Dr', name: 'Dr.'},
     {value: 'Dra', name: 'Dra.'},
@@ -35,7 +35,7 @@
     {value: 'Sr', name: 'Sr.'},
     {value: 'Sra', name: 'Sra.'},
   ]
-  let obj = {
+  let usuario = {
     prefix: "",
     name: "",
     email: "",
@@ -51,16 +51,16 @@
   let asistenteID = "";
 
   onMount(() => {
-    cargar();
+    cargarUsuarios();
     cargarAsistentes();
     cargarPerfil();
     cargarRoles()
   });
 
-  function cargar() {
+  function cargarUsuarios() {
     $axios.get("/Users?keyword=" + busqueda)
     .then(res => {
-        list = res.data;
+        usuarios = res.data;
       }).catch(err => {
         console.error(err);
         $errorConexion()
@@ -71,8 +71,10 @@
     $axios.get("/Users/" + id)
     .then(res => {
         userID = id
-        obj = res.data;
-        cargarAsistentesAsignado();
+        usuario = res.data;
+        if (usuario.isDoctor) {
+          cargarAsistentesAsignado();
+        }
       }).catch(err => {
         console.error(err);
         $errorConexion()
@@ -126,7 +128,7 @@
 
   function guardar() {
     if (userID == "") {
-      $axios.post("/Users", obj)
+      $axios.post("/Users", usuario)
       .then(res => {
         if (res.data.success) {
           $toast(5000).fire({
@@ -134,14 +136,14 @@
             title: 'Usuario guardado con exito'
           })
           jQuery('#modalUsuario').modal('hide');
-          cargar();
+          cargarUsuarios();
         }
       }).catch(err => {
         console.error(err);
         $errorConexion()
       });
     } else {
-      $axios.put("/Users/" + userID, obj)
+      $axios.put("/Users/" + userID, usuario)
       .then(res => {
         if (res.data.success) {
           $toast(5000).fire({
@@ -149,7 +151,7 @@
             title: 'Usuario guardado con exito'
           })
           jQuery('#modalUsuario').modal('hide');
-          cargar();
+          cargarUsuarios();
         }
       }).catch(err => {
         console.error(err);
@@ -202,7 +204,7 @@
       AsistenteID: item.asistenteID,
       MedicoID: item.medicoID
     }
-    let qs = Object.entries(obj).map(e => e.join('=')).join('&');
+    let qs = new URLSearchParams(obj).toString();
 
     $axios.delete('/MedicosAsistentes?' + qs)
     .then(res => {
@@ -217,7 +219,7 @@
 
   function agregarNuevo() {
     userID = "";
-    obj = {
+    usuario = {
       prefix: "",
       name: "",
       email: "",
@@ -254,7 +256,7 @@
                   class="form-control form-control-appended"
                   placeholder="Buscar"
                   bind:value={busqueda}
-                  on:input={cargar} />
+                  on:input={cargarUsuarios} />
                 <div class="input-group-append">
                   <div class="input-group-text">
                     <span class="mdi mdi-magnify" />
@@ -291,7 +293,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {#each list as i}
+                      {#each usuarios as i}
                         <tr>
                           <td>
                             <div class="avatar avatar-sm mr-2 d-block-sm">
@@ -378,7 +380,7 @@
                 <select
                   class="form-control"
                   name="prefijo"
-                  bind:value={obj.prefix} required>
+                  bind:value={usuario.prefix} required>
                   <option value="" disabled>- Seleccionar -</option>
                   {#each prefijos as item}
                     <option value={item.value}>{item.name}</option>
@@ -393,7 +395,7 @@
                   type="name"
                   class="form-control"
                   placeholder="Ing. John Doe"
-                  bind:value={obj.name}
+                  bind:value={usuario.name}
                   name="Name"
                   maxlength="200"
                   required />
@@ -417,7 +419,7 @@
                   required
                   class="form-control"
                   placeholder="usuario@correo.com"
-                  bind:value={obj.email}
+                  bind:value={usuario.email}
                   autocomplete="off"
                   name="Email"
                   id="txtCorreo"
@@ -432,7 +434,7 @@
                   type="password"
                   class="form-control"
                   required
-                  bind:value={obj.passwordHash}
+                  bind:value={usuario.passwordHash}
                   name="PasswordHash"
                   maxlength="50" />
               </div>
@@ -450,7 +452,7 @@
                   autocomplete="off"
                   maxlength="14"
                   placeholder="(809) 000-0000"
-                  bind:value={obj.phoneNumber}/>
+                  bind:value={usuario.phoneNumber}/>
               </div>
               <div class="form-group col-md-12">
                 <label class="cstm-switch">
@@ -458,24 +460,24 @@
                     type="checkbox"
                     value="true"
                     name="EsMedico"
-                    bind:checked={obj.isDoctor}
+                    bind:checked={usuario.isDoctor}
                     class="cstm-switch-input" />
                   <span class="cstm-switch-indicator " />
                   <span class="cstm-switch-description">Es Medico</span>
                 </label>
               </div>
-              {#if obj.isDoctor}
+              {#if usuario.isDoctor}
                 <div class="form-group col-md-12">
                   <label for="">Ubicacion</label>
                   <input
                     type="text"
                     class="form-control"
-                    bind:value={obj.ubicacion} required/>
+                    bind:value={usuario.ubicacion} required/>
                 </div>
                 <div class="form-group col-md-12">
                   <label for="">Perfil</label>
                   <select class="form-control" name="perfil"
-                    bind:value={obj.perfilID} required>
+                    bind:value={usuario.perfilID} required>
                     <option value="" disabled selected>- Seleccionar -</option>
                     {#each perfiles as item}
                       <option value={item.id}>{item.nombre}</option>

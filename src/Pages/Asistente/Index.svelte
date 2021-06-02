@@ -38,7 +38,6 @@
   ];
   let idMedico = "";
   let pacienteEnviado = "";
-  let userNameMedico = "";
   let fecha = "";
   let tandaID = 0;
 
@@ -74,7 +73,6 @@
     jQuery("#sltMedicos").on("select2:select", e => {
       let data = e.params.data;
       idMedico = data.id.split('=')[0];
-      userNameMedico = data.id.split('=')[1];
       
       cargarPacienteEnviado();
       cargarCitas();
@@ -209,7 +207,7 @@
         $errorConexion()
       });
   }
-  function guardarEnviarPaciente() {
+  function guardarYEnviarPaciente() {
     if (paciente.aseguradoraID > 0) {
       paciente.nombreAseguradora = aseguradoras.find(e => e.id == paciente.aseguradoraID).nombre;
     }
@@ -330,7 +328,7 @@
       if (!res.data.errors) {
         $connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID, "asignar")
           .catch(err => console.error(err));
-        guardarEnviarPaciente()
+        guardarYEnviarPaciente()
       } else {
         $toast(5000).fire({
           icon: 'error',
@@ -354,23 +352,6 @@
     padding: 20px;
   }
 
-  .circulo-rojo {
-    background-color: #f2545b;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    display: block;
-    float: right;
-  }
-
-  .circulo-verde {
-    background-color: #0c9;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    display: block;
-    float: right;
-  }
   .modal-slide-right {
     top: 0;
     bottom: 0;
@@ -800,6 +781,7 @@ box-shadow: 0px 0px 0px 3px #0c9;
           <div class="col-lg-6">
             <div class="form-group ">
               <label class="font-secondary">Tanda</label>
+              <!-- svelte-ignore a11y-no-onchange -->
               <select
                 class="form-control form-control-sm js-select2"
                 bind:value={tandaID}
@@ -884,6 +866,7 @@ box-shadow: 0px 0px 0px 3px #0c9;
           <div class="col-lg-6">
             <div class="form-group ">
               <label class="font-secondary">Tanda</label>
+              <!-- svelte-ignore a11y-no-onchange -->
               <select
                 class="form-control form-control-sm js-select2"
                 bind:value={tandaID}

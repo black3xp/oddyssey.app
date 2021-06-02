@@ -2110,6 +2110,14 @@ var app = (function (moment) {
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+    var __assign$1 = (undefined && undefined.__assign) || Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
     var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2145,6 +2153,9 @@ var app = (function (moment) {
             if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
         }
     };
+    // Version token that will be replaced by the prepack command
+    /** The version of the SignalR client. */
+    var VERSION = "5.0.6";
     /** @private */
     var Arg = /** @class */ (function () {
         function Arg() {
@@ -2152,6 +2163,11 @@ var app = (function (moment) {
         Arg.isRequired = function (val, name) {
             if (val === null || val === undefined) {
                 throw new Error("The '" + name + "' argument is required.");
+            }
+        };
+        Arg.isNotEmpty = function (val, name) {
+            if (!val || val.match(/^\s*$/)) {
+                throw new Error("The '" + name + "' argument should not be empty.");
             }
         };
         Arg.isIn = function (val, values, name) {
@@ -2227,32 +2243,36 @@ var app = (function (moment) {
                 (val.constructor && val.constructor.name === "ArrayBuffer"));
     }
     /** @private */
-    function sendMessage(logger, transportName, httpClient, url, accessTokenFactory, content, logMessageContent) {
+    function sendMessage(logger, transportName, httpClient, url, accessTokenFactory, content, logMessageContent, withCredentials, defaultHeaders) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, headers, token, responseType, response;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var _a, headers, token, _b, name, value, responseType, response;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
+                        headers = {};
                         if (!accessTokenFactory) return [3 /*break*/, 2];
                         return [4 /*yield*/, accessTokenFactory()];
                     case 1:
-                        token = _b.sent();
+                        token = _c.sent();
                         if (token) {
                             headers = (_a = {},
                                 _a["Authorization"] = "Bearer " + token,
                                 _a);
                         }
-                        _b.label = 2;
+                        _c.label = 2;
                     case 2:
+                        _b = getUserAgentHeader(), name = _b[0], value = _b[1];
+                        headers[name] = value;
                         logger.log(LogLevel.Trace, "(" + transportName + " transport) sending data. " + getDataDetail(content, logMessageContent) + ".");
                         responseType = isArrayBuffer(content) ? "arraybuffer" : "text";
                         return [4 /*yield*/, httpClient.post(url, {
                                 content: content,
-                                headers: headers,
+                                headers: __assign$1({}, headers, defaultHeaders),
                                 responseType: responseType,
+                                withCredentials: withCredentials,
                             })];
                     case 3:
-                        response = _b.sent();
+                        response = _c.sent();
                         logger.log(LogLevel.Trace, "(" + transportName + " transport) request complete. Response status: " + response.statusCode + ".");
                         return [2 /*return*/];
                 }
@@ -2317,6 +2337,68 @@ var app = (function (moment) {
         };
         return ConsoleLogger;
     }());
+    /** @private */
+    function getUserAgentHeader() {
+        var userAgentHeaderName = "X-SignalR-User-Agent";
+        if (Platform.isNode) {
+            userAgentHeaderName = "User-Agent";
+        }
+        return [userAgentHeaderName, constructUserAgent(VERSION, getOsName(), getRuntime(), getRuntimeVersion())];
+    }
+    /** @private */
+    function constructUserAgent(version, os, runtime, runtimeVersion) {
+        // Microsoft SignalR/[Version] ([Detailed Version]; [Operating System]; [Runtime]; [Runtime Version])
+        var userAgent = "Microsoft SignalR/";
+        var majorAndMinor = version.split(".");
+        userAgent += majorAndMinor[0] + "." + majorAndMinor[1];
+        userAgent += " (" + version + "; ";
+        if (os && os !== "") {
+            userAgent += os + "; ";
+        }
+        else {
+            userAgent += "Unknown OS; ";
+        }
+        userAgent += "" + runtime;
+        if (runtimeVersion) {
+            userAgent += "; " + runtimeVersion;
+        }
+        else {
+            userAgent += "; Unknown Runtime Version";
+        }
+        userAgent += ")";
+        return userAgent;
+    }
+    function getOsName() {
+        if (Platform.isNode) {
+            switch (process.platform) {
+                case "win32":
+                    return "Windows NT";
+                case "darwin":
+                    return "macOS";
+                case "linux":
+                    return "Linux";
+                default:
+                    return process.platform;
+            }
+        }
+        else {
+            return "";
+        }
+    }
+    function getRuntimeVersion() {
+        if (Platform.isNode) {
+            return process.versions.node;
+        }
+        return undefined;
+    }
+    function getRuntime() {
+        if (Platform.isNode) {
+            return "NodeJS";
+        }
+        else {
+            return "Browser";
+        }
+    }
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
@@ -2330,7 +2412,7 @@ var app = (function (moment) {
             d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
         };
     })();
-    var __assign$1 = (undefined && undefined.__assign) || Object.assign || function(t) {
+    var __assign$2 = (undefined && undefined.__assign) || Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
             s = arguments[i];
             for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
@@ -2338,84 +2420,173 @@ var app = (function (moment) {
         }
         return t;
     };
-    var requestModule;
-    if (typeof XMLHttpRequest === "undefined") {
-        // In order to ignore the dynamic require in webpack builds we need to do this magic
-        // @ts-ignore: TS doesn't know about these names
-        var requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
-        requestModule = requireFunc("request");
-    }
-    /** @private */
-    var NodeHttpClient = /** @class */ (function (_super) {
-        __extends$1(NodeHttpClient, _super);
-        function NodeHttpClient(logger) {
+    var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+    var __generator$1 = (undefined && undefined.__generator) || function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
+    var FetchHttpClient = /** @class */ (function (_super) {
+        __extends$1(FetchHttpClient, _super);
+        function FetchHttpClient(logger) {
             var _this = _super.call(this) || this;
-            if (typeof requestModule === "undefined") {
-                throw new Error("The 'request' module could not be loaded.");
-            }
             _this.logger = logger;
-            _this.cookieJar = requestModule.jar();
-            _this.request = requestModule.defaults({ jar: _this.cookieJar });
+            if (typeof fetch === "undefined") {
+                // In order to ignore the dynamic require in webpack builds we need to do this magic
+                // @ts-ignore: TS doesn't know about these names
+                var requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
+                // Cookies aren't automatically handled in Node so we need to add a CookieJar to preserve cookies across requests
+                _this.jar = new (requireFunc("tough-cookie")).CookieJar();
+                _this.fetchType = requireFunc("node-fetch");
+                // node-fetch doesn't have a nice API for getting and setting cookies
+                // fetch-cookie will wrap a fetch implementation with a default CookieJar or a provided one
+                _this.fetchType = requireFunc("fetch-cookie")(_this.fetchType, _this.jar);
+                // Node needs EventListener methods on AbortController which our custom polyfill doesn't provide
+                _this.abortControllerType = requireFunc("abort-controller");
+            }
+            else {
+                _this.fetchType = fetch.bind(self);
+                _this.abortControllerType = AbortController;
+            }
             return _this;
         }
-        NodeHttpClient.prototype.send = function (httpRequest) {
-            var _this = this;
-            // Check that abort was not signaled before calling send
-            if (httpRequest.abortSignal) {
-                if (httpRequest.abortSignal.aborted) {
-                    return Promise.reject(new AbortError());
-                }
-            }
-            return new Promise(function (resolve, reject) {
-                var requestBody;
-                if (isArrayBuffer(httpRequest.content)) {
-                    requestBody = Buffer.from(httpRequest.content);
-                }
-                else {
-                    requestBody = httpRequest.content || "";
-                }
-                var currentRequest = _this.request(httpRequest.url, {
-                    body: requestBody,
-                    // If binary is expected 'null' should be used, otherwise for text 'utf8'
-                    encoding: httpRequest.responseType === "arraybuffer" ? null : "utf8",
-                    headers: __assign$1({ 
-                        // Tell auth middleware to 401 instead of redirecting
-                        "X-Requested-With": "XMLHttpRequest" }, httpRequest.headers),
-                    method: httpRequest.method,
-                    timeout: httpRequest.timeout,
-                }, function (error, response, body) {
-                    if (httpRequest.abortSignal) {
-                        httpRequest.abortSignal.onabort = null;
-                    }
-                    if (error) {
-                        if (error.code === "ETIMEDOUT") {
-                            _this.logger.log(LogLevel.Warning, "Timeout from HTTP request.");
-                            reject(new TimeoutError());
-                        }
-                        _this.logger.log(LogLevel.Warning, "Error from HTTP request. " + error);
-                        reject(error);
-                        return;
-                    }
-                    if (response.statusCode >= 200 && response.statusCode < 300) {
-                        resolve(new HttpResponse(response.statusCode, response.statusMessage || "", body));
-                    }
-                    else {
-                        reject(new HttpError(response.statusMessage || "", response.statusCode || 0));
+        /** @inheritDoc */
+        FetchHttpClient.prototype.send = function (request) {
+            return __awaiter$1(this, void 0, void 0, function () {
+                var abortController, error, timeoutId, msTimeout, response, e_1, content, payload;
+                var _this = this;
+                return __generator$1(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            // Check that abort was not signaled before calling send
+                            if (request.abortSignal && request.abortSignal.aborted) {
+                                throw new AbortError();
+                            }
+                            if (!request.method) {
+                                throw new Error("No method defined.");
+                            }
+                            if (!request.url) {
+                                throw new Error("No url defined.");
+                            }
+                            abortController = new this.abortControllerType();
+                            // Hook our abortSignal into the abort controller
+                            if (request.abortSignal) {
+                                request.abortSignal.onabort = function () {
+                                    abortController.abort();
+                                    error = new AbortError();
+                                };
+                            }
+                            timeoutId = null;
+                            if (request.timeout) {
+                                msTimeout = request.timeout;
+                                timeoutId = setTimeout(function () {
+                                    abortController.abort();
+                                    _this.logger.log(LogLevel.Warning, "Timeout from HTTP request.");
+                                    error = new TimeoutError();
+                                }, msTimeout);
+                            }
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, 4, 5]);
+                            return [4 /*yield*/, this.fetchType(request.url, {
+                                    body: request.content,
+                                    cache: "no-cache",
+                                    credentials: request.withCredentials === true ? "include" : "same-origin",
+                                    headers: __assign$2({ "Content-Type": "text/plain;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }, request.headers),
+                                    method: request.method,
+                                    mode: "cors",
+                                    redirect: "manual",
+                                    signal: abortController.signal,
+                                })];
+                        case 2:
+                            response = _a.sent();
+                            return [3 /*break*/, 5];
+                        case 3:
+                            e_1 = _a.sent();
+                            if (error) {
+                                throw error;
+                            }
+                            this.logger.log(LogLevel.Warning, "Error from HTTP request. " + e_1 + ".");
+                            throw e_1;
+                        case 4:
+                            if (timeoutId) {
+                                clearTimeout(timeoutId);
+                            }
+                            if (request.abortSignal) {
+                                request.abortSignal.onabort = null;
+                            }
+                            return [7 /*endfinally*/];
+                        case 5:
+                            if (!response.ok) {
+                                throw new HttpError(response.statusText, response.status);
+                            }
+                            content = deserializeContent(response, request.responseType);
+                            return [4 /*yield*/, content];
+                        case 6:
+                            payload = _a.sent();
+                            return [2 /*return*/, new HttpResponse(response.status, response.statusText, payload)];
                     }
                 });
-                if (httpRequest.abortSignal) {
-                    httpRequest.abortSignal.onabort = function () {
-                        currentRequest.abort();
-                        reject(new AbortError());
-                    };
-                }
             });
         };
-        NodeHttpClient.prototype.getCookieString = function (url) {
-            return this.cookieJar.getCookieString(url);
+        FetchHttpClient.prototype.getCookieString = function (url) {
+            var cookies = "";
+            if (Platform.isNode && this.jar) {
+                // @ts-ignore: unused variable
+                this.jar.getCookies(url, function (e, c) { return cookies = c.join("; "); });
+            }
+            return cookies;
         };
-        return NodeHttpClient;
+        return FetchHttpClient;
     }(HttpClient));
+    function deserializeContent(response, responseType) {
+        var content;
+        switch (responseType) {
+            case "arraybuffer":
+                content = response.arrayBuffer();
+                break;
+            case "text":
+                content = response.text();
+                break;
+            case "blob":
+            case "document":
+            case "json":
+                throw new Error(responseType + " is not supported.");
+            default:
+                content = response.text();
+                break;
+        }
+        return content;
+    }
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
@@ -2452,7 +2623,7 @@ var app = (function (moment) {
             return new Promise(function (resolve, reject) {
                 var xhr = new XMLHttpRequest();
                 xhr.open(request.method, request.url, true);
-                xhr.withCredentials = true;
+                xhr.withCredentials = request.withCredentials === undefined ? true : request.withCredentials;
                 xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
                 // Explicitly setting the Content-Type header for React Native on Android platform.
                 xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
@@ -2518,11 +2689,14 @@ var app = (function (moment) {
         /** Creates a new instance of the {@link @microsoft/signalr.DefaultHttpClient}, using the provided {@link @microsoft/signalr.ILogger} to log messages. */
         function DefaultHttpClient(logger) {
             var _this = _super.call(this) || this;
-            if (typeof XMLHttpRequest !== "undefined") {
+            if (typeof fetch !== "undefined" || Platform.isNode) {
+                _this.httpClient = new FetchHttpClient(logger);
+            }
+            else if (typeof XMLHttpRequest !== "undefined") {
                 _this.httpClient = new XhrHttpClient(logger);
             }
             else {
-                _this.httpClient = new NodeHttpClient(logger);
+                throw new Error("No usable HttpClient found.");
             }
             return _this;
         }
@@ -2679,7 +2853,7 @@ var app = (function (moment) {
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-    var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
             function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
@@ -2687,7 +2861,7 @@ var app = (function (moment) {
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    var __generator$1 = (undefined && undefined.__generator) || function (thisArg, body) {
+    var __generator$2 = (undefined && undefined.__generator) || function (thisArg, body) {
         var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
         function verb(n) { return function (v) { return step([n, v]); }; }
@@ -2734,6 +2908,7 @@ var app = (function (moment) {
     var HubConnection = /** @class */ (function () {
         function HubConnection(connection, logger, protocol, reconnectPolicy) {
             var _this = this;
+            this.nextKeepAlive = 0;
             Arg.isRequired(connection, "connection");
             Arg.isRequired(logger, "logger");
             Arg.isRequired(protocol, "protocol");
@@ -2814,9 +2989,9 @@ var app = (function (moment) {
             return this.startPromise;
         };
         HubConnection.prototype.startWithStateTransitions = function () {
-            return __awaiter$1(this, void 0, void 0, function () {
+            return __awaiter$2(this, void 0, void 0, function () {
                 var e_1;
-                return __generator$1(this, function (_a) {
+                return __generator$2(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             if (this.connectionState !== HubConnectionState.Disconnected) {
@@ -2845,10 +3020,10 @@ var app = (function (moment) {
             });
         };
         HubConnection.prototype.startInternal = function () {
-            return __awaiter$1(this, void 0, void 0, function () {
+            return __awaiter$2(this, void 0, void 0, function () {
                 var handshakePromise, handshakeRequest, e_2;
                 var _this = this;
-                return __generator$1(this, function (_a) {
+                return __generator$2(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             this.stopDuringStartError = undefined;
@@ -2912,9 +3087,9 @@ var app = (function (moment) {
          * @returns {Promise<void>} A Promise that resolves when the connection has been successfully terminated, or rejects with an error.
          */
         HubConnection.prototype.stop = function () {
-            return __awaiter$1(this, void 0, void 0, function () {
+            return __awaiter$2(this, void 0, void 0, function () {
                 var startPromise, e_3;
-                return __generator$1(this, function (_a) {
+                return __generator$2(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             startPromise = this.startPromise;
@@ -3248,37 +3423,50 @@ var app = (function (moment) {
             return remainingData;
         };
         HubConnection.prototype.resetKeepAliveInterval = function () {
-            var _this = this;
+            if (this.connection.features.inherentKeepAlive) {
+                return;
+            }
+            // Set the time we want the next keep alive to be sent
+            // Timer will be setup on next message receive
+            this.nextKeepAlive = new Date().getTime() + this.keepAliveIntervalInMilliseconds;
             this.cleanupPingTimer();
-            this.pingServerHandle = setTimeout(function () { return __awaiter$1(_this, void 0, void 0, function () {
-                var _a;
-                return __generator$1(this, function (_b) {
-                    switch (_b.label) {
-                        case 0:
-                            if (!(this.connectionState === HubConnectionState.Connected)) return [3 /*break*/, 4];
-                            _b.label = 1;
-                        case 1:
-                            _b.trys.push([1, 3, , 4]);
-                            return [4 /*yield*/, this.sendMessage(this.cachedPingMessage)];
-                        case 2:
-                            _b.sent();
-                            return [3 /*break*/, 4];
-                        case 3:
-                            _a = _b.sent();
-                            // We don't care about the error. It should be seen elsewhere in the client.
-                            // The connection is probably in a bad or closed state now, cleanup the timer so it stops triggering
-                            this.cleanupPingTimer();
-                            return [3 /*break*/, 4];
-                        case 4: return [2 /*return*/];
-                    }
-                });
-            }); }, this.keepAliveIntervalInMilliseconds);
         };
         HubConnection.prototype.resetTimeoutPeriod = function () {
             var _this = this;
             if (!this.connection.features || !this.connection.features.inherentKeepAlive) {
                 // Set the timeout timer
                 this.timeoutHandle = setTimeout(function () { return _this.serverTimeout(); }, this.serverTimeoutInMilliseconds);
+                // Set keepAlive timer if there isn't one
+                if (this.pingServerHandle === undefined) {
+                    var nextPing = this.nextKeepAlive - new Date().getTime();
+                    if (nextPing < 0) {
+                        nextPing = 0;
+                    }
+                    // The timer needs to be set from a networking callback to avoid Chrome timer throttling from causing timers to run once a minute
+                    this.pingServerHandle = setTimeout(function () { return __awaiter$2(_this, void 0, void 0, function () {
+                        var _a;
+                        return __generator$2(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    if (!(this.connectionState === HubConnectionState.Connected)) return [3 /*break*/, 4];
+                                    _b.label = 1;
+                                case 1:
+                                    _b.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, this.sendMessage(this.cachedPingMessage)];
+                                case 2:
+                                    _b.sent();
+                                    return [3 /*break*/, 4];
+                                case 3:
+                                    _a = _b.sent();
+                                    // We don't care about the error. It should be seen elsewhere in the client.
+                                    // The connection is probably in a bad or closed state now, cleanup the timer so it stops triggering
+                                    this.cleanupPingTimer();
+                                    return [3 /*break*/, 4];
+                                case 4: return [2 /*return*/];
+                            }
+                        });
+                    }); }, nextPing);
+                }
             }
         };
         HubConnection.prototype.serverTimeout = function () {
@@ -3351,10 +3539,10 @@ var app = (function (moment) {
             }
         };
         HubConnection.prototype.reconnect = function (error) {
-            return __awaiter$1(this, void 0, void 0, function () {
+            return __awaiter$2(this, void 0, void 0, function () {
                 var reconnectStartTime, previousReconnectAttempts, retryError, nextRetryDelay, e_4;
                 var _this = this;
-                return __generator$1(this, function (_a) {
+                return __generator$2(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             reconnectStartTime = Date.now();
@@ -3421,7 +3609,11 @@ var app = (function (moment) {
                             e_4 = _a.sent();
                             this.logger.log(LogLevel.Information, "Reconnect attempt failed because of error '" + e_4 + "'.");
                             if (this.connectionState !== HubConnectionState.Reconnecting) {
-                                this.logger.log(LogLevel.Debug, "Connection left the reconnecting state during reconnect attempt. Done reconnecting.");
+                                this.logger.log(LogLevel.Debug, "Connection moved to the '" + this.connectionState + "' from the reconnecting state during reconnect attempt. Done reconnecting.");
+                                // The TypeScript compiler thinks that connectionState must be Connected here. The TypeScript compiler is wrong.
+                                if (this.connectionState === HubConnectionState.Disconnecting) {
+                                    this.completeClose();
+                                }
                                 return [2 /*return*/];
                             }
                             retryError = e_4 instanceof Error ? e_4 : new Error(e_4.toString());
@@ -3461,6 +3653,7 @@ var app = (function (moment) {
         HubConnection.prototype.cleanupPingTimer = function () {
             if (this.pingServerHandle) {
                 clearTimeout(this.pingServerHandle);
+                this.pingServerHandle = undefined;
             }
         };
         HubConnection.prototype.cleanupTimeout = function () {
@@ -3470,23 +3663,42 @@ var app = (function (moment) {
         };
         HubConnection.prototype.createInvocation = function (methodName, args, nonblocking, streamIds) {
             if (nonblocking) {
-                return {
-                    arguments: args,
-                    streamIds: streamIds,
-                    target: methodName,
-                    type: MessageType.Invocation,
-                };
+                if (streamIds.length !== 0) {
+                    return {
+                        arguments: args,
+                        streamIds: streamIds,
+                        target: methodName,
+                        type: MessageType.Invocation,
+                    };
+                }
+                else {
+                    return {
+                        arguments: args,
+                        target: methodName,
+                        type: MessageType.Invocation,
+                    };
+                }
             }
             else {
                 var invocationId = this.invocationId;
                 this.invocationId++;
-                return {
-                    arguments: args,
-                    invocationId: invocationId.toString(),
-                    streamIds: streamIds,
-                    target: methodName,
-                    type: MessageType.Invocation,
-                };
+                if (streamIds.length !== 0) {
+                    return {
+                        arguments: args,
+                        invocationId: invocationId.toString(),
+                        streamIds: streamIds,
+                        target: methodName,
+                        type: MessageType.Invocation,
+                    };
+                }
+                else {
+                    return {
+                        arguments: args,
+                        invocationId: invocationId.toString(),
+                        target: methodName,
+                        type: MessageType.Invocation,
+                    };
+                }
             }
         };
         HubConnection.prototype.launchStreams = function (streams, promiseQueue) {
@@ -3551,13 +3763,23 @@ var app = (function (moment) {
         HubConnection.prototype.createStreamInvocation = function (methodName, args, streamIds) {
             var invocationId = this.invocationId;
             this.invocationId++;
-            return {
-                arguments: args,
-                invocationId: invocationId.toString(),
-                streamIds: streamIds,
-                target: methodName,
-                type: MessageType.StreamInvocation,
-            };
+            if (streamIds.length !== 0) {
+                return {
+                    arguments: args,
+                    invocationId: invocationId.toString(),
+                    streamIds: streamIds,
+                    target: methodName,
+                    type: MessageType.StreamInvocation,
+                };
+            }
+            else {
+                return {
+                    arguments: args,
+                    invocationId: invocationId.toString(),
+                    target: methodName,
+                    type: MessageType.StreamInvocation,
+                };
+            }
         };
         HubConnection.prototype.createCancelInvocation = function (id) {
             return {
@@ -3635,7 +3857,7 @@ var app = (function (moment) {
     // it's a very new API right now.
     // Not exported from index.
     /** @private */
-    var AbortController = /** @class */ (function () {
+    var AbortController$1 = /** @class */ (function () {
         function AbortController() {
             this.isAborted = false;
             this.onabort = null;
@@ -3667,7 +3889,15 @@ var app = (function (moment) {
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-    var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    var __assign$3 = (undefined && undefined.__assign) || Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
             function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
@@ -3675,7 +3905,7 @@ var app = (function (moment) {
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    var __generator$2 = (undefined && undefined.__generator) || function (thisArg, body) {
+    var __generator$3 = (undefined && undefined.__generator) || function (thisArg, body) {
         var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
         function verb(n) { return function (v) { return step([n, v]); }; }
@@ -3705,12 +3935,14 @@ var app = (function (moment) {
     // Not exported from 'index', this type is internal.
     /** @private */
     var LongPollingTransport = /** @class */ (function () {
-        function LongPollingTransport(httpClient, accessTokenFactory, logger, logMessageContent) {
+        function LongPollingTransport(httpClient, accessTokenFactory, logger, logMessageContent, withCredentials, headers) {
             this.httpClient = httpClient;
             this.accessTokenFactory = accessTokenFactory;
             this.logger = logger;
-            this.pollAbort = new AbortController();
+            this.pollAbort = new AbortController$1();
             this.logMessageContent = logMessageContent;
+            this.withCredentials = withCredentials;
+            this.headers = headers;
             this.running = false;
             this.onreceive = null;
             this.onclose = null;
@@ -3724,10 +3956,10 @@ var app = (function (moment) {
             configurable: true
         });
         LongPollingTransport.prototype.connect = function (url, transferFormat) {
-            return __awaiter$2(this, void 0, void 0, function () {
-                var pollOptions, token, pollUrl, response;
-                return __generator$2(this, function (_a) {
-                    switch (_a.label) {
+            return __awaiter$3(this, void 0, void 0, function () {
+                var _a, _b, name, value, headers, pollOptions, token, pollUrl, response;
+                return __generator$3(this, function (_c) {
+                    switch (_c.label) {
                         case 0:
                             Arg.isRequired(url, "url");
                             Arg.isRequired(transferFormat, "transferFormat");
@@ -3739,23 +3971,26 @@ var app = (function (moment) {
                                 (typeof XMLHttpRequest !== "undefined" && typeof new XMLHttpRequest().responseType !== "string")) {
                                 throw new Error("Binary protocols over XmlHttpRequest not implementing advanced features are not supported.");
                             }
+                            _b = getUserAgentHeader(), name = _b[0], value = _b[1];
+                            headers = __assign$3((_a = {}, _a[name] = value, _a), this.headers);
                             pollOptions = {
                                 abortSignal: this.pollAbort.signal,
-                                headers: {},
+                                headers: headers,
                                 timeout: 100000,
+                                withCredentials: this.withCredentials,
                             };
                             if (transferFormat === TransferFormat.Binary) {
                                 pollOptions.responseType = "arraybuffer";
                             }
                             return [4 /*yield*/, this.getAccessToken()];
                         case 1:
-                            token = _a.sent();
+                            token = _c.sent();
                             this.updateHeaderToken(pollOptions, token);
                             pollUrl = url + "&_=" + Date.now();
                             this.logger.log(LogLevel.Trace, "(LongPolling transport) polling: " + pollUrl + ".");
                             return [4 /*yield*/, this.httpClient.get(pollUrl, pollOptions)];
                         case 2:
-                            response = _a.sent();
+                            response = _c.sent();
                             if (response.statusCode !== 200) {
                                 this.logger.log(LogLevel.Error, "(LongPolling transport) Unexpected response code: " + response.statusCode + ".");
                                 // Mark running as false so that the poll immediately ends and runs the close logic
@@ -3772,8 +4007,8 @@ var app = (function (moment) {
             });
         };
         LongPollingTransport.prototype.getAccessToken = function () {
-            return __awaiter$2(this, void 0, void 0, function () {
-                return __generator$2(this, function (_a) {
+            return __awaiter$3(this, void 0, void 0, function () {
+                return __generator$3(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             if (!this.accessTokenFactory) return [3 /*break*/, 2];
@@ -3800,9 +4035,9 @@ var app = (function (moment) {
             }
         };
         LongPollingTransport.prototype.poll = function (url, pollOptions) {
-            return __awaiter$2(this, void 0, void 0, function () {
+            return __awaiter$3(this, void 0, void 0, function () {
                 var token, pollUrl, response, e_1;
-                return __generator$2(this, function (_a) {
+                return __generator$3(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, , 8, 9]);
@@ -3879,43 +4114,47 @@ var app = (function (moment) {
             });
         };
         LongPollingTransport.prototype.send = function (data) {
-            return __awaiter$2(this, void 0, void 0, function () {
-                return __generator$2(this, function (_a) {
+            return __awaiter$3(this, void 0, void 0, function () {
+                return __generator$3(this, function (_a) {
                     if (!this.running) {
                         return [2 /*return*/, Promise.reject(new Error("Cannot send until the transport is connected"))];
                     }
-                    return [2 /*return*/, sendMessage(this.logger, "LongPolling", this.httpClient, this.url, this.accessTokenFactory, data, this.logMessageContent)];
+                    return [2 /*return*/, sendMessage(this.logger, "LongPolling", this.httpClient, this.url, this.accessTokenFactory, data, this.logMessageContent, this.withCredentials, this.headers)];
                 });
             });
         };
         LongPollingTransport.prototype.stop = function () {
-            return __awaiter$2(this, void 0, void 0, function () {
-                var deleteOptions, token;
-                return __generator$2(this, function (_a) {
-                    switch (_a.label) {
+            return __awaiter$3(this, void 0, void 0, function () {
+                var headers, _a, name_1, value, deleteOptions, token;
+                return __generator$3(this, function (_b) {
+                    switch (_b.label) {
                         case 0:
                             this.logger.log(LogLevel.Trace, "(LongPolling transport) Stopping polling.");
                             // Tell receiving loop to stop, abort any current request, and then wait for it to finish
                             this.running = false;
                             this.pollAbort.abort();
-                            _a.label = 1;
+                            _b.label = 1;
                         case 1:
-                            _a.trys.push([1, , 5, 6]);
+                            _b.trys.push([1, , 5, 6]);
                             return [4 /*yield*/, this.receiving];
                         case 2:
-                            _a.sent();
+                            _b.sent();
                             // Send DELETE to clean up long polling on the server
                             this.logger.log(LogLevel.Trace, "(LongPolling transport) sending DELETE request to " + this.url + ".");
+                            headers = {};
+                            _a = getUserAgentHeader(), name_1 = _a[0], value = _a[1];
+                            headers[name_1] = value;
                             deleteOptions = {
-                                headers: {},
+                                headers: __assign$3({}, headers, this.headers),
+                                withCredentials: this.withCredentials,
                             };
                             return [4 /*yield*/, this.getAccessToken()];
                         case 3:
-                            token = _a.sent();
+                            token = _b.sent();
                             this.updateHeaderToken(deleteOptions, token);
                             return [4 /*yield*/, this.httpClient.delete(this.url, deleteOptions)];
                         case 4:
-                            _a.sent();
+                            _b.sent();
                             this.logger.log(LogLevel.Trace, "(LongPolling transport) DELETE request sent.");
                             return [3 /*break*/, 6];
                         case 5:
@@ -3944,7 +4183,15 @@ var app = (function (moment) {
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-    var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    var __assign$4 = (undefined && undefined.__assign) || Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
             function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
@@ -3952,7 +4199,7 @@ var app = (function (moment) {
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    var __generator$3 = (undefined && undefined.__generator) || function (thisArg, body) {
+    var __generator$4 = (undefined && undefined.__generator) || function (thisArg, body) {
         var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
         function verb(n) { return function (v) { return step([n, v]); }; }
@@ -3981,20 +4228,22 @@ var app = (function (moment) {
     };
     /** @private */
     var ServerSentEventsTransport = /** @class */ (function () {
-        function ServerSentEventsTransport(httpClient, accessTokenFactory, logger, logMessageContent, eventSourceConstructor) {
+        function ServerSentEventsTransport(httpClient, accessTokenFactory, logger, logMessageContent, eventSourceConstructor, withCredentials, headers) {
             this.httpClient = httpClient;
             this.accessTokenFactory = accessTokenFactory;
             this.logger = logger;
             this.logMessageContent = logMessageContent;
+            this.withCredentials = withCredentials;
             this.eventSourceConstructor = eventSourceConstructor;
+            this.headers = headers;
             this.onreceive = null;
             this.onclose = null;
         }
         ServerSentEventsTransport.prototype.connect = function (url, transferFormat) {
-            return __awaiter$3(this, void 0, void 0, function () {
+            return __awaiter$4(this, void 0, void 0, function () {
                 var token;
                 var _this = this;
-                return __generator$3(this, function (_a) {
+                return __generator$4(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             Arg.isRequired(url, "url");
@@ -4019,12 +4268,16 @@ var app = (function (moment) {
                                 }
                                 var eventSource;
                                 if (Platform.isBrowser || Platform.isWebWorker) {
-                                    eventSource = new _this.eventSourceConstructor(url, { withCredentials: true });
+                                    eventSource = new _this.eventSourceConstructor(url, { withCredentials: _this.withCredentials });
                                 }
                                 else {
                                     // Non-browser passes cookies via the dictionary
                                     var cookies = _this.httpClient.getCookieString(url);
-                                    eventSource = new _this.eventSourceConstructor(url, { withCredentials: true, headers: { Cookie: cookies } });
+                                    var headers = {};
+                                    headers.Cookie = cookies;
+                                    var _a = getUserAgentHeader(), name_1 = _a[0], value = _a[1];
+                                    headers[name_1] = value;
+                                    eventSource = new _this.eventSourceConstructor(url, { withCredentials: _this.withCredentials, headers: __assign$4({}, headers, _this.headers) });
                                 }
                                 try {
                                     eventSource.onmessage = function (e) {
@@ -4065,12 +4318,12 @@ var app = (function (moment) {
             });
         };
         ServerSentEventsTransport.prototype.send = function (data) {
-            return __awaiter$3(this, void 0, void 0, function () {
-                return __generator$3(this, function (_a) {
+            return __awaiter$4(this, void 0, void 0, function () {
+                return __generator$4(this, function (_a) {
                     if (!this.eventSource) {
                         return [2 /*return*/, Promise.reject(new Error("Cannot send until the transport is connected"))];
                     }
-                    return [2 /*return*/, sendMessage(this.logger, "SSE", this.httpClient, this.url, this.accessTokenFactory, data, this.logMessageContent)];
+                    return [2 /*return*/, sendMessage(this.logger, "SSE", this.httpClient, this.url, this.accessTokenFactory, data, this.logMessageContent, this.withCredentials, this.headers)];
                 });
             });
         };
@@ -4092,7 +4345,15 @@ var app = (function (moment) {
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-    var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    var __assign$5 = (undefined && undefined.__assign) || Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    var __awaiter$5 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
             function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
@@ -4100,7 +4361,7 @@ var app = (function (moment) {
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    var __generator$4 = (undefined && undefined.__generator) || function (thisArg, body) {
+    var __generator$5 = (undefined && undefined.__generator) || function (thisArg, body) {
         var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
         function verb(n) { return function (v) { return step([n, v]); }; }
@@ -4129,7 +4390,7 @@ var app = (function (moment) {
     };
     /** @private */
     var WebSocketTransport = /** @class */ (function () {
-        function WebSocketTransport(httpClient, accessTokenFactory, logger, logMessageContent, webSocketConstructor) {
+        function WebSocketTransport(httpClient, accessTokenFactory, logger, logMessageContent, webSocketConstructor, headers) {
             this.logger = logger;
             this.accessTokenFactory = accessTokenFactory;
             this.logMessageContent = logMessageContent;
@@ -4137,12 +4398,13 @@ var app = (function (moment) {
             this.httpClient = httpClient;
             this.onreceive = null;
             this.onclose = null;
+            this.headers = headers;
         }
         WebSocketTransport.prototype.connect = function (url, transferFormat) {
-            return __awaiter$4(this, void 0, void 0, function () {
+            return __awaiter$5(this, void 0, void 0, function () {
                 var token;
                 var _this = this;
-                return __generator$4(this, function (_a) {
+                return __generator$5(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             Arg.isRequired(url, "url");
@@ -4162,12 +4424,16 @@ var app = (function (moment) {
                                 var webSocket;
                                 var cookies = _this.httpClient.getCookieString(url);
                                 var opened = false;
-                                if (Platform.isNode && cookies) {
-                                    // Only pass cookies when in non-browser environments
+                                if (Platform.isNode) {
+                                    var headers = {};
+                                    var _a = getUserAgentHeader(), name_1 = _a[0], value = _a[1];
+                                    headers[name_1] = value;
+                                    if (cookies) {
+                                        headers["Cookie"] = "" + cookies;
+                                    }
+                                    // Only pass headers when in non-browser environments
                                     webSocket = new _this.webSocketConstructor(url, undefined, {
-                                        headers: {
-                                            Cookie: "" + cookies,
-                                        },
+                                        headers: __assign$5({}, headers, _this.headers),
                                     });
                                 }
                                 if (!webSocket) {
@@ -4198,7 +4464,13 @@ var app = (function (moment) {
                                 webSocket.onmessage = function (message) {
                                     _this.logger.log(LogLevel.Trace, "(WebSockets transport) data received. " + getDataDetail(message.data, _this.logMessageContent) + ".");
                                     if (_this.onreceive) {
-                                        _this.onreceive(message.data);
+                                        try {
+                                            _this.onreceive(message.data);
+                                        }
+                                        catch (error) {
+                                            _this.close(error);
+                                            return;
+                                        }
                                     }
                                 };
                                 webSocket.onclose = function (event) {
@@ -4252,20 +4524,34 @@ var app = (function (moment) {
             }
             this.logger.log(LogLevel.Trace, "(WebSockets transport) socket closed.");
             if (this.onclose) {
-                if (event && (event.wasClean === false || event.code !== 1000)) {
+                if (this.isCloseEvent(event) && (event.wasClean === false || event.code !== 1000)) {
                     this.onclose(new Error("WebSocket closed with status code: " + event.code + " (" + event.reason + ")."));
+                }
+                else if (event instanceof Error) {
+                    this.onclose(event);
                 }
                 else {
                     this.onclose();
                 }
             }
         };
+        WebSocketTransport.prototype.isCloseEvent = function (event) {
+            return event && typeof event.wasClean === "boolean" && typeof event.code === "number";
+        };
         return WebSocketTransport;
     }());
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-    var __awaiter$5 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    var __assign$6 = (undefined && undefined.__assign) || Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    var __awaiter$6 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
             function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
@@ -4273,7 +4559,7 @@ var app = (function (moment) {
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    var __generator$5 = (undefined && undefined.__generator) || function (thisArg, body) {
+    var __generator$6 = (undefined && undefined.__generator) || function (thisArg, body) {
         var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
         function verb(n) { return function (v) { return step([n, v]); }; }
@@ -4301,40 +4587,47 @@ var app = (function (moment) {
         }
     };
     var MAX_REDIRECTS = 100;
-    var WebSocketModule = null;
-    var EventSourceModule = null;
-    if (Platform.isNode && typeof require !== "undefined") {
-        // In order to ignore the dynamic require in webpack builds we need to do this magic
-        // @ts-ignore: TS doesn't know about these names
-        var requireFunc$1 = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
-        WebSocketModule = requireFunc$1("ws");
-        EventSourceModule = requireFunc$1("eventsource");
-    }
     /** @private */
     var HttpConnection = /** @class */ (function () {
         function HttpConnection(url, options) {
             if (options === void 0) { options = {}; }
+            this.stopPromiseResolver = function () { };
             this.features = {};
             this.negotiateVersion = 1;
             Arg.isRequired(url, "url");
             this.logger = createLogger(options.logger);
             this.baseUrl = this.resolveUrl(url);
             options = options || {};
-            options.logMessageContent = options.logMessageContent || false;
+            options.logMessageContent = options.logMessageContent === undefined ? false : options.logMessageContent;
+            if (typeof options.withCredentials === "boolean" || options.withCredentials === undefined) {
+                options.withCredentials = options.withCredentials === undefined ? true : options.withCredentials;
+            }
+            else {
+                throw new Error("withCredentials option was not a 'boolean' or 'undefined' value");
+            }
+            var webSocketModule = null;
+            var eventSourceModule = null;
+            if (Platform.isNode && typeof require !== "undefined") {
+                // In order to ignore the dynamic require in webpack builds we need to do this magic
+                // @ts-ignore: TS doesn't know about these names
+                var requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
+                webSocketModule = requireFunc("ws");
+                eventSourceModule = requireFunc("eventsource");
+            }
             if (!Platform.isNode && typeof WebSocket !== "undefined" && !options.WebSocket) {
                 options.WebSocket = WebSocket;
             }
             else if (Platform.isNode && !options.WebSocket) {
-                if (WebSocketModule) {
-                    options.WebSocket = WebSocketModule;
+                if (webSocketModule) {
+                    options.WebSocket = webSocketModule;
                 }
             }
             if (!Platform.isNode && typeof EventSource !== "undefined" && !options.EventSource) {
                 options.EventSource = EventSource;
             }
             else if (Platform.isNode && !options.EventSource) {
-                if (typeof EventSourceModule !== "undefined") {
-                    options.EventSource = EventSourceModule;
+                if (typeof eventSourceModule !== "undefined") {
+                    options.EventSource = eventSourceModule;
                 }
             }
             this.httpClient = options.httpClient || new DefaultHttpClient(this.logger);
@@ -4345,9 +4638,9 @@ var app = (function (moment) {
             this.onclose = null;
         }
         HttpConnection.prototype.start = function (transferFormat) {
-            return __awaiter$5(this, void 0, void 0, function () {
+            return __awaiter$6(this, void 0, void 0, function () {
                 var message, message;
-                return __generator$5(this, function (_a) {
+                return __generator$6(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             transferFormat = transferFormat || TransferFormat.Binary;
@@ -4356,7 +4649,7 @@ var app = (function (moment) {
                             if (this.connectionState !== "Disconnected" /* Disconnected */) {
                                 return [2 /*return*/, Promise.reject(new Error("Cannot start an HttpConnection that is not in the 'Disconnected' state."))];
                             }
-                            this.connectionState = "Connecting " /* Connecting */;
+                            this.connectionState = "Connecting" /* Connecting */;
                             this.startInternalPromise = this.startInternal(transferFormat);
                             return [4 /*yield*/, this.startInternalPromise];
                         case 1:
@@ -4395,9 +4688,9 @@ var app = (function (moment) {
             return this.sendQueue.send(data);
         };
         HttpConnection.prototype.stop = function (error) {
-            return __awaiter$5(this, void 0, void 0, function () {
+            return __awaiter$6(this, void 0, void 0, function () {
                 var _this = this;
-                return __generator$5(this, function (_a) {
+                return __generator$6(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             if (this.connectionState === "Disconnected" /* Disconnected */) {
@@ -4427,9 +4720,9 @@ var app = (function (moment) {
             });
         };
         HttpConnection.prototype.stopInternal = function (error) {
-            return __awaiter$5(this, void 0, void 0, function () {
+            return __awaiter$6(this, void 0, void 0, function () {
                 var e_1, e_2;
-                return __generator$5(this, function (_a) {
+                return __generator$6(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             // Set error as soon as possible otherwise there is a race between
@@ -4465,7 +4758,6 @@ var app = (function (moment) {
                             return [3 /*break*/, 10];
                         case 9:
                             this.logger.log(LogLevel.Debug, "HttpConnection.transport is undefined in HttpConnection.stop() because start() failed.");
-                            this.stopConnection();
                             _a.label = 10;
                         case 10: return [2 /*return*/];
                     }
@@ -4473,9 +4765,9 @@ var app = (function (moment) {
             });
         };
         HttpConnection.prototype.startInternal = function (transferFormat) {
-            return __awaiter$5(this, void 0, void 0, function () {
+            return __awaiter$6(this, void 0, void 0, function () {
                 var url, negotiateResponse, redirects, _loop_1, this_1, e_3;
-                return __generator$5(this, function (_a) {
+                return __generator$6(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             url = this.baseUrl;
@@ -4502,7 +4794,7 @@ var app = (function (moment) {
                             redirects = 0;
                             _loop_1 = function () {
                                 var accessToken_1;
-                                return __generator$5(this, function (_a) {
+                                return __generator$6(this, function (_a) {
                                     switch (_a.label) {
                                         case 0: return [4 /*yield*/, this_1.getNegotiationResponse(url)];
                                         case 1:
@@ -4550,7 +4842,7 @@ var app = (function (moment) {
                             if (this.transport instanceof LongPollingTransport) {
                                 this.features.inherentKeepAlive = true;
                             }
-                            if (this.connectionState === "Connecting " /* Connecting */) {
+                            if (this.connectionState === "Connecting" /* Connecting */) {
                                 // Ensure the connection transitions to the connected state prior to completing this.startInternalPromise.
                                 // start() will handle the case when stop was called and startInternal exits still in the disconnecting state.
                                 this.logger.log(LogLevel.Debug, "The HttpConnection connected successfully.");
@@ -4562,6 +4854,8 @@ var app = (function (moment) {
                             this.logger.log(LogLevel.Error, "Failed to start the connection: " + e_3);
                             this.connectionState = "Disconnected" /* Disconnected */;
                             this.transport = undefined;
+                            // if start fails, any active calls to stop assume that start will complete the stop promise
+                            this.stopPromiseResolver();
                             return [2 /*return*/, Promise.reject(e_3)];
                         case 13: return [2 /*return*/];
                     }
@@ -4569,22 +4863,23 @@ var app = (function (moment) {
             });
         };
         HttpConnection.prototype.getNegotiationResponse = function (url) {
-            return __awaiter$5(this, void 0, void 0, function () {
-                var _a, headers, token, negotiateUrl, response, negotiateResponse, e_4;
-                return __generator$5(this, function (_b) {
+            return __awaiter$6(this, void 0, void 0, function () {
+                var headers, token, _a, name, value, negotiateUrl, response, negotiateResponse, e_4;
+                return __generator$6(this, function (_b) {
                     switch (_b.label) {
                         case 0:
+                            headers = {};
                             if (!this.accessTokenFactory) return [3 /*break*/, 2];
                             return [4 /*yield*/, this.accessTokenFactory()];
                         case 1:
                             token = _b.sent();
                             if (token) {
-                                headers = (_a = {},
-                                    _a["Authorization"] = "Bearer " + token,
-                                    _a);
+                                headers["Authorization"] = "Bearer " + token;
                             }
                             _b.label = 2;
                         case 2:
+                            _a = getUserAgentHeader(), name = _a[0], value = _a[1];
+                            headers[name] = value;
                             negotiateUrl = this.resolveNegotiateUrl(url);
                             this.logger.log(LogLevel.Debug, "Sending negotiation request: " + negotiateUrl + ".");
                             _b.label = 3;
@@ -4592,12 +4887,13 @@ var app = (function (moment) {
                             _b.trys.push([3, 5, , 6]);
                             return [4 /*yield*/, this.httpClient.post(negotiateUrl, {
                                     content: "",
-                                    headers: headers,
+                                    headers: __assign$6({}, headers, this.options.headers),
+                                    withCredentials: this.options.withCredentials,
                                 })];
                         case 4:
                             response = _b.sent();
                             if (response.statusCode !== 200) {
-                                return [2 /*return*/, Promise.reject(new Error("Unexpected status code returned from negotiate " + response.statusCode))];
+                                return [2 /*return*/, Promise.reject(new Error("Unexpected status code returned from negotiate '" + response.statusCode + "'"))];
                             }
                             negotiateResponse = JSON.parse(response.content);
                             if (!negotiateResponse.negotiateVersion || negotiateResponse.negotiateVersion < 1) {
@@ -4622,9 +4918,9 @@ var app = (function (moment) {
             return url + (url.indexOf("?") === -1 ? "?" : "&") + ("id=" + connectionToken);
         };
         HttpConnection.prototype.createTransport = function (url, requestedTransport, negotiateResponse, requestedTransferFormat) {
-            return __awaiter$5(this, void 0, void 0, function () {
+            return __awaiter$6(this, void 0, void 0, function () {
                 var connectUrl, transportExceptions, transports, negotiate, _i, transports_1, endpoint, transportOrError, ex_1, ex_2, message;
-                return __generator$5(this, function (_a) {
+                return __generator$6(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             connectUrl = this.createConnectUrl(url, negotiateResponse.connectionToken);
@@ -4679,7 +4975,7 @@ var app = (function (moment) {
                             this.logger.log(LogLevel.Error, "Failed to start the transport '" + endpoint.transport + "': " + ex_2);
                             negotiate = undefined;
                             transportExceptions.push(endpoint.transport + " failed: " + ex_2);
-                            if (this.connectionState !== "Connecting " /* Connecting */) {
+                            if (this.connectionState !== "Connecting" /* Connecting */) {
                                 message = "Failed to select transport before stop() was called.";
                                 this.logger.log(LogLevel.Debug, message);
                                 return [2 /*return*/, Promise.reject(new Error(message))];
@@ -4703,14 +4999,14 @@ var app = (function (moment) {
                     if (!this.options.WebSocket) {
                         throw new Error("'WebSocket' is not supported in your environment.");
                     }
-                    return new WebSocketTransport(this.httpClient, this.accessTokenFactory, this.logger, this.options.logMessageContent || false, this.options.WebSocket);
+                    return new WebSocketTransport(this.httpClient, this.accessTokenFactory, this.logger, this.options.logMessageContent || false, this.options.WebSocket, this.options.headers || {});
                 case HttpTransportType.ServerSentEvents:
                     if (!this.options.EventSource) {
                         throw new Error("'EventSource' is not supported in your environment.");
                     }
-                    return new ServerSentEventsTransport(this.httpClient, this.accessTokenFactory, this.logger, this.options.logMessageContent || false, this.options.EventSource);
+                    return new ServerSentEventsTransport(this.httpClient, this.accessTokenFactory, this.logger, this.options.logMessageContent || false, this.options.EventSource, this.options.withCredentials, this.options.headers || {});
                 case HttpTransportType.LongPolling:
-                    return new LongPollingTransport(this.httpClient, this.accessTokenFactory, this.logger, this.options.logMessageContent || false);
+                    return new LongPollingTransport(this.httpClient, this.accessTokenFactory, this.logger, this.options.logMessageContent || false, this.options.withCredentials, this.options.headers || {});
                 default:
                     throw new Error("Unknown transport: " + transport + ".");
             }
@@ -4771,9 +5067,9 @@ var app = (function (moment) {
                 this.logger.log(LogLevel.Debug, "Call to HttpConnection.stopConnection(" + error + ") was ignored because the connection is already in the disconnected state.");
                 return;
             }
-            if (this.connectionState === "Connecting " /* Connecting */) {
-                this.logger.log(LogLevel.Warning, "Call to HttpConnection.stopConnection(" + error + ") was ignored because the connection hasn't yet left the in the connecting state.");
-                return;
+            if (this.connectionState === "Connecting" /* Connecting */) {
+                this.logger.log(LogLevel.Warning, "Call to HttpConnection.stopConnection(" + error + ") was ignored because the connection is still in the connecting state.");
+                throw new Error("HttpConnection.stopConnection(" + error + ") was called while the connection is still in the connecting state.");
             }
             if (this.connectionState === "Disconnecting" /* Disconnecting */) {
                 // A call to stop() induced this call to stopConnection and needs to be completed.
@@ -4873,9 +5169,9 @@ var app = (function (moment) {
             this.sendBufferedData.resolve();
         };
         TransportSendQueue.prototype.sendLoop = function () {
-            return __awaiter$5(this, void 0, void 0, function () {
+            return __awaiter$6(this, void 0, void 0, function () {
                 var transportResult, data, error_1;
-                return __generator$5(this, function (_a) {
+                return __generator$6(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             return [4 /*yield*/, this.sendBufferedData.promise];
@@ -4921,7 +5217,7 @@ var app = (function (moment) {
                 result.set(new Uint8Array(item), offset);
                 offset += item.byteLength;
             }
-            return result;
+            return result.buffer;
         };
         return TransportSendQueue;
     }());
@@ -5043,7 +5339,7 @@ var app = (function (moment) {
 
     // Copyright (c) .NET Foundation. All rights reserved.
     // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-    var __assign$2 = (undefined && undefined.__assign) || Object.assign || function(t) {
+    var __assign$7 = (undefined && undefined.__assign) || Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
             s = arguments[i];
             for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
@@ -5095,14 +5391,15 @@ var app = (function (moment) {
         };
         HubConnectionBuilder.prototype.withUrl = function (url, transportTypeOrOptions) {
             Arg.isRequired(url, "url");
+            Arg.isNotEmpty(url, "url");
             this.url = url;
             // Flow-typing knows where it's at. Since HttpTransportType is a number and IHttpConnectionOptions is guaranteed
             // to be an object, we know (as does TypeScript) this comparison is all we need to figure out which overload was called.
             if (typeof transportTypeOrOptions === "object") {
-                this.httpConnectionOptions = __assign$2({}, this.httpConnectionOptions, transportTypeOrOptions);
+                this.httpConnectionOptions = __assign$7({}, this.httpConnectionOptions, transportTypeOrOptions);
             }
             else {
-                this.httpConnectionOptions = __assign$2({}, this.httpConnectionOptions, { transport: transportTypeOrOptions });
+                this.httpConnectionOptions = __assign$7({}, this.httpConnectionOptions, { transport: transportTypeOrOptions });
             }
             return this;
         };
@@ -5270,6 +5567,21 @@ var app = (function (moment) {
     }
 
     /**
+     * Determine if a value is a plain Object
+     *
+     * @param {Object} val The value to test
+     * @return {boolean} True if value is a plain Object, otherwise false
+     */
+    function isPlainObject(val) {
+      if (toString.call(val) !== '[object Object]') {
+        return false;
+      }
+
+      var prototype = Object.getPrototypeOf(val);
+      return prototype === null || prototype === Object.prototype;
+    }
+
+    /**
      * Determine if a value is a Date
      *
      * @param {Object} val The value to test
@@ -5425,34 +5737,12 @@ var app = (function (moment) {
     function merge(/* obj1, obj2, obj3, ... */) {
       var result = {};
       function assignValue(val, key) {
-        if (typeof result[key] === 'object' && typeof val === 'object') {
+        if (isPlainObject(result[key]) && isPlainObject(val)) {
           result[key] = merge(result[key], val);
-        } else {
-          result[key] = val;
-        }
-      }
-
-      for (var i = 0, l = arguments.length; i < l; i++) {
-        forEach(arguments[i], assignValue);
-      }
-      return result;
-    }
-
-    /**
-     * Function equal to merge with the difference being that no reference
-     * to original objects is kept.
-     *
-     * @see merge
-     * @param {Object} obj1 Object to merge
-     * @returns {Object} Result of all merge properties
-     */
-    function deepMerge(/* obj1, obj2, obj3, ... */) {
-      var result = {};
-      function assignValue(val, key) {
-        if (typeof result[key] === 'object' && typeof val === 'object') {
-          result[key] = deepMerge(result[key], val);
-        } else if (typeof val === 'object') {
-          result[key] = deepMerge({}, val);
+        } else if (isPlainObject(val)) {
+          result[key] = merge({}, val);
+        } else if (isArray(val)) {
+          result[key] = val.slice();
         } else {
           result[key] = val;
         }
@@ -5483,6 +5773,19 @@ var app = (function (moment) {
       return a;
     }
 
+    /**
+     * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+     *
+     * @param {string} content with BOM
+     * @return {string} content value without BOM
+     */
+    function stripBOM(content) {
+      if (content.charCodeAt(0) === 0xFEFF) {
+        content = content.slice(1);
+      }
+      return content;
+    }
+
     var utils = {
       isArray: isArray,
       isArrayBuffer: isArrayBuffer$1,
@@ -5492,6 +5795,7 @@ var app = (function (moment) {
       isString: isString,
       isNumber: isNumber,
       isObject: isObject,
+      isPlainObject: isPlainObject,
       isUndefined: isUndefined,
       isDate: isDate,
       isFile: isFile,
@@ -5502,14 +5806,13 @@ var app = (function (moment) {
       isStandardBrowserEnv: isStandardBrowserEnv,
       forEach: forEach,
       merge: merge,
-      deepMerge: deepMerge,
       extend: extend,
-      trim: trim
+      trim: trim,
+      stripBOM: stripBOM
     };
 
     function encode(val) {
       return encodeURIComponent(val).
-        replace(/%40/gi, '@').
         replace(/%3A/gi, ':').
         replace(/%24/g, '$').
         replace(/%2C/gi, ',').
@@ -5674,7 +5977,7 @@ var app = (function (moment) {
       error.response = response;
       error.isAxiosError = true;
 
-      error.toJSON = function() {
+      error.toJSON = function toJSON() {
         return {
           // Standard
           message: this.message,
@@ -5719,7 +6022,7 @@ var app = (function (moment) {
      */
     var settle = function settle(resolve, reject, response) {
       var validateStatus = response.config.validateStatus;
-      if (!validateStatus || validateStatus(response.status)) {
+      if (!response.status || !validateStatus || validateStatus(response.status)) {
         resolve(response);
       } else {
         reject(createError(
@@ -5731,6 +6034,56 @@ var app = (function (moment) {
         ));
       }
     };
+
+    var cookies = (
+      utils.isStandardBrowserEnv() ?
+
+      // Standard browser envs support document.cookie
+        (function standardBrowserEnv() {
+          return {
+            write: function write(name, value, expires, path, domain, secure) {
+              var cookie = [];
+              cookie.push(name + '=' + encodeURIComponent(value));
+
+              if (utils.isNumber(expires)) {
+                cookie.push('expires=' + new Date(expires).toGMTString());
+              }
+
+              if (utils.isString(path)) {
+                cookie.push('path=' + path);
+              }
+
+              if (utils.isString(domain)) {
+                cookie.push('domain=' + domain);
+              }
+
+              if (secure === true) {
+                cookie.push('secure');
+              }
+
+              document.cookie = cookie.join('; ');
+            },
+
+            read: function read(name) {
+              var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+              return (match ? decodeURIComponent(match[3]) : null);
+            },
+
+            remove: function remove(name) {
+              this.write(name, '', Date.now() - 86400000);
+            }
+          };
+        })() :
+
+      // Non standard browser env (web workers, react-native) lack needed support.
+        (function nonStandardBrowserEnv() {
+          return {
+            write: function write() {},
+            read: function read() { return null; },
+            remove: function remove() {}
+          };
+        })()
+    );
 
     /**
      * Determines whether the specified URL is absolute
@@ -5889,56 +6242,6 @@ var app = (function (moment) {
         })()
     );
 
-    var cookies = (
-      utils.isStandardBrowserEnv() ?
-
-      // Standard browser envs support document.cookie
-        (function standardBrowserEnv() {
-          return {
-            write: function write(name, value, expires, path, domain, secure) {
-              var cookie = [];
-              cookie.push(name + '=' + encodeURIComponent(value));
-
-              if (utils.isNumber(expires)) {
-                cookie.push('expires=' + new Date(expires).toGMTString());
-              }
-
-              if (utils.isString(path)) {
-                cookie.push('path=' + path);
-              }
-
-              if (utils.isString(domain)) {
-                cookie.push('domain=' + domain);
-              }
-
-              if (secure === true) {
-                cookie.push('secure');
-              }
-
-              document.cookie = cookie.join('; ');
-            },
-
-            read: function read(name) {
-              var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
-              return (match ? decodeURIComponent(match[3]) : null);
-            },
-
-            remove: function remove(name) {
-              this.write(name, '', Date.now() - 86400000);
-            }
-          };
-        })() :
-
-      // Non standard browser env (web workers, react-native) lack needed support.
-        (function nonStandardBrowserEnv() {
-          return {
-            write: function write() {},
-            read: function read() { return null; },
-            remove: function remove() {}
-          };
-        })()
-    );
-
     var xhr = function xhrAdapter(config) {
       return new Promise(function dispatchXhrRequest(resolve, reject) {
         var requestData = config.data;
@@ -5953,7 +6256,7 @@ var app = (function (moment) {
         // HTTP basic authentication
         if (config.auth) {
           var username = config.auth.username || '';
-          var password = config.auth.password || '';
+          var password = config.auth.password ? unescape(encodeURIComponent(config.auth.password)) : '';
           requestHeaders.Authorization = 'Basic ' + btoa(username + ':' + password);
         }
 
@@ -6034,11 +6337,9 @@ var app = (function (moment) {
         // This is only done if running in a standard browser environment.
         // Specifically not if we're in a web worker, or react-native.
         if (utils.isStandardBrowserEnv()) {
-          var cookies$1 = cookies;
-
           // Add xsrf header
           var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
-            cookies$1.read(config.xsrfCookieName) :
+            cookies.read(config.xsrfCookieName) :
             undefined;
 
           if (xsrfValue) {
@@ -6101,7 +6402,7 @@ var app = (function (moment) {
           });
         }
 
-        if (requestData === undefined) {
+        if (!requestData) {
           requestData = null;
         }
 
@@ -6181,6 +6482,7 @@ var app = (function (moment) {
       xsrfHeaderName: 'X-XSRF-TOKEN',
 
       maxContentLength: -1,
+      maxBodyLength: -1,
 
       validateStatus: function validateStatus(status) {
         return status >= 200 && status < 300;
@@ -6289,59 +6591,73 @@ var app = (function (moment) {
       config2 = config2 || {};
       var config = {};
 
-      var valueFromConfig2Keys = ['url', 'method', 'params', 'data'];
-      var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy'];
+      var valueFromConfig2Keys = ['url', 'method', 'data'];
+      var mergeDeepPropertiesKeys = ['headers', 'auth', 'proxy', 'params'];
       var defaultToConfig2Keys = [
-        'baseURL', 'url', 'transformRequest', 'transformResponse', 'paramsSerializer',
-        'timeout', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
-        'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress',
-        'maxContentLength', 'validateStatus', 'maxRedirects', 'httpAgent',
-        'httpsAgent', 'cancelToken', 'socketPath'
+        'baseURL', 'transformRequest', 'transformResponse', 'paramsSerializer',
+        'timeout', 'timeoutMessage', 'withCredentials', 'adapter', 'responseType', 'xsrfCookieName',
+        'xsrfHeaderName', 'onUploadProgress', 'onDownloadProgress', 'decompress',
+        'maxContentLength', 'maxBodyLength', 'maxRedirects', 'transport', 'httpAgent',
+        'httpsAgent', 'cancelToken', 'socketPath', 'responseEncoding'
       ];
+      var directMergeKeys = ['validateStatus'];
+
+      function getMergedValue(target, source) {
+        if (utils.isPlainObject(target) && utils.isPlainObject(source)) {
+          return utils.merge(target, source);
+        } else if (utils.isPlainObject(source)) {
+          return utils.merge({}, source);
+        } else if (utils.isArray(source)) {
+          return source.slice();
+        }
+        return source;
+      }
+
+      function mergeDeepProperties(prop) {
+        if (!utils.isUndefined(config2[prop])) {
+          config[prop] = getMergedValue(config1[prop], config2[prop]);
+        } else if (!utils.isUndefined(config1[prop])) {
+          config[prop] = getMergedValue(undefined, config1[prop]);
+        }
+      }
 
       utils.forEach(valueFromConfig2Keys, function valueFromConfig2(prop) {
-        if (typeof config2[prop] !== 'undefined') {
-          config[prop] = config2[prop];
+        if (!utils.isUndefined(config2[prop])) {
+          config[prop] = getMergedValue(undefined, config2[prop]);
         }
       });
 
-      utils.forEach(mergeDeepPropertiesKeys, function mergeDeepProperties(prop) {
-        if (utils.isObject(config2[prop])) {
-          config[prop] = utils.deepMerge(config1[prop], config2[prop]);
-        } else if (typeof config2[prop] !== 'undefined') {
-          config[prop] = config2[prop];
-        } else if (utils.isObject(config1[prop])) {
-          config[prop] = utils.deepMerge(config1[prop]);
-        } else if (typeof config1[prop] !== 'undefined') {
-          config[prop] = config1[prop];
-        }
-      });
+      utils.forEach(mergeDeepPropertiesKeys, mergeDeepProperties);
 
       utils.forEach(defaultToConfig2Keys, function defaultToConfig2(prop) {
-        if (typeof config2[prop] !== 'undefined') {
-          config[prop] = config2[prop];
-        } else if (typeof config1[prop] !== 'undefined') {
-          config[prop] = config1[prop];
+        if (!utils.isUndefined(config2[prop])) {
+          config[prop] = getMergedValue(undefined, config2[prop]);
+        } else if (!utils.isUndefined(config1[prop])) {
+          config[prop] = getMergedValue(undefined, config1[prop]);
+        }
+      });
+
+      utils.forEach(directMergeKeys, function merge(prop) {
+        if (prop in config2) {
+          config[prop] = getMergedValue(config1[prop], config2[prop]);
+        } else if (prop in config1) {
+          config[prop] = getMergedValue(undefined, config1[prop]);
         }
       });
 
       var axiosKeys = valueFromConfig2Keys
         .concat(mergeDeepPropertiesKeys)
-        .concat(defaultToConfig2Keys);
+        .concat(defaultToConfig2Keys)
+        .concat(directMergeKeys);
 
       var otherKeys = Object
-        .keys(config2)
+        .keys(config1)
+        .concat(Object.keys(config2))
         .filter(function filterAxiosKeys(key) {
           return axiosKeys.indexOf(key) === -1;
         });
 
-      utils.forEach(otherKeys, function otherKeysDefaultToConfig2(prop) {
-        if (typeof config2[prop] !== 'undefined') {
-          config[prop] = config2[prop];
-        } else if (typeof config1[prop] !== 'undefined') {
-          config[prop] = config1[prop];
-        }
-      });
+      utils.forEach(otherKeys, mergeDeepProperties);
 
       return config;
     };
@@ -6413,9 +6729,10 @@ var app = (function (moment) {
     utils.forEach(['delete', 'get', 'head', 'options'], function forEachMethodNoData(method) {
       /*eslint func-names:0*/
       Axios.prototype[method] = function(url, config) {
-        return this.request(utils.merge(config || {}, {
+        return this.request(mergeConfig(config || {}, {
           method: method,
-          url: url
+          url: url,
+          data: (config || {}).data
         }));
       };
     });
@@ -6423,7 +6740,7 @@ var app = (function (moment) {
     utils.forEach(['post', 'put', 'patch'], function forEachMethodWithData(method) {
       /*eslint func-names:0*/
       Axios.prototype[method] = function(url, data, config) {
-        return this.request(utils.merge(config || {}, {
+        return this.request(mergeConfig(config || {}, {
           method: method,
           url: url,
           data: data
@@ -6532,6 +6849,16 @@ var app = (function (moment) {
     };
 
     /**
+     * Determines whether the payload is an error thrown by Axios
+     *
+     * @param {*} payload The value to test
+     * @returns {boolean} True if the payload is an error thrown by Axios, otherwise false
+     */
+    var isAxiosError = function isAxiosError(payload) {
+      return (typeof payload === 'object') && (payload.isAxiosError === true);
+    };
+
+    /**
      * Create an instance of Axios
      *
      * @param {Object} defaultConfig The default config for the instance
@@ -6571,6 +6898,9 @@ var app = (function (moment) {
       return Promise.all(promises);
     };
     axios.spread = spread;
+
+    // Expose isAxiosError
+    axios.isAxiosError = isAxiosError;
 
     var axios_1 = axios;
 
@@ -11519,56 +11849,56 @@ var app = (function (moment) {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[60] = list[i];
+    	child_ctx[59] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[60] = list[i];
+    	child_ctx[59] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[65] = list[i];
+    	child_ctx[64] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[65] = list[i];
+    	child_ctx[64] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_4(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[60] = list[i];
+    	child_ctx[59] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_5(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[60] = list[i];
+    	child_ctx[59] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_6(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[60] = list[i];
+    	child_ctx[59] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_7(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[65] = list[i];
+    	child_ctx[64] = list[i];
     	return child_ctx;
     }
 
-    // (423:14) {#each medicos as item}
+    // (404:14) {#each medicos as item}
     function create_each_block_7(ctx) {
     	let option;
-    	let t_value = /*item*/ ctx[65].name + "";
+    	let t_value = /*item*/ ctx[64].name + "";
     	let t;
     	let option_value_value;
 
@@ -11576,18 +11906,18 @@ var app = (function (moment) {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*item*/ ctx[65].medicoID + "=" + /*item*/ ctx[65].userName;
+    			option.__value = option_value_value = /*item*/ ctx[64].medicoID + "=" + /*item*/ ctx[64].userName;
     			option.value = option.__value;
-    			add_location(option, file$4, 423, 16, 11147);
+    			add_location(option, file$4, 404, 16, 10758);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*medicos*/ 2 && t_value !== (t_value = /*item*/ ctx[65].name + "")) set_data_dev(t, t_value);
+    			if (dirty[0] & /*medicos*/ 2 && t_value !== (t_value = /*item*/ ctx[64].name + "")) set_data_dev(t, t_value);
 
-    			if (dirty[0] & /*medicos*/ 2 && option_value_value !== (option_value_value = /*item*/ ctx[65].medicoID + "=" + /*item*/ ctx[65].userName)) {
+    			if (dirty[0] & /*medicos*/ 2 && option_value_value !== (option_value_value = /*item*/ ctx[64].medicoID + "=" + /*item*/ ctx[64].userName)) {
     				prop_dev(option, "__value", option_value_value);
     			}
 
@@ -11602,14 +11932,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_7.name,
     		type: "each",
-    		source: "(423:14) {#each medicos as item}",
+    		source: "(404:14) {#each medicos as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (441:12) {#if citasEnTurno.length > 0}
+    // (422:12) {#if citasEnTurno.length > 0}
     function create_if_block_5(ctx) {
     	let table;
     	let thead;
@@ -11653,16 +11983,16 @@ var app = (function (moment) {
     				each_blocks[i].c();
     			}
 
-    			add_location(th0, file$4, 444, 20, 11926);
-    			add_location(th1, file$4, 445, 20, 11963);
-    			add_location(th2, file$4, 446, 20, 12001);
-    			add_location(th3, file$4, 447, 20, 12043);
-    			add_location(tr, file$4, 443, 18, 11900);
-    			add_location(thead, file$4, 442, 16, 11873);
-    			attr_dev(tbody, "class", "svelte-1gvzc7h");
-    			add_location(tbody, file$4, 450, 16, 12118);
+    			add_location(th0, file$4, 425, 20, 11537);
+    			add_location(th1, file$4, 426, 20, 11574);
+    			add_location(th2, file$4, 427, 20, 11612);
+    			add_location(th3, file$4, 428, 20, 11654);
+    			add_location(tr, file$4, 424, 18, 11511);
+    			add_location(thead, file$4, 423, 16, 11484);
+    			attr_dev(tbody, "class", "svelte-7wo5wq");
+    			add_location(tbody, file$4, 431, 16, 11729);
     			attr_dev(table, "class", "table align-td-middle table-card");
-    			add_location(table, file$4, 441, 14, 11807);
+    			add_location(table, file$4, 422, 14, 11418);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, table, anchor);
@@ -11717,24 +12047,24 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_5.name,
     		type: "if",
-    		source: "(441:12) {#if citasEnTurno.length > 0}",
+    		source: "(422:12) {#if citasEnTurno.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (452:18) {#each citasEnTurno as i}
+    // (433:18) {#each citasEnTurno as i}
     function create_each_block_6(ctx) {
     	let tr;
     	let td0;
-    	let t0_value = /*i*/ ctx[60].nombrePaciente + "";
+    	let t0_value = /*i*/ ctx[59].nombrePaciente + "";
     	let t0;
     	let t1;
     	let td1;
     	let t2;
     	let td2;
-    	let t3_value = /*i*/ ctx[60].observaciones + "";
+    	let t3_value = /*i*/ ctx[59].observaciones + "";
     	let t3;
     	let t4;
     	let td3;
@@ -11746,7 +12076,7 @@ var app = (function (moment) {
     	let dispose;
 
     	function click_handler(...args) {
-    		return /*click_handler*/ ctx[38](/*i*/ ctx[60], ...args);
+    		return /*click_handler*/ ctx[37](/*i*/ ctx[59], ...args);
     	}
 
     	const block = {
@@ -11765,20 +12095,20 @@ var app = (function (moment) {
     			i = element("i");
     			t5 = text("\r\n                          Ver paciente");
     			t6 = space();
-    			add_location(td0, file$4, 453, 22, 12273);
-    			add_location(td1, file$4, 456, 22, 12373);
-    			add_location(td2, file$4, 457, 22, 12403);
+    			add_location(td0, file$4, 434, 22, 11884);
+    			add_location(td1, file$4, 437, 22, 11984);
+    			add_location(td2, file$4, 438, 22, 12014);
     			attr_dev(i, "class", "mdi mdi-account-search-outline");
-    			add_location(i, file$4, 464, 26, 12779);
+    			add_location(i, file$4, 445, 26, 12390);
     			attr_dev(button, "class", "btn btn-success btn-sm mb-1");
     			attr_dev(button, "data-toggle", "modal");
     			attr_dev(button, "data-target", "#modalPaciente");
-    			add_location(button, file$4, 459, 24, 12510);
+    			add_location(button, file$4, 440, 24, 12121);
     			set_style(td3, "text-align", "right");
-    			add_location(td3, file$4, 458, 22, 12453);
-    			attr_dev(tr, "class", "svelte-1gvzc7h");
-    			toggle_class(tr, "active-turno", /*pacienteEnviado*/ ctx[6] == /*i*/ ctx[60].pacienteID);
-    			add_location(tr, file$4, 452, 20, 12192);
+    			add_location(td3, file$4, 439, 22, 12064);
+    			attr_dev(tr, "class", "svelte-7wo5wq");
+    			toggle_class(tr, "active-turno", /*pacienteEnviado*/ ctx[6] == /*i*/ ctx[59].pacienteID);
+    			add_location(tr, file$4, 433, 20, 11803);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -11803,11 +12133,11 @@ var app = (function (moment) {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty[0] & /*citasEnTurno*/ 8 && t0_value !== (t0_value = /*i*/ ctx[60].nombrePaciente + "")) set_data_dev(t0, t0_value);
-    			if (dirty[0] & /*citasEnTurno*/ 8 && t3_value !== (t3_value = /*i*/ ctx[60].observaciones + "")) set_data_dev(t3, t3_value);
+    			if (dirty[0] & /*citasEnTurno*/ 8 && t0_value !== (t0_value = /*i*/ ctx[59].nombrePaciente + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*citasEnTurno*/ 8 && t3_value !== (t3_value = /*i*/ ctx[59].observaciones + "")) set_data_dev(t3, t3_value);
 
     			if (dirty[0] & /*pacienteEnviado, citasEnTurno*/ 72) {
-    				toggle_class(tr, "active-turno", /*pacienteEnviado*/ ctx[6] == /*i*/ ctx[60].pacienteID);
+    				toggle_class(tr, "active-turno", /*pacienteEnviado*/ ctx[6] == /*i*/ ctx[59].pacienteID);
     			}
     		},
     		d: function destroy(detaching) {
@@ -11821,14 +12151,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_6.name,
     		type: "each",
-    		source: "(452:18) {#each citasEnTurno as i}",
+    		source: "(433:18) {#each citasEnTurno as i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (481:12) {#if citasPendientes.length > 0}
+    // (462:12) {#if citasPendientes.length > 0}
     function create_if_block_4(ctx) {
     	let table;
     	let thead;
@@ -11872,15 +12202,15 @@ var app = (function (moment) {
     				each_blocks[i].c();
     			}
 
-    			add_location(th0, file$4, 484, 20, 13502);
-    			add_location(th1, file$4, 485, 20, 13539);
-    			add_location(th2, file$4, 486, 20, 13577);
-    			add_location(th3, file$4, 487, 20, 13619);
-    			add_location(tr, file$4, 483, 18, 13476);
-    			add_location(thead, file$4, 482, 16, 13449);
-    			add_location(tbody, file$4, 490, 16, 13694);
+    			add_location(th0, file$4, 465, 20, 13113);
+    			add_location(th1, file$4, 466, 20, 13150);
+    			add_location(th2, file$4, 467, 20, 13188);
+    			add_location(th3, file$4, 468, 20, 13230);
+    			add_location(tr, file$4, 464, 18, 13087);
+    			add_location(thead, file$4, 463, 16, 13060);
+    			add_location(tbody, file$4, 471, 16, 13305);
     			attr_dev(table, "class", "table align-td-middle table-card");
-    			add_location(table, file$4, 481, 14, 13383);
+    			add_location(table, file$4, 462, 14, 12994);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, table, anchor);
@@ -11935,24 +12265,24 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_4.name,
     		type: "if",
-    		source: "(481:12) {#if citasPendientes.length > 0}",
+    		source: "(462:12) {#if citasPendientes.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (492:18) {#each citasPendientes as i}
+    // (473:18) {#each citasPendientes as i}
     function create_each_block_5(ctx) {
     	let tr;
     	let td0;
-    	let t0_value = /*i*/ ctx[60].nombrePaciente + "";
+    	let t0_value = /*i*/ ctx[59].nombrePaciente + "";
     	let t0;
     	let t1;
     	let td1;
     	let t2;
     	let td2;
-    	let t3_value = /*i*/ ctx[60].observaciones + "";
+    	let t3_value = /*i*/ ctx[59].observaciones + "";
     	let t3;
     	let t4;
     	let td3;
@@ -11973,15 +12303,15 @@ var app = (function (moment) {
     	let dispose;
 
     	function click_handler_1(...args) {
-    		return /*click_handler_1*/ ctx[39](/*i*/ ctx[60], ...args);
+    		return /*click_handler_1*/ ctx[38](/*i*/ ctx[59], ...args);
     	}
 
     	function click_handler_2(...args) {
-    		return /*click_handler_2*/ ctx[40](/*i*/ ctx[60], ...args);
+    		return /*click_handler_2*/ ctx[39](/*i*/ ctx[59], ...args);
     	}
 
     	function click_handler_3(...args) {
-    		return /*click_handler_3*/ ctx[41](/*i*/ ctx[60], ...args);
+    		return /*click_handler_3*/ ctx[40](/*i*/ ctx[59], ...args);
     	}
 
     	const block = {
@@ -12009,36 +12339,36 @@ var app = (function (moment) {
     			button2 = element("button");
     			i2 = element("i");
     			t10 = space();
-    			attr_dev(td0, "class", "svelte-1gvzc7h");
-    			add_location(td0, file$4, 493, 22, 13820);
-    			attr_dev(td1, "class", "svelte-1gvzc7h");
-    			add_location(td1, file$4, 494, 22, 13871);
-    			attr_dev(td2, "class", "svelte-1gvzc7h");
-    			add_location(td2, file$4, 495, 22, 13901);
-    			attr_dev(td3, "class", "svelte-1gvzc7h");
-    			add_location(td3, file$4, 496, 22, 13951);
+    			attr_dev(td0, "class", "svelte-7wo5wq");
+    			add_location(td0, file$4, 474, 22, 13431);
+    			attr_dev(td1, "class", "svelte-7wo5wq");
+    			add_location(td1, file$4, 475, 22, 13482);
+    			attr_dev(td2, "class", "svelte-7wo5wq");
+    			add_location(td2, file$4, 476, 22, 13512);
+    			attr_dev(td3, "class", "svelte-7wo5wq");
+    			add_location(td3, file$4, 477, 22, 13562);
     			attr_dev(i0, "class", "mdi mdi-account-search-outline");
-    			add_location(i0, file$4, 503, 26, 14307);
+    			add_location(i0, file$4, 484, 26, 13918);
     			attr_dev(button0, "class", "btn btn-success btn-sm mb-1");
     			attr_dev(button0, "data-toggle", "modal");
     			attr_dev(button0, "data-target", "#modalPaciente");
-    			add_location(button0, file$4, 498, 24, 14038);
+    			add_location(button0, file$4, 479, 24, 13649);
     			attr_dev(i1, "class", "mdi mdi-calendar-remove");
-    			add_location(i1, file$4, 511, 26, 14718);
+    			add_location(i1, file$4, 492, 26, 14329);
     			attr_dev(button1, "class", "btn btn-success btn-sm mb-1");
     			attr_dev(button1, "data-toggle", "modal");
     			attr_dev(button1, "data-target", "#modalCrearCita");
-    			add_location(button1, file$4, 506, 24, 14452);
+    			add_location(button1, file$4, 487, 24, 14063);
     			attr_dev(i2, "class", "mdi mdi-ticket-confirmation");
-    			add_location(i2, file$4, 518, 26, 15068);
+    			add_location(i2, file$4, 499, 26, 14679);
     			attr_dev(button2, "class", "btn btn-primary btn-sm mb-1");
     			attr_dev(button2, "title", "Poner en cola");
-    			add_location(button2, file$4, 514, 24, 14855);
+    			add_location(button2, file$4, 495, 24, 14466);
     			set_style(td4, "text-align", "right");
-    			attr_dev(td4, "class", "svelte-1gvzc7h");
-    			add_location(td4, file$4, 497, 22, 13981);
-    			attr_dev(tr, "class", "cursor-table svelte-1gvzc7h");
-    			add_location(tr, file$4, 492, 20, 13771);
+    			attr_dev(td4, "class", "svelte-7wo5wq");
+    			add_location(td4, file$4, 478, 22, 13592);
+    			attr_dev(tr, "class", "cursor-table svelte-7wo5wq");
+    			add_location(tr, file$4, 473, 20, 13382);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -12077,8 +12407,8 @@ var app = (function (moment) {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty[0] & /*citasPendientes*/ 4 && t0_value !== (t0_value = /*i*/ ctx[60].nombrePaciente + "")) set_data_dev(t0, t0_value);
-    			if (dirty[0] & /*citasPendientes*/ 4 && t3_value !== (t3_value = /*i*/ ctx[60].observaciones + "")) set_data_dev(t3, t3_value);
+    			if (dirty[0] & /*citasPendientes*/ 4 && t0_value !== (t0_value = /*i*/ ctx[59].nombrePaciente + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*citasPendientes*/ 4 && t3_value !== (t3_value = /*i*/ ctx[59].observaciones + "")) set_data_dev(t3, t3_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(tr);
@@ -12091,14 +12421,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_5.name,
     		type: "each",
-    		source: "(492:18) {#each citasPendientes as i}",
+    		source: "(473:18) {#each citasPendientes as i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (534:12) {#if citasRealizadas.length > 0}
+    // (515:12) {#if citasRealizadas.length > 0}
     function create_if_block_3(ctx) {
     	let table;
     	let thead;
@@ -12142,15 +12472,15 @@ var app = (function (moment) {
     				each_blocks[i].c();
     			}
 
-    			add_location(th0, file$4, 537, 20, 15750);
-    			add_location(th1, file$4, 538, 20, 15787);
-    			add_location(th2, file$4, 539, 20, 15825);
-    			add_location(th3, file$4, 540, 20, 15867);
-    			add_location(tr, file$4, 536, 18, 15724);
-    			add_location(thead, file$4, 535, 16, 15697);
-    			add_location(tbody, file$4, 543, 16, 15942);
+    			add_location(th0, file$4, 518, 20, 15361);
+    			add_location(th1, file$4, 519, 20, 15398);
+    			add_location(th2, file$4, 520, 20, 15436);
+    			add_location(th3, file$4, 521, 20, 15478);
+    			add_location(tr, file$4, 517, 18, 15335);
+    			add_location(thead, file$4, 516, 16, 15308);
+    			add_location(tbody, file$4, 524, 16, 15553);
     			attr_dev(table, "class", "table align-td-middle table-card");
-    			add_location(table, file$4, 534, 14, 15631);
+    			add_location(table, file$4, 515, 14, 15242);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, table, anchor);
@@ -12205,24 +12535,24 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_3.name,
     		type: "if",
-    		source: "(534:12) {#if citasRealizadas.length > 0}",
+    		source: "(515:12) {#if citasRealizadas.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (545:18) {#each citasRealizadas as i}
+    // (526:18) {#each citasRealizadas as i}
     function create_each_block_4(ctx) {
     	let tr;
     	let td0;
-    	let t0_value = /*i*/ ctx[60].nombrePaciente + "";
+    	let t0_value = /*i*/ ctx[59].nombrePaciente + "";
     	let t0;
     	let t1;
     	let td1;
     	let t2;
     	let td2;
-    	let t3_value = /*i*/ ctx[60].observaciones + "";
+    	let t3_value = /*i*/ ctx[59].observaciones + "";
     	let t3;
     	let t4;
     	let td3;
@@ -12240,11 +12570,11 @@ var app = (function (moment) {
     	let dispose;
 
     	function click_handler_4(...args) {
-    		return /*click_handler_4*/ ctx[42](/*i*/ ctx[60], ...args);
+    		return /*click_handler_4*/ ctx[41](/*i*/ ctx[59], ...args);
     	}
 
     	function click_handler_5(...args) {
-    		return /*click_handler_5*/ ctx[43](/*i*/ ctx[60], ...args);
+    		return /*click_handler_5*/ ctx[42](/*i*/ ctx[59], ...args);
     	}
 
     	const block = {
@@ -12269,31 +12599,31 @@ var app = (function (moment) {
     			i1 = element("i");
     			t8 = text("\r\n                          Crear cita");
     			t9 = space();
-    			attr_dev(td0, "class", "svelte-1gvzc7h");
-    			add_location(td0, file$4, 546, 22, 16068);
-    			attr_dev(td1, "class", "svelte-1gvzc7h");
-    			add_location(td1, file$4, 547, 22, 16119);
-    			attr_dev(td2, "class", "svelte-1gvzc7h");
-    			add_location(td2, file$4, 548, 22, 16149);
-    			attr_dev(td3, "class", "svelte-1gvzc7h");
-    			add_location(td3, file$4, 549, 22, 16199);
+    			attr_dev(td0, "class", "svelte-7wo5wq");
+    			add_location(td0, file$4, 527, 22, 15679);
+    			attr_dev(td1, "class", "svelte-7wo5wq");
+    			add_location(td1, file$4, 528, 22, 15730);
+    			attr_dev(td2, "class", "svelte-7wo5wq");
+    			add_location(td2, file$4, 529, 22, 15760);
+    			attr_dev(td3, "class", "svelte-7wo5wq");
+    			add_location(td3, file$4, 530, 22, 15810);
     			attr_dev(i0, "class", "mdi mdi-account-search-outline");
-    			add_location(i0, file$4, 556, 26, 16555);
+    			add_location(i0, file$4, 537, 26, 16166);
     			attr_dev(button0, "class", "btn btn-success btn-sm mb-1");
     			attr_dev(button0, "data-toggle", "modal");
     			attr_dev(button0, "data-target", "#modalPaciente");
-    			add_location(button0, file$4, 551, 24, 16286);
+    			add_location(button0, file$4, 532, 24, 15897);
     			attr_dev(i1, "class", "mdi mdi-calendar-remove");
-    			add_location(i1, file$4, 564, 26, 16966);
+    			add_location(i1, file$4, 545, 26, 16577);
     			attr_dev(button1, "class", "btn btn-success btn-sm mb-1");
     			attr_dev(button1, "data-toggle", "modal");
     			attr_dev(button1, "data-target", "#modalNuevaCita");
-    			add_location(button1, file$4, 559, 24, 16700);
+    			add_location(button1, file$4, 540, 24, 16311);
     			set_style(td4, "text-align", "right");
-    			attr_dev(td4, "class", "svelte-1gvzc7h");
-    			add_location(td4, file$4, 550, 22, 16229);
-    			attr_dev(tr, "class", "cursor-table svelte-1gvzc7h");
-    			add_location(tr, file$4, 545, 20, 16019);
+    			attr_dev(td4, "class", "svelte-7wo5wq");
+    			add_location(td4, file$4, 531, 22, 15840);
+    			attr_dev(tr, "class", "cursor-table svelte-7wo5wq");
+    			add_location(tr, file$4, 526, 20, 15630);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -12328,8 +12658,8 @@ var app = (function (moment) {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty[0] & /*citasRealizadas*/ 16 && t0_value !== (t0_value = /*i*/ ctx[60].nombrePaciente + "")) set_data_dev(t0, t0_value);
-    			if (dirty[0] & /*citasRealizadas*/ 16 && t3_value !== (t3_value = /*i*/ ctx[60].observaciones + "")) set_data_dev(t3, t3_value);
+    			if (dirty[0] & /*citasRealizadas*/ 16 && t0_value !== (t0_value = /*i*/ ctx[59].nombrePaciente + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*citasRealizadas*/ 16 && t3_value !== (t3_value = /*i*/ ctx[59].observaciones + "")) set_data_dev(t3, t3_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(tr);
@@ -12342,17 +12672,17 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_4.name,
     		type: "each",
-    		source: "(545:18) {#each citasRealizadas as i}",
+    		source: "(526:18) {#each citasRealizadas as i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (674:16) {#each aseguradoras as item}
+    // (655:16) {#each aseguradoras as item}
     function create_each_block_3(ctx) {
     	let option;
-    	let t_value = /*item*/ ctx[65].nombre + "";
+    	let t_value = /*item*/ ctx[64].nombre + "";
     	let t;
     	let option_value_value;
 
@@ -12360,9 +12690,9 @@ var app = (function (moment) {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*item*/ ctx[65].id;
+    			option.__value = option_value_value = /*item*/ ctx[64].id;
     			option.value = option.__value;
-    			add_location(option, file$4, 674, 18, 20484);
+    			add_location(option, file$4, 655, 18, 20095);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -12378,17 +12708,17 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_3.name,
     		type: "each",
-    		source: "(674:16) {#each aseguradoras as item}",
+    		source: "(655:16) {#each aseguradoras as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (709:16) {#each provincias as item}
+    // (690:16) {#each provincias as item}
     function create_each_block_2(ctx) {
     	let option;
-    	let t_value = /*item*/ ctx[65].nombre + "";
+    	let t_value = /*item*/ ctx[64].nombre + "";
     	let t;
     	let option_value_value;
 
@@ -12396,9 +12726,9 @@ var app = (function (moment) {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*item*/ ctx[65].id;
+    			option.__value = option_value_value = /*item*/ ctx[64].id;
     			option.value = option.__value;
-    			add_location(option, file$4, 709, 18, 21925);
+    			add_location(option, file$4, 690, 18, 21536);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -12414,14 +12744,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(709:16) {#each provincias as item}",
+    		source: "(690:16) {#each provincias as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (746:12) {#if cita.estadoID == 2}
+    // (727:12) {#if cita.estadoID == 2}
     function create_if_block_2(ctx) {
     	let button;
     	let t;
@@ -12435,11 +12765,11 @@ var app = (function (moment) {
     			t = text("Enviar paciente\r\n              ");
     			i = element("i");
     			attr_dev(i, "class", "mdi mdi-send");
-    			add_location(i, file$4, 752, 14, 23347);
+    			add_location(i, file$4, 733, 14, 22958);
     			attr_dev(button, "type", "button");
     			attr_dev(button, "class", "btn btn-success");
     			attr_dev(button, "title", "Guardar y enviar");
-    			add_location(button, file$4, 746, 12, 23143);
+    			add_location(button, file$4, 727, 12, 22754);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -12463,14 +12793,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(746:12) {#if cita.estadoID == 2}",
+    		source: "(727:12) {#if cita.estadoID == 2}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (815:10) {#if horasDisponibles.length <= 0}
+    // (797:10) {#if horasDisponibles.length <= 0}
     function create_if_block_1$1(ctx) {
     	let div;
 
@@ -12480,7 +12810,7 @@ var app = (function (moment) {
     			div.textContent = "No hay disponibilidad en este horario";
     			attr_dev(div, "class", "alert alert-success");
     			attr_dev(div, "role", "alert");
-    			add_location(div, file$4, 815, 12, 25337);
+    			add_location(div, file$4, 797, 12, 25003);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -12494,19 +12824,19 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_1$1.name,
     		type: "if",
-    		source: "(815:10) {#if horasDisponibles.length <= 0}",
+    		source: "(797:10) {#if horasDisponibles.length <= 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (820:10) {#each horasDisponibles as i}
+    // (802:10) {#each horasDisponibles as i}
     function create_each_block_1(ctx) {
     	let div3;
     	let div1;
     	let div0;
-    	let t0_value = /*i*/ ctx[60].hora + "";
+    	let t0_value = /*i*/ ctx[59].hora + "";
     	let t0;
     	let t1;
     	let div2;
@@ -12527,15 +12857,15 @@ var app = (function (moment) {
     			button.textContent = "Seleccionar";
     			t3 = space();
     			attr_dev(div0, "class", "name");
-    			add_location(div0, file$4, 823, 16, 25661);
+    			add_location(div0, file$4, 805, 16, 25327);
     			attr_dev(div1, "class", "");
-    			add_location(div1, file$4, 822, 14, 25629);
+    			add_location(div1, file$4, 804, 14, 25295);
     			attr_dev(button, "class", "btn btn-outline-success btn-sm");
-    			add_location(button, file$4, 826, 16, 25770);
+    			add_location(button, file$4, 808, 16, 25436);
     			attr_dev(div2, "class", "ml-auto");
-    			add_location(div2, file$4, 825, 14, 25731);
+    			add_location(div2, file$4, 807, 14, 25397);
     			attr_dev(div3, "class", "list-group-item d-flex align-items-center svelte-1nu1nbu");
-    			add_location(div3, file$4, 820, 12, 25528);
+    			add_location(div3, file$4, 802, 12, 25194);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -12552,7 +12882,7 @@ var app = (function (moment) {
     					button,
     					"click",
     					function () {
-    						if (is_function(/*cambiarFechaCita*/ ctx[17](/*i*/ ctx[60].time))) /*cambiarFechaCita*/ ctx[17](/*i*/ ctx[60].time).apply(this, arguments);
+    						if (is_function(/*cambiarFechaCita*/ ctx[17](/*i*/ ctx[59].time))) /*cambiarFechaCita*/ ctx[17](/*i*/ ctx[59].time).apply(this, arguments);
     					},
     					false,
     					false,
@@ -12564,7 +12894,7 @@ var app = (function (moment) {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty[0] & /*horasDisponibles*/ 32 && t0_value !== (t0_value = /*i*/ ctx[60].hora + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*horasDisponibles*/ 32 && t0_value !== (t0_value = /*i*/ ctx[59].hora + "")) set_data_dev(t0, t0_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div3);
@@ -12577,14 +12907,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(820:10) {#each horasDisponibles as i}",
+    		source: "(802:10) {#each horasDisponibles as i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (899:10) {#if horasDisponibles.length <= 0}
+    // (882:10) {#if horasDisponibles.length <= 0}
     function create_if_block$2(ctx) {
     	let div;
 
@@ -12594,7 +12924,7 @@ var app = (function (moment) {
     			div.textContent = "No hay disponibilidad en este horario";
     			attr_dev(div, "class", "alert alert-success");
     			attr_dev(div, "role", "alert");
-    			add_location(div, file$4, 899, 12, 28113);
+    			add_location(div, file$4, 882, 12, 27834);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -12608,19 +12938,19 @@ var app = (function (moment) {
     		block,
     		id: create_if_block$2.name,
     		type: "if",
-    		source: "(899:10) {#if horasDisponibles.length <= 0}",
+    		source: "(882:10) {#if horasDisponibles.length <= 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (904:10) {#each horasDisponibles as i}
+    // (887:10) {#each horasDisponibles as i}
     function create_each_block(ctx) {
     	let div3;
     	let div1;
     	let div0;
-    	let t0_value = /*i*/ ctx[60].hora + "";
+    	let t0_value = /*i*/ ctx[59].hora + "";
     	let t0;
     	let t1;
     	let div2;
@@ -12630,7 +12960,7 @@ var app = (function (moment) {
     	let dispose;
 
     	function click_handler_6(...args) {
-    		return /*click_handler_6*/ ctx[59](/*i*/ ctx[60], ...args);
+    		return /*click_handler_6*/ ctx[58](/*i*/ ctx[59], ...args);
     	}
 
     	const block = {
@@ -12645,15 +12975,15 @@ var app = (function (moment) {
     			button.textContent = "Seleccionar";
     			t3 = space();
     			attr_dev(div0, "class", "name");
-    			add_location(div0, file$4, 907, 16, 28437);
+    			add_location(div0, file$4, 890, 16, 28158);
     			attr_dev(div1, "class", "");
-    			add_location(div1, file$4, 906, 14, 28405);
+    			add_location(div1, file$4, 889, 14, 28126);
     			attr_dev(button, "class", "btn btn-outline-success btn-sm");
-    			add_location(button, file$4, 910, 16, 28546);
+    			add_location(button, file$4, 893, 16, 28267);
     			attr_dev(div2, "class", "ml-auto");
-    			add_location(div2, file$4, 909, 14, 28507);
+    			add_location(div2, file$4, 892, 14, 28228);
     			attr_dev(div3, "class", "list-group-item d-flex align-items-center svelte-1nu1nbu");
-    			add_location(div3, file$4, 904, 12, 28304);
+    			add_location(div3, file$4, 887, 12, 28025);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -12672,7 +13002,7 @@ var app = (function (moment) {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty[0] & /*horasDisponibles*/ 32 && t0_value !== (t0_value = /*i*/ ctx[60].hora + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*horasDisponibles*/ 32 && t0_value !== (t0_value = /*i*/ ctx[59].hora + "")) set_data_dev(t0, t0_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div3);
@@ -12685,7 +13015,7 @@ var app = (function (moment) {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(904:10) {#each horasDisponibles as i}",
+    		source: "(887:10) {#each horasDisponibles as i}",
     		ctx
     	});
 
@@ -13251,250 +13581,250 @@ var app = (function (moment) {
     			attr_dev(input0, "class", "form-control form-control-appended");
     			attr_dev(input0, "data-bind", "textInput: busqueda");
     			attr_dev(input0, "placeholder", "Buscar");
-    			add_location(input0, file$4, 406, 14, 10443);
+    			add_location(input0, file$4, 387, 14, 10054);
     			attr_dev(span0, "class", "mdi mdi-magnify");
-    			add_location(span0, file$4, 414, 18, 10785);
+    			add_location(span0, file$4, 395, 18, 10396);
     			attr_dev(div0, "class", "input-group-text");
-    			add_location(div0, file$4, 413, 16, 10735);
+    			add_location(div0, file$4, 394, 16, 10346);
     			attr_dev(div1, "class", "input-group-append");
-    			add_location(div1, file$4, 412, 14, 10685);
+    			add_location(div1, file$4, 393, 14, 10296);
     			attr_dev(div2, "class", "input-group input-group-flush mb-3");
-    			add_location(div2, file$4, 405, 12, 10379);
+    			add_location(div2, file$4, 386, 12, 9990);
     			attr_dev(div3, "class", "col-md-5");
-    			add_location(div3, file$4, 404, 10, 10343);
+    			add_location(div3, file$4, 385, 10, 9954);
     			option0.__value = option0_value_value = 0;
     			option0.value = option0.__value;
     			option0.disabled = true;
     			option0.selected = true;
-    			add_location(option0, file$4, 421, 14, 11030);
+    			add_location(option0, file$4, 402, 14, 10641);
     			attr_dev(select0, "class", "form-control");
     			attr_dev(select0, "id", "sltMedicos");
     			set_style(select0, "width", "100%");
-    			add_location(select0, file$4, 420, 12, 10949);
+    			add_location(select0, file$4, 401, 12, 10560);
     			attr_dev(div4, "class", "col-lg-4");
-    			add_location(div4, file$4, 419, 10, 10913);
+    			add_location(div4, file$4, 400, 10, 10524);
     			attr_dev(i0, "class", "mdi mdi-plus");
-    			add_location(i0, file$4, 429, 12, 11380);
+    			add_location(i0, file$4, 410, 12, 10991);
     			attr_dev(a, "href", "#/Cita/Crear");
     			attr_dev(a, "class", "btn m-b-30 ml-2 mr-2 ml-3 btn-primary");
-    			add_location(a, file$4, 428, 10, 11297);
+    			add_location(a, file$4, 409, 10, 10908);
     			attr_dev(div5, "class", "row");
-    			add_location(div5, file$4, 403, 8, 10314);
+    			add_location(div5, file$4, 384, 8, 9925);
     			attr_dev(div6, "class", "mt-4 col-md-12");
-    			add_location(div6, file$4, 402, 6, 10276);
+    			add_location(div6, file$4, 383, 6, 9887);
     			attr_dev(h40, "class", "alert-heading");
-    			add_location(h40, file$4, 437, 10, 11584);
+    			add_location(h40, file$4, 418, 10, 11195);
     			toggle_class(h41, "d-none", /*citasEnTurno*/ ctx[3].length > 0);
-    			add_location(h41, file$4, 439, 12, 11689);
+    			add_location(h41, file$4, 420, 12, 11300);
     			attr_dev(div7, "class", "table-responsive");
-    			add_location(div7, file$4, 438, 10, 11645);
+    			add_location(div7, file$4, 419, 10, 11256);
     			attr_dev(div8, "class", "alert alert-success");
     			attr_dev(div8, "role", "alert");
-    			add_location(div8, file$4, 436, 8, 11526);
+    			add_location(div8, file$4, 417, 8, 11137);
     			attr_dev(h42, "class", "alert-heading");
-    			add_location(h42, file$4, 477, 10, 13154);
+    			add_location(h42, file$4, 458, 10, 12765);
     			toggle_class(h43, "d-none", /*citasPendientes*/ ctx[2].length > 0);
-    			add_location(h43, file$4, 478, 10, 13217);
+    			add_location(h43, file$4, 459, 10, 12828);
     			attr_dev(div9, "class", "table-responsive");
-    			add_location(div9, file$4, 479, 10, 13291);
+    			add_location(div9, file$4, 460, 10, 12902);
     			attr_dev(div10, "class", "alert alert-primary");
     			attr_dev(div10, "role", "alert");
-    			add_location(div10, file$4, 476, 8, 13096);
+    			add_location(div10, file$4, 457, 8, 12707);
     			attr_dev(h44, "class", "alert-heading");
-    			add_location(h44, file$4, 530, 10, 15402);
+    			add_location(h44, file$4, 511, 10, 15013);
     			toggle_class(h45, "d-none", /*citasRealizadas*/ ctx[4].length > 0);
-    			add_location(h45, file$4, 531, 10, 15465);
+    			add_location(h45, file$4, 512, 10, 15076);
     			attr_dev(div11, "class", "table-responsive");
-    			add_location(div11, file$4, 532, 10, 15539);
+    			add_location(div11, file$4, 513, 10, 15150);
     			attr_dev(div12, "class", "alert alert-secondary");
     			attr_dev(div12, "role", "alert");
-    			add_location(div12, file$4, 529, 8, 15342);
+    			add_location(div12, file$4, 510, 8, 14953);
     			attr_dev(div13, "class", "col-md-12 m-b-30");
-    			add_location(div13, file$4, 434, 6, 11484);
+    			add_location(div13, file$4, 415, 6, 11095);
     			attr_dev(div14, "class", "container mt-3");
-    			add_location(div14, file$4, 401, 4, 10240);
+    			add_location(div14, file$4, 382, 4, 9851);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$4, 400, 2, 10203);
+    			add_location(section, file$4, 381, 2, 9814);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$4, 398, 0, 10160);
+    			add_location(main, file$4, 379, 0, 9771);
     			attr_dev(i1, "class", "mdi mdi-account-search-outline");
-    			add_location(i1, file$4, 594, 10, 17711);
+    			add_location(i1, file$4, 575, 10, 17322);
     			attr_dev(h50, "class", "modal-title");
     			attr_dev(h50, "id", "modalPacienteLabel");
-    			add_location(h50, file$4, 593, 8, 17651);
+    			add_location(h50, file$4, 574, 8, 17262);
     			attr_dev(span1, "aria-hidden", "true");
-    			add_location(span1, file$4, 602, 10, 17932);
+    			add_location(span1, file$4, 583, 10, 17543);
     			attr_dev(button0, "type", "button");
     			attr_dev(button0, "class", "close");
     			attr_dev(button0, "data-dismiss", "modal");
     			attr_dev(button0, "aria-label", "Close");
-    			add_location(button0, file$4, 597, 8, 17800);
+    			add_location(button0, file$4, 578, 8, 17411);
     			attr_dev(div15, "class", "modal-header");
-    			add_location(div15, file$4, 592, 6, 17615);
+    			add_location(div15, file$4, 573, 6, 17226);
     			attr_dev(input1, "type", "hidden");
     			attr_dev(input1, "name", "IdUser");
     			input1.value = "0";
-    			add_location(input1, file$4, 607, 10, 18118);
+    			add_location(input1, file$4, 588, 10, 17729);
     			attr_dev(label0, "for", "");
-    			add_location(label0, file$4, 610, 14, 18263);
+    			add_location(label0, file$4, 591, 14, 17874);
     			attr_dev(input2, "type", "name");
     			attr_dev(input2, "class", "form-control");
     			attr_dev(input2, "name", "Name");
     			attr_dev(input2, "maxlength", "200");
     			input2.required = true;
-    			add_location(input2, file$4, 611, 14, 18307);
+    			add_location(input2, file$4, 592, 14, 17918);
     			attr_dev(div16, "class", "form-group col-md-12");
-    			add_location(div16, file$4, 609, 12, 18213);
+    			add_location(div16, file$4, 590, 12, 17824);
     			attr_dev(div17, "class", "form-row");
-    			add_location(div17, file$4, 608, 10, 18177);
+    			add_location(div17, file$4, 589, 10, 17788);
     			attr_dev(label1, "for", "");
-    			add_location(label1, file$4, 622, 14, 18653);
+    			add_location(label1, file$4, 603, 14, 18264);
     			attr_dev(input3, "type", "name");
     			attr_dev(input3, "class", "form-control");
     			attr_dev(input3, "name", "Name");
     			attr_dev(input3, "maxlength", "200");
     			input3.required = true;
-    			add_location(input3, file$4, 623, 14, 18699);
+    			add_location(input3, file$4, 604, 14, 18310);
     			attr_dev(div18, "class", "form-group col-md-12");
-    			add_location(div18, file$4, 621, 12, 18603);
+    			add_location(div18, file$4, 602, 12, 18214);
     			attr_dev(div19, "class", "form-row");
-    			add_location(div19, file$4, 620, 10, 18567);
+    			add_location(div19, file$4, 601, 10, 18178);
     			attr_dev(label2, "for", "");
-    			add_location(label2, file$4, 634, 14, 19048);
+    			add_location(label2, file$4, 615, 14, 18659);
     			attr_dev(input4, "type", "name");
     			attr_dev(input4, "class", "form-control");
     			attr_dev(input4, "name", "Name");
     			attr_dev(input4, "maxlength", "200");
-    			add_location(input4, file$4, 635, 14, 19092);
+    			add_location(input4, file$4, 616, 14, 18703);
     			attr_dev(div20, "class", "form-group col-md-12");
-    			add_location(div20, file$4, 633, 12, 18998);
+    			add_location(div20, file$4, 614, 12, 18609);
     			attr_dev(div21, "class", "form-row");
-    			add_location(div21, file$4, 632, 10, 18962);
+    			add_location(div21, file$4, 613, 10, 18573);
     			attr_dev(label3, "for", "");
-    			add_location(label3, file$4, 645, 14, 19412);
+    			add_location(label3, file$4, 626, 14, 19023);
     			attr_dev(input5, "type", "tel");
     			attr_dev(input5, "class", "form-control");
     			attr_dev(input5, "name", "Name");
     			attr_dev(input5, "maxlength", "200");
     			input5.required = true;
-    			add_location(input5, file$4, 646, 14, 19458);
+    			add_location(input5, file$4, 627, 14, 19069);
     			attr_dev(div22, "class", "form-group col-md-12");
-    			add_location(div22, file$4, 644, 12, 19362);
+    			add_location(div22, file$4, 625, 12, 18973);
     			attr_dev(div23, "class", "form-row");
-    			add_location(div23, file$4, 643, 10, 19326);
+    			add_location(div23, file$4, 624, 10, 18937);
     			attr_dev(label4, "for", "");
-    			add_location(label4, file$4, 657, 14, 19805);
+    			add_location(label4, file$4, 638, 14, 19416);
     			attr_dev(input6, "type", "email");
     			attr_dev(input6, "class", "form-control");
     			attr_dev(input6, "name", "Name");
     			attr_dev(input6, "maxlength", "200");
-    			add_location(input6, file$4, 658, 14, 19861);
+    			add_location(input6, file$4, 639, 14, 19472);
     			attr_dev(div24, "class", "form-group col-md-12");
-    			add_location(div24, file$4, 656, 12, 19755);
+    			add_location(div24, file$4, 637, 12, 19366);
     			attr_dev(div25, "class", "form-row");
-    			add_location(div25, file$4, 655, 10, 19719);
+    			add_location(div25, file$4, 636, 10, 19330);
     			attr_dev(label5, "for", "");
-    			add_location(label5, file$4, 668, 14, 20181);
+    			add_location(label5, file$4, 649, 14, 19792);
     			option1.__value = "0";
     			option1.value = option1.__value;
     			option1.disabled = true;
     			option1.selected = true;
-    			add_location(option1, file$4, 672, 16, 20358);
+    			add_location(option1, file$4, 653, 16, 19969);
     			attr_dev(select1, "class", "form-control js-select2");
-    			if (/*paciente*/ ctx[9].aseguradoraID === void 0) add_render_callback(() => /*select1_change_handler*/ ctx[49].call(select1));
-    			add_location(select1, file$4, 669, 14, 20230);
+    			if (/*paciente*/ ctx[9].aseguradoraID === void 0) add_render_callback(() => /*select1_change_handler*/ ctx[48].call(select1));
+    			add_location(select1, file$4, 650, 14, 19841);
     			attr_dev(div26, "class", "form-group col-md-12");
-    			add_location(div26, file$4, 667, 12, 20131);
+    			add_location(div26, file$4, 648, 12, 19742);
     			attr_dev(div27, "class", "form-row");
-    			add_location(div27, file$4, 666, 10, 20095);
+    			add_location(div27, file$4, 647, 10, 19706);
     			attr_dev(label6, "for", "");
-    			add_location(label6, file$4, 681, 14, 20716);
+    			add_location(label6, file$4, 662, 14, 20327);
     			attr_dev(input7, "type", "text");
     			attr_dev(input7, "class", "form-control");
     			attr_dev(input7, "name", "Name");
     			attr_dev(input7, "maxlength", "200");
-    			add_location(input7, file$4, 682, 14, 20764);
+    			add_location(input7, file$4, 663, 14, 20375);
     			attr_dev(div28, "class", "form-group col-md-12");
-    			add_location(div28, file$4, 680, 12, 20666);
+    			add_location(div28, file$4, 661, 12, 20277);
     			attr_dev(div29, "class", "form-row");
-    			add_location(div29, file$4, 679, 10, 20630);
+    			add_location(div29, file$4, 660, 10, 20241);
     			attr_dev(label7, "for", "");
-    			add_location(label7, file$4, 692, 14, 21088);
+    			add_location(label7, file$4, 673, 14, 20699);
     			option2.__value = "0";
     			option2.value = option2.__value;
     			option2.disabled = true;
     			option2.selected = true;
-    			add_location(option2, file$4, 694, 16, 21223);
+    			add_location(option2, file$4, 675, 16, 20834);
     			option3.__value = option3_value_value = "Rep. Dom.";
     			option3.value = option3.__value;
-    			add_location(option3, file$4, 695, 16, 21301);
+    			add_location(option3, file$4, 676, 16, 20912);
     			option4.__value = option4_value_value = "Haiti";
     			option4.value = option4.__value;
-    			add_location(option4, file$4, 696, 16, 21365);
+    			add_location(option4, file$4, 677, 16, 20976);
     			option5.__value = option5_value_value = "Venezuela";
     			option5.value = option5.__value;
-    			add_location(option5, file$4, 697, 16, 21421);
+    			add_location(option5, file$4, 678, 16, 21032);
     			attr_dev(select2, "class", "form-control js-select2");
-    			if (/*paciente*/ ctx[9].nacionalidad === void 0) add_render_callback(() => /*select2_change_handler*/ ctx[51].call(select2));
-    			add_location(select2, file$4, 693, 14, 21130);
+    			if (/*paciente*/ ctx[9].nacionalidad === void 0) add_render_callback(() => /*select2_change_handler*/ ctx[50].call(select2));
+    			add_location(select2, file$4, 674, 14, 20741);
     			attr_dev(div30, "class", "form-group col-md-12");
-    			add_location(div30, file$4, 691, 12, 21038);
+    			add_location(div30, file$4, 672, 12, 20649);
     			attr_dev(div31, "class", "form-row");
-    			add_location(div31, file$4, 690, 10, 21002);
+    			add_location(div31, file$4, 671, 10, 20613);
     			attr_dev(label8, "for", "");
-    			add_location(label8, file$4, 703, 14, 21628);
+    			add_location(label8, file$4, 684, 14, 21239);
     			option6.__value = "0";
     			option6.value = option6.__value;
     			option6.disabled = true;
     			option6.selected = true;
-    			add_location(option6, file$4, 707, 16, 21801);
+    			add_location(option6, file$4, 688, 16, 21412);
     			attr_dev(select3, "class", "form-control js-select2");
-    			if (/*paciente*/ ctx[9].provinciaID === void 0) add_render_callback(() => /*select3_change_handler*/ ctx[52].call(select3));
-    			add_location(select3, file$4, 704, 14, 21675);
+    			if (/*paciente*/ ctx[9].provinciaID === void 0) add_render_callback(() => /*select3_change_handler*/ ctx[51].call(select3));
+    			add_location(select3, file$4, 685, 14, 21286);
     			attr_dev(div32, "class", "form-group col-md-12");
-    			add_location(div32, file$4, 702, 12, 21578);
+    			add_location(div32, file$4, 683, 12, 21189);
     			attr_dev(div33, "class", "form-row");
-    			add_location(div33, file$4, 701, 10, 21542);
+    			add_location(div33, file$4, 682, 10, 21153);
     			attr_dev(label9, "for", "");
-    			add_location(label9, file$4, 716, 14, 22157);
+    			add_location(label9, file$4, 697, 14, 21768);
     			attr_dev(textarea0, "class", "form-control");
     			attr_dev(textarea0, "rows", "2");
-    			add_location(textarea0, file$4, 717, 14, 22204);
+    			add_location(textarea0, file$4, 698, 14, 21815);
     			attr_dev(div34, "class", "form-group col-md-12");
-    			add_location(div34, file$4, 715, 12, 22107);
+    			add_location(div34, file$4, 696, 12, 21718);
     			attr_dev(div35, "class", "form-row");
-    			add_location(div35, file$4, 714, 10, 22071);
+    			add_location(div35, file$4, 695, 10, 21682);
     			attr_dev(label10, "for", "");
-    			add_location(label10, file$4, 725, 14, 22465);
+    			add_location(label10, file$4, 706, 14, 22076);
     			attr_dev(textarea1, "class", "form-control");
     			attr_dev(textarea1, "rows", "3");
-    			add_location(textarea1, file$4, 726, 14, 22516);
+    			add_location(textarea1, file$4, 707, 14, 22127);
     			attr_dev(div36, "class", "form-group col-md-12");
-    			add_location(div36, file$4, 724, 12, 22415);
+    			add_location(div36, file$4, 705, 12, 22026);
     			attr_dev(div37, "class", "form-row");
-    			add_location(div37, file$4, 723, 10, 22379);
-    			add_location(br, file$4, 733, 10, 22697);
+    			add_location(div37, file$4, 704, 10, 21990);
+    			add_location(br, file$4, 714, 10, 22308);
     			attr_dev(button1, "type", "button");
     			attr_dev(button1, "class", "btn btn-outline-danger");
     			attr_dev(button1, "data-dismiss", "modal");
-    			add_location(button1, file$4, 735, 12, 22755);
+    			add_location(button1, file$4, 716, 12, 22366);
     			attr_dev(i2, "class", "mdi mdi-content-save-outline");
-    			add_location(i2, file$4, 743, 14, 23026);
+    			add_location(i2, file$4, 724, 14, 22637);
     			attr_dev(button2, "type", "submit");
     			attr_dev(button2, "class", "btn btn-outline-primary");
-    			add_location(button2, file$4, 741, 12, 22933);
+    			add_location(button2, file$4, 722, 12, 22544);
     			attr_dev(div38, "class", "modal-footer");
-    			add_location(div38, file$4, 734, 10, 22715);
+    			add_location(div38, file$4, 715, 10, 22326);
     			attr_dev(form, "id", "frmPaciente");
-    			add_location(form, file$4, 606, 8, 18040);
-    			attr_dev(div39, "class", "modal-body svelte-1gvzc7h");
-    			add_location(div39, file$4, 605, 6, 18006);
+    			add_location(form, file$4, 587, 8, 17651);
+    			attr_dev(div39, "class", "modal-body svelte-7wo5wq");
+    			add_location(div39, file$4, 586, 6, 17617);
     			attr_dev(div40, "class", "modal-content");
-    			add_location(div40, file$4, 591, 4, 17580);
-    			attr_dev(div41, "class", "modal-dialog svelte-1gvzc7h");
+    			add_location(div40, file$4, 572, 4, 17191);
+    			attr_dev(div41, "class", "modal-dialog svelte-7wo5wq");
     			attr_dev(div41, "role", "document");
-    			add_location(div41, file$4, 590, 2, 17532);
-    			attr_dev(div42, "class", "modal fade modal-slide-right svelte-1gvzc7h");
+    			add_location(div41, file$4, 571, 2, 17143);
+    			attr_dev(div42, "class", "modal fade modal-slide-right svelte-7wo5wq");
     			attr_dev(div42, "id", "modalPaciente");
     			attr_dev(div42, "tabindex", "-1");
     			attr_dev(div42, "role", "dialog");
@@ -13502,70 +13832,70 @@ var app = (function (moment) {
     			set_style(div42, "display", "none");
     			set_style(div42, "padding-right", "16px");
     			attr_dev(div42, "aria-modal", "true");
-    			add_location(div42, file$4, 582, 0, 17319);
+    			add_location(div42, file$4, 563, 0, 16930);
     			attr_dev(i3, "class", "mdi mdi-calendar-plus");
-    			add_location(i3, file$4, 775, 10, 23901);
+    			add_location(i3, file$4, 756, 10, 23512);
     			attr_dev(h51, "class", "modal-title");
     			attr_dev(h51, "id", "modalCrearCitaLabel");
-    			add_location(h51, file$4, 774, 8, 23840);
+    			add_location(h51, file$4, 755, 8, 23451);
     			attr_dev(span2, "aria-hidden", "true");
-    			add_location(span2, file$4, 783, 10, 24127);
+    			add_location(span2, file$4, 764, 10, 23738);
     			attr_dev(button3, "type", "button");
     			attr_dev(button3, "class", "close");
     			attr_dev(button3, "data-dismiss", "modal");
     			attr_dev(button3, "aria-label", "Close");
-    			add_location(button3, file$4, 778, 8, 23995);
+    			add_location(button3, file$4, 759, 8, 23606);
     			attr_dev(div43, "class", "modal-header");
-    			add_location(div43, file$4, 773, 6, 23804);
+    			add_location(div43, file$4, 754, 6, 23415);
     			attr_dev(label11, "for", "inputAddress");
-    			add_location(label11, file$4, 791, 14, 24388);
+    			add_location(label11, file$4, 772, 14, 23999);
     			attr_dev(input8, "type", "date");
     			attr_dev(input8, "class", "form-control form-control-sm");
-    			add_location(input8, file$4, 792, 14, 24443);
+    			add_location(input8, file$4, 773, 14, 24054);
     			attr_dev(div44, "class", "form-group");
-    			add_location(div44, file$4, 790, 12, 24348);
+    			add_location(div44, file$4, 771, 12, 23959);
     			attr_dev(div45, "class", "col-lg-6");
-    			add_location(div45, file$4, 789, 10, 24312);
+    			add_location(div45, file$4, 770, 10, 23923);
     			attr_dev(label12, "class", "font-secondary");
-    			add_location(label12, file$4, 801, 14, 24755);
+    			add_location(label12, file$4, 782, 14, 24366);
     			option7.__value = option7_value_value = 0;
     			option7.value = option7.__value;
     			option7.disabled = true;
-    			add_location(option7, file$4, 806, 16, 25000);
+    			add_location(option7, file$4, 788, 16, 24666);
     			option8.__value = option8_value_value = 1;
     			option8.value = option8.__value;
-    			add_location(option8, file$4, 807, 16, 25069);
+    			add_location(option8, file$4, 789, 16, 24735);
     			option9.__value = option9_value_value = 2;
     			option9.value = option9.__value;
-    			add_location(option9, file$4, 808, 16, 25122);
+    			add_location(option9, file$4, 790, 16, 24788);
     			attr_dev(select4, "class", "form-control form-control-sm js-select2");
-    			if (/*tandaID*/ ctx[8] === void 0) add_render_callback(() => /*select4_change_handler*/ ctx[56].call(select4));
-    			add_location(select4, file$4, 802, 14, 24814);
+    			if (/*tandaID*/ ctx[8] === void 0) add_render_callback(() => /*select4_change_handler*/ ctx[55].call(select4));
+    			add_location(select4, file$4, 784, 14, 24480);
     			attr_dev(div46, "class", "form-group ");
-    			add_location(div46, file$4, 800, 12, 24714);
+    			add_location(div46, file$4, 781, 12, 24325);
     			attr_dev(div47, "class", "col-lg-6");
-    			add_location(div47, file$4, 799, 10, 24678);
+    			add_location(div47, file$4, 780, 10, 24289);
     			attr_dev(div48, "class", "row");
-    			add_location(div48, file$4, 788, 8, 24283);
+    			add_location(div48, file$4, 769, 8, 23894);
     			attr_dev(div49, "class", "list-group list");
-    			add_location(div49, file$4, 813, 8, 25248);
-    			attr_dev(div50, "class", "modal-body svelte-1gvzc7h");
+    			add_location(div49, file$4, 795, 8, 24914);
+    			attr_dev(div50, "class", "modal-body svelte-7wo5wq");
     			set_style(div50, "height", "100%");
     			set_style(div50, "top", "0");
     			set_style(div50, "overflow", "auto");
-    			add_location(div50, file$4, 786, 6, 24201);
+    			add_location(div50, file$4, 767, 6, 23812);
     			attr_dev(button4, "type", "button");
     			attr_dev(button4, "class", "btn btn-danger");
-    			add_location(button4, file$4, 838, 8, 26120);
+    			add_location(button4, file$4, 820, 8, 25786);
     			attr_dev(div51, "class", "modal-footer");
     			toggle_class(div51, "d-none", /*cita*/ ctx[10].estadoID == 3);
-    			add_location(div51, file$4, 837, 6, 26050);
+    			add_location(div51, file$4, 819, 6, 25716);
     			attr_dev(div52, "class", "modal-content");
-    			add_location(div52, file$4, 772, 4, 23769);
-    			attr_dev(div53, "class", "modal-dialog svelte-1gvzc7h");
+    			add_location(div52, file$4, 753, 4, 23380);
+    			attr_dev(div53, "class", "modal-dialog svelte-7wo5wq");
     			attr_dev(div53, "role", "document");
-    			add_location(div53, file$4, 771, 2, 23721);
-    			attr_dev(div54, "class", "modal fade modal-slide-right svelte-1gvzc7h");
+    			add_location(div53, file$4, 752, 2, 23332);
+    			attr_dev(div54, "class", "modal fade modal-slide-right svelte-7wo5wq");
     			attr_dev(div54, "id", "modalCrearCita");
     			attr_dev(div54, "tabindex", "-1");
     			attr_dev(div54, "role", "dialog");
@@ -13573,70 +13903,70 @@ var app = (function (moment) {
     			set_style(div54, "display", "none");
     			set_style(div54, "padding-right", "16px");
     			attr_dev(div54, "aria-modal", "true");
-    			add_location(div54, file$4, 763, 0, 23506);
+    			add_location(div54, file$4, 744, 0, 23117);
     			attr_dev(i4, "class", "mdi mdi-calendar-plus");
-    			add_location(i4, file$4, 859, 10, 26683);
+    			add_location(i4, file$4, 841, 10, 26349);
     			attr_dev(h52, "class", "modal-title");
     			attr_dev(h52, "id", "modalNuevaCitaLabel");
-    			add_location(h52, file$4, 858, 8, 26622);
+    			add_location(h52, file$4, 840, 8, 26288);
     			attr_dev(span3, "aria-hidden", "true");
-    			add_location(span3, file$4, 867, 10, 26903);
+    			add_location(span3, file$4, 849, 10, 26569);
     			attr_dev(button5, "type", "button");
     			attr_dev(button5, "class", "close");
     			attr_dev(button5, "data-dismiss", "modal");
     			attr_dev(button5, "aria-label", "Close");
-    			add_location(button5, file$4, 862, 8, 26771);
+    			add_location(button5, file$4, 844, 8, 26437);
     			attr_dev(div55, "class", "modal-header");
-    			add_location(div55, file$4, 857, 6, 26586);
+    			add_location(div55, file$4, 839, 6, 26252);
     			attr_dev(label13, "for", "inputAddress");
-    			add_location(label13, file$4, 875, 14, 27164);
+    			add_location(label13, file$4, 857, 14, 26830);
     			attr_dev(input9, "type", "date");
     			attr_dev(input9, "class", "form-control form-control-sm");
-    			add_location(input9, file$4, 876, 14, 27219);
+    			add_location(input9, file$4, 858, 14, 26885);
     			attr_dev(div56, "class", "form-group");
-    			add_location(div56, file$4, 874, 12, 27124);
+    			add_location(div56, file$4, 856, 12, 26790);
     			attr_dev(div57, "class", "col-lg-6");
-    			add_location(div57, file$4, 873, 10, 27088);
+    			add_location(div57, file$4, 855, 10, 26754);
     			attr_dev(label14, "class", "font-secondary");
-    			add_location(label14, file$4, 885, 14, 27531);
+    			add_location(label14, file$4, 867, 14, 27197);
     			option10.__value = option10_value_value = 0;
     			option10.value = option10.__value;
     			option10.disabled = true;
-    			add_location(option10, file$4, 890, 16, 27776);
+    			add_location(option10, file$4, 873, 16, 27497);
     			option11.__value = option11_value_value = 1;
     			option11.value = option11.__value;
-    			add_location(option11, file$4, 891, 16, 27845);
+    			add_location(option11, file$4, 874, 16, 27566);
     			option12.__value = option12_value_value = 2;
     			option12.value = option12.__value;
-    			add_location(option12, file$4, 892, 16, 27898);
+    			add_location(option12, file$4, 875, 16, 27619);
     			attr_dev(select5, "class", "form-control form-control-sm js-select2");
-    			if (/*tandaID*/ ctx[8] === void 0) add_render_callback(() => /*select5_change_handler*/ ctx[58].call(select5));
-    			add_location(select5, file$4, 886, 14, 27590);
+    			if (/*tandaID*/ ctx[8] === void 0) add_render_callback(() => /*select5_change_handler*/ ctx[57].call(select5));
+    			add_location(select5, file$4, 869, 14, 27311);
     			attr_dev(div58, "class", "form-group ");
-    			add_location(div58, file$4, 884, 12, 27490);
+    			add_location(div58, file$4, 866, 12, 27156);
     			attr_dev(div59, "class", "col-lg-6");
-    			add_location(div59, file$4, 883, 10, 27454);
+    			add_location(div59, file$4, 865, 10, 27120);
     			attr_dev(div60, "class", "row");
-    			add_location(div60, file$4, 872, 8, 27059);
+    			add_location(div60, file$4, 854, 8, 26725);
     			attr_dev(div61, "class", "list-group list");
-    			add_location(div61, file$4, 897, 8, 28024);
-    			attr_dev(div62, "class", "modal-body svelte-1gvzc7h");
+    			add_location(div61, file$4, 880, 8, 27745);
+    			attr_dev(div62, "class", "modal-body svelte-7wo5wq");
     			set_style(div62, "height", "100%");
     			set_style(div62, "top", "0");
     			set_style(div62, "overflow", "auto");
-    			add_location(div62, file$4, 870, 6, 26977);
+    			add_location(div62, file$4, 852, 6, 26643);
     			attr_dev(button6, "type", "button");
     			attr_dev(button6, "class", "btn btn-danger");
-    			add_location(button6, file$4, 922, 8, 28893);
+    			add_location(button6, file$4, 905, 8, 28614);
     			attr_dev(div63, "class", "modal-footer");
     			toggle_class(div63, "d-none", /*cita*/ ctx[10].estadoID == 3);
-    			add_location(div63, file$4, 921, 6, 28823);
+    			add_location(div63, file$4, 904, 6, 28544);
     			attr_dev(div64, "class", "modal-content");
-    			add_location(div64, file$4, 856, 4, 26551);
-    			attr_dev(div65, "class", "modal-dialog svelte-1gvzc7h");
+    			add_location(div64, file$4, 838, 4, 26217);
+    			attr_dev(div65, "class", "modal-dialog svelte-7wo5wq");
     			attr_dev(div65, "role", "document");
-    			add_location(div65, file$4, 855, 2, 26503);
-    			attr_dev(div66, "class", "modal fade modal-slide-right svelte-1gvzc7h");
+    			add_location(div65, file$4, 837, 2, 26169);
+    			attr_dev(div66, "class", "modal fade modal-slide-right svelte-7wo5wq");
     			attr_dev(div66, "id", "modalNuevaCita");
     			attr_dev(div66, "tabindex", "-1");
     			attr_dev(div66, "role", "dialog");
@@ -13644,7 +13974,7 @@ var app = (function (moment) {
     			set_style(div66, "display", "none");
     			set_style(div66, "padding-right", "16px");
     			attr_dev(div66, "aria-modal", "true");
-    			add_location(div66, file$4, 847, 0, 26288);
+    			add_location(div66, file$4, 829, 0, 25954);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -13912,27 +14242,27 @@ var app = (function (moment) {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(input0, "input", /*input0_input_handler*/ ctx[37]),
-    					listen_dev(input2, "input", /*input2_input_handler*/ ctx[44]),
-    					listen_dev(input3, "input", /*input3_input_handler*/ ctx[45]),
-    					listen_dev(input4, "input", /*input4_input_handler*/ ctx[46]),
-    					listen_dev(input5, "input", /*input5_input_handler*/ ctx[47]),
-    					listen_dev(input6, "input", /*input6_input_handler*/ ctx[48]),
-    					listen_dev(select1, "change", /*select1_change_handler*/ ctx[49]),
-    					listen_dev(input7, "input", /*input7_input_handler*/ ctx[50]),
-    					listen_dev(select2, "change", /*select2_change_handler*/ ctx[51]),
-    					listen_dev(select3, "change", /*select3_change_handler*/ ctx[52]),
-    					listen_dev(textarea0, "input", /*textarea0_input_handler*/ ctx[53]),
-    					listen_dev(textarea1, "input", /*textarea1_input_handler*/ ctx[54]),
+    					listen_dev(input0, "input", /*input0_input_handler*/ ctx[36]),
+    					listen_dev(input2, "input", /*input2_input_handler*/ ctx[43]),
+    					listen_dev(input3, "input", /*input3_input_handler*/ ctx[44]),
+    					listen_dev(input4, "input", /*input4_input_handler*/ ctx[45]),
+    					listen_dev(input5, "input", /*input5_input_handler*/ ctx[46]),
+    					listen_dev(input6, "input", /*input6_input_handler*/ ctx[47]),
+    					listen_dev(select1, "change", /*select1_change_handler*/ ctx[48]),
+    					listen_dev(input7, "input", /*input7_input_handler*/ ctx[49]),
+    					listen_dev(select2, "change", /*select2_change_handler*/ ctx[50]),
+    					listen_dev(select3, "change", /*select3_change_handler*/ ctx[51]),
+    					listen_dev(textarea0, "input", /*textarea0_input_handler*/ ctx[52]),
+    					listen_dev(textarea1, "input", /*textarea1_input_handler*/ ctx[53]),
     					listen_dev(form, "submit", prevent_default(/*guardarPaciente*/ ctx[16]), false, true, false),
-    					listen_dev(input8, "input", /*input8_input_handler*/ ctx[55]),
+    					listen_dev(input8, "input", /*input8_input_handler*/ ctx[54]),
     					listen_dev(input8, "change", /*buscarDisponibilidadHorario*/ ctx[13], false, false, false),
-    					listen_dev(select4, "change", /*select4_change_handler*/ ctx[56]),
+    					listen_dev(select4, "change", /*select4_change_handler*/ ctx[55]),
     					listen_dev(select4, "change", /*buscarDisponibilidadHorario*/ ctx[13], false, false, false),
     					listen_dev(button4, "click", /*anularCita*/ ctx[19], false, false, false),
-    					listen_dev(input9, "input", /*input9_input_handler*/ ctx[57]),
+    					listen_dev(input9, "input", /*input9_input_handler*/ ctx[56]),
     					listen_dev(input9, "change", /*buscarDisponibilidadHorario*/ ctx[13], false, false, false),
-    					listen_dev(select5, "change", /*select5_change_handler*/ ctx[58]),
+    					listen_dev(select5, "change", /*select5_change_handler*/ ctx[57]),
     					listen_dev(select5, "change", /*buscarDisponibilidadHorario*/ ctx[13], false, false, false),
     					listen_dev(button6, "click", /*anularCita*/ ctx[19], false, false, false)
     				];
@@ -14277,19 +14607,19 @@ var app = (function (moment) {
     	let $toast;
     	let $dataCita;
     	validate_store(session, "session");
-    	component_subscribe($$self, session, $$value => $$invalidate(25, $session = $$value));
+    	component_subscribe($$self, session, $$value => $$invalidate(24, $session = $$value));
     	validate_store(axios$2, "axios");
-    	component_subscribe($$self, axios$2, $$value => $$invalidate(26, $axios = $$value));
+    	component_subscribe($$self, axios$2, $$value => $$invalidate(25, $axios = $$value));
     	validate_store(activePage, "activePage");
-    	component_subscribe($$self, activePage, $$value => $$invalidate(27, $activePage = $$value));
+    	component_subscribe($$self, activePage, $$value => $$invalidate(26, $activePage = $$value));
     	validate_store(connection, "connection");
-    	component_subscribe($$self, connection, $$value => $$invalidate(28, $connection = $$value));
+    	component_subscribe($$self, connection, $$value => $$invalidate(27, $connection = $$value));
     	validate_store(errorConexion, "errorConexion");
-    	component_subscribe($$self, errorConexion, $$value => $$invalidate(29, $errorConexion = $$value));
+    	component_subscribe($$self, errorConexion, $$value => $$invalidate(28, $errorConexion = $$value));
     	validate_store(toast, "toast");
-    	component_subscribe($$self, toast, $$value => $$invalidate(30, $toast = $$value));
+    	component_subscribe($$self, toast, $$value => $$invalidate(29, $toast = $$value));
     	validate_store(dataCita, "dataCita");
-    	component_subscribe($$self, dataCita, $$value => $$invalidate(31, $dataCita = $$value));
+    	component_subscribe($$self, dataCita, $$value => $$invalidate(30, $dataCita = $$value));
     	let user = {};
     	user = new UserManager($session.authorizationHeader.Authorization);
 
@@ -14325,7 +14655,6 @@ var app = (function (moment) {
 
     	let idMedico = "";
     	let pacienteEnviado = "";
-    	let userNameMedico = "";
     	let fecha = "";
     	let tandaID = 0;
 
@@ -14363,7 +14692,6 @@ var app = (function (moment) {
     		jQuery("#sltMedicos").on("select2:select", e => {
     			let data = e.params.data;
     			idMedico = data.id.split("=")[0];
-    			userNameMedico = data.id.split("=")[1];
     			cargarPacienteEnviado();
     			cargarCitas();
     			cargarCitasRealizadas();
@@ -14489,7 +14817,7 @@ var app = (function (moment) {
     		});
     	}
 
-    	function guardarEnviarPaciente() {
+    	function guardarYEnviarPaciente() {
     		if (paciente.aseguradoraID > 0) {
     			$$invalidate(9, paciente.nombreAseguradora = aseguradoras.find(e => e.id == paciente.aseguradoraID).nombre, paciente);
     		}
@@ -14610,7 +14938,7 @@ var app = (function (moment) {
     		$axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID).then(res => {
     			if (!res.data.errors) {
     				$connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID, "asignar").catch(err => console.error(err));
-    				guardarEnviarPaciente();
+    				guardarYEnviarPaciente();
     			} else {
     				$toast(5000).fire({
     					icon: "error",
@@ -14759,7 +15087,6 @@ var app = (function (moment) {
     		aseguradoras,
     		idMedico,
     		pacienteEnviado,
-    		userNameMedico,
     		fecha,
     		tandaID,
     		paciente,
@@ -14771,7 +15098,7 @@ var app = (function (moment) {
     		cargarDatosPaciente,
     		reprogramarCita,
     		guardarPaciente,
-    		guardarEnviarPaciente,
+    		guardarYEnviarPaciente,
     		cambiarFechaCita,
     		cambiarEstadoCita,
     		anularCita,
@@ -14799,7 +15126,6 @@ var app = (function (moment) {
     		if ("aseguradoras" in $$props) $$invalidate(12, aseguradoras = $$props.aseguradoras);
     		if ("idMedico" in $$props) idMedico = $$props.idMedico;
     		if ("pacienteEnviado" in $$props) $$invalidate(6, pacienteEnviado = $$props.pacienteEnviado);
-    		if ("userNameMedico" in $$props) userNameMedico = $$props.userNameMedico;
     		if ("fecha" in $$props) $$invalidate(7, fecha = $$props.fecha);
     		if ("tandaID" in $$props) $$invalidate(8, tandaID = $$props.tandaID);
     		if ("paciente" in $$props) $$invalidate(9, paciente = $$props.paciente);
@@ -14835,7 +15161,6 @@ var app = (function (moment) {
     		enviarPaciente,
     		user,
     		idMedico,
-    		userNameMedico,
     		$session,
     		$axios,
     		$activePage,
@@ -14846,7 +15171,7 @@ var app = (function (moment) {
     		cargarMedicos,
     		cargarCitas,
     		cargarCitasRealizadas,
-    		guardarEnviarPaciente,
+    		guardarYEnviarPaciente,
     		cargarPacienteEnviado,
     		input0_input_handler,
     		click_handler,
@@ -14948,7 +15273,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*item*/ ctx[55].id;
     			option.value = option.__value;
-    			add_location(option, file$5, 271, 16, 6631);
+    			add_location(option, file$5, 271, 16, 6683);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -14979,7 +15304,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    // (287:22) {#each estados as item}
+    // (288:22) {#each estados as item}
     function create_each_block_5$1(ctx) {
     	let option;
     	let t_value = /*item*/ ctx[55].nombre + "";
@@ -14992,7 +15317,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*item*/ ctx[55].id;
     			option.value = option.__value;
-    			add_location(option, file$5, 287, 24, 7500);
+    			add_location(option, file$5, 288, 24, 7613);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -15016,14 +15341,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_5$1.name,
     		type: "each",
-    		source: "(287:22) {#each estados as item}",
+    		source: "(288:22) {#each estados as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (309:16) {#if citasPendientes.length > 0}
+    // (310:16) {#if citasPendientes.length > 0}
     function create_if_block_2$1(ctx) {
     	let table;
     	let thead;
@@ -15067,15 +15392,15 @@ var app = (function (moment) {
     				each_blocks[i].c();
     			}
 
-    			add_location(th0, file$5, 312, 24, 8612);
-    			add_location(th1, file$5, 313, 24, 8653);
-    			add_location(th2, file$5, 314, 24, 8694);
-    			add_location(th3, file$5, 315, 24, 8734);
-    			add_location(tr, file$5, 311, 22, 8582);
-    			add_location(thead, file$5, 310, 20, 8551);
-    			add_location(tbody, file$5, 318, 20, 8821);
+    			add_location(th0, file$5, 313, 24, 8725);
+    			add_location(th1, file$5, 314, 24, 8766);
+    			add_location(th2, file$5, 315, 24, 8807);
+    			add_location(th3, file$5, 316, 24, 8847);
+    			add_location(tr, file$5, 312, 22, 8695);
+    			add_location(thead, file$5, 311, 20, 8664);
+    			add_location(tbody, file$5, 319, 20, 8934);
     			attr_dev(table, "class", "table align-td-middle table-card");
-    			add_location(table, file$5, 309, 18, 8481);
+    			add_location(table, file$5, 310, 18, 8594);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, table, anchor);
@@ -15130,14 +15455,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_2$1.name,
     		type: "if",
-    		source: "(309:16) {#if citasPendientes.length > 0}",
+    		source: "(310:16) {#if citasPendientes.length > 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (337:28) {#if idMedico != ""}
+    // (338:28) {#if idMedico != ""}
     function create_if_block_3$1(ctx) {
     	let button;
     	let i;
@@ -15163,7 +15488,7 @@ var app = (function (moment) {
     			t0 = space();
     			t1 = text(t1_value);
     			attr_dev(i, "class", "mdi mdi-calendar-remove");
-    			add_location(i, file$5, 342, 30, 10173);
+    			add_location(i, file$5, 343, 30, 10286);
     			attr_dev(button, "class", "btn btn-success btn-sm mb-1");
     			attr_dev(button, "data-toggle", "modal");
 
@@ -15171,7 +15496,7 @@ var app = (function (moment) {
     			? "#modalNuevaCita"
     			: "#modalCrearCita");
 
-    			add_location(button, file$5, 337, 28, 9841);
+    			add_location(button, file$5, 338, 28, 9954);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -15208,14 +15533,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_3$1.name,
     		type: "if",
-    		source: "(337:28) {#if idMedico != \\\"\\\"}",
+    		source: "(338:28) {#if idMedico != \\\"\\\"}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (320:22) {#each citasPendientes as i}
+    // (321:22) {#each citasPendientes as i}
     function create_each_block_4$1(ctx) {
     	let tr;
     	let td0;
@@ -15271,22 +15596,22 @@ var app = (function (moment) {
     			t8 = space();
     			if (if_block) if_block.c();
     			t9 = space();
-    			add_location(td0, file$5, 321, 26, 8959);
+    			add_location(td0, file$5, 322, 26, 9072);
     			attr_dev(span, "class", span_class_value = "badge " + colorEstado(/*i*/ ctx[50].codigoEstado) + " svelte-178y1a3");
-    			add_location(span, file$5, 323, 28, 9048);
-    			add_location(td1, file$5, 322, 26, 9014);
-    			add_location(td2, file$5, 325, 26, 9182);
-    			add_location(td3, file$5, 326, 26, 9250);
+    			add_location(span, file$5, 324, 28, 9161);
+    			add_location(td1, file$5, 323, 26, 9127);
+    			add_location(td2, file$5, 326, 26, 9295);
+    			add_location(td3, file$5, 327, 26, 9363);
     			attr_dev(i, "class", "mdi mdi-account-search-outline");
-    			add_location(i, file$5, 333, 30, 9634);
+    			add_location(i, file$5, 334, 30, 9747);
     			attr_dev(button, "class", "btn btn-success btn-sm mb-1");
     			attr_dev(button, "data-toggle", "modal");
     			attr_dev(button, "data-target", "#modalPaciente");
-    			add_location(button, file$5, 328, 28, 9345);
+    			add_location(button, file$5, 329, 28, 9458);
     			set_style(td4, "text-align", "right");
-    			add_location(td4, file$5, 327, 26, 9284);
+    			add_location(td4, file$5, 328, 26, 9397);
     			attr_dev(tr, "class", "cursor-table");
-    			add_location(tr, file$5, 320, 24, 8906);
+    			add_location(tr, file$5, 321, 24, 9019);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -15351,14 +15676,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_4$1.name,
     		type: "each",
-    		source: "(320:22) {#each citasPendientes as i}",
+    		source: "(321:22) {#each citasPendientes as i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (454:16) {#each aseguradoras as item}
+    // (455:16) {#each aseguradoras as item}
     function create_each_block_3$1(ctx) {
     	let option;
     	let t_value = /*item*/ ctx[55].nombre + "";
@@ -15371,7 +15696,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*item*/ ctx[55].id;
     			option.value = option.__value;
-    			add_location(option, file$5, 454, 18, 13834);
+    			add_location(option, file$5, 455, 18, 13947);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -15387,14 +15712,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_3$1.name,
     		type: "each",
-    		source: "(454:16) {#each aseguradoras as item}",
+    		source: "(455:16) {#each aseguradoras as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (489:16) {#each provincias as item}
+    // (490:16) {#each provincias as item}
     function create_each_block_2$1(ctx) {
     	let option;
     	let t_value = /*item*/ ctx[55].nombre + "";
@@ -15407,7 +15732,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*item*/ ctx[55].id;
     			option.value = option.__value;
-    			add_location(option, file$5, 489, 18, 15275);
+    			add_location(option, file$5, 490, 18, 15388);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -15423,14 +15748,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_2$1.name,
     		type: "each",
-    		source: "(489:16) {#each provincias as item}",
+    		source: "(490:16) {#each provincias as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (585:10) {#if horasDisponibles.length <= 0}
+    // (587:10) {#if horasDisponibles.length <= 0}
     function create_if_block_1$2(ctx) {
     	let div;
 
@@ -15440,7 +15765,7 @@ var app = (function (moment) {
     			div.textContent = "No hay disponibilidad en este horario";
     			attr_dev(div, "class", "alert alert-success");
     			attr_dev(div, "role", "alert");
-    			add_location(div, file$5, 585, 12, 18341);
+    			add_location(div, file$5, 587, 12, 18509);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -15454,14 +15779,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_1$2.name,
     		type: "if",
-    		source: "(585:10) {#if horasDisponibles.length <= 0}",
+    		source: "(587:10) {#if horasDisponibles.length <= 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (590:10) {#each horasDisponibles as i}
+    // (592:10) {#each horasDisponibles as i}
     function create_each_block_1$1(ctx) {
     	let div3;
     	let div1;
@@ -15487,15 +15812,15 @@ var app = (function (moment) {
     			button.textContent = "Seleccionar";
     			t3 = space();
     			attr_dev(div0, "class", "name");
-    			add_location(div0, file$5, 593, 16, 18665);
+    			add_location(div0, file$5, 595, 16, 18833);
     			attr_dev(div1, "class", "");
-    			add_location(div1, file$5, 592, 14, 18633);
+    			add_location(div1, file$5, 594, 14, 18801);
     			attr_dev(button, "class", "btn btn-outline-success btn-sm");
-    			add_location(button, file$5, 596, 16, 18774);
+    			add_location(button, file$5, 598, 16, 18942);
     			attr_dev(div2, "class", "ml-auto");
-    			add_location(div2, file$5, 595, 14, 18735);
+    			add_location(div2, file$5, 597, 14, 18903);
     			attr_dev(div3, "class", "list-group-item d-flex align-items-center svelte-1nu1nbu");
-    			add_location(div3, file$5, 590, 12, 18532);
+    			add_location(div3, file$5, 592, 12, 18700);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -15537,14 +15862,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_1$1.name,
     		type: "each",
-    		source: "(590:10) {#each horasDisponibles as i}",
+    		source: "(592:10) {#each horasDisponibles as i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (663:10) {#if horasDisponibles.length <= 0}
+    // (666:10) {#if horasDisponibles.length <= 0}
     function create_if_block$3(ctx) {
     	let div;
 
@@ -15554,7 +15879,7 @@ var app = (function (moment) {
     			div.textContent = "No hay disponibilidad en este horario";
     			attr_dev(div, "class", "alert alert-success");
     			attr_dev(div, "role", "alert");
-    			add_location(div, file$5, 663, 12, 20905);
+    			add_location(div, file$5, 666, 12, 21128);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -15568,14 +15893,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block$3.name,
     		type: "if",
-    		source: "(663:10) {#if horasDisponibles.length <= 0}",
+    		source: "(666:10) {#if horasDisponibles.length <= 0}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (668:10) {#each horasDisponibles as i}
+    // (671:10) {#each horasDisponibles as i}
     function create_each_block$1(ctx) {
     	let div3;
     	let div1;
@@ -15605,15 +15930,15 @@ var app = (function (moment) {
     			button.textContent = "Seleccionar";
     			t3 = space();
     			attr_dev(div0, "class", "name");
-    			add_location(div0, file$5, 671, 16, 21229);
+    			add_location(div0, file$5, 674, 16, 21452);
     			attr_dev(div1, "class", "");
-    			add_location(div1, file$5, 670, 14, 21197);
+    			add_location(div1, file$5, 673, 14, 21420);
     			attr_dev(button, "class", "btn btn-outline-success btn-sm");
-    			add_location(button, file$5, 674, 16, 21338);
+    			add_location(button, file$5, 677, 16, 21561);
     			attr_dev(div2, "class", "ml-auto");
-    			add_location(div2, file$5, 673, 14, 21299);
+    			add_location(div2, file$5, 676, 14, 21522);
     			attr_dev(div3, "class", "list-group-item d-flex align-items-center svelte-1nu1nbu");
-    			add_location(div3, file$5, 668, 12, 21096);
+    			add_location(div3, file$5, 671, 12, 21319);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -15645,7 +15970,7 @@ var app = (function (moment) {
     		block,
     		id: create_each_block$1.name,
     		type: "each",
-    		source: "(668:10) {#each horasDisponibles as i}",
+    		source: "(671:10) {#each horasDisponibles as i}",
     		ctx
     	});
 
@@ -16203,257 +16528,257 @@ var app = (function (moment) {
     			attr_dev(input0, "type", "text");
     			attr_dev(input0, "class", "form-control");
     			attr_dev(input0, "placeholder", "Buscar paciente");
-    			add_location(input0, file$5, 263, 12, 6164);
+    			add_location(input0, file$5, 263, 12, 6216);
     			attr_dev(div0, "class", "col-lg-6 mt-2");
-    			add_location(div0, file$5, 262, 10, 6123);
+    			add_location(div0, file$5, 262, 10, 6175);
     			option0.__value = option0_value_value = 0;
     			option0.value = option0.__value;
     			option0.disabled = true;
     			option0.selected = true;
-    			add_location(option0, file$5, 268, 14, 6458);
+    			add_location(option0, file$5, 268, 14, 6510);
     			option1.__value = option1_value_value = "";
     			option1.value = option1.__value;
-    			add_location(option1, file$5, 269, 14, 6541);
+    			add_location(option1, file$5, 269, 14, 6593);
     			attr_dev(select0, "class", "form-control");
     			attr_dev(select0, "id", "sltMedicos");
     			set_style(select0, "width", "100%");
-    			add_location(select0, file$5, 267, 12, 6377);
+    			add_location(select0, file$5, 267, 12, 6429);
     			attr_dev(div1, "class", "col-lg-4 mt-2");
-    			add_location(div1, file$5, 266, 10, 6336);
+    			add_location(div1, file$5, 266, 10, 6388);
     			attr_dev(button0, "class", "btn btn-primary");
     			attr_dev(button0, "id", "btnFiltro");
     			set_style(button0, "margin-top", "8px");
-    			add_location(button0, file$5, 276, 12, 6787);
+    			add_location(button0, file$5, 276, 12, 6839);
     			attr_dev(div2, "class", "col-lg-2");
-    			add_location(div2, file$5, 275, 10, 6751);
-    			add_location(label0, file$5, 282, 20, 7156);
+    			add_location(div2, file$5, 275, 10, 6803);
+    			add_location(label0, file$5, 282, 20, 7208);
     			option2.__value = "";
     			option2.value = option2.__value;
     			option2.disabled = true;
     			option2.selected = true;
-    			add_location(option2, file$5, 284, 22, 7306);
+    			add_location(option2, file$5, 285, 22, 7419);
     			option3.__value = option3_value_value = 0;
     			option3.value = option3.__value;
-    			add_location(option3, file$5, 285, 22, 7395);
+    			add_location(option3, file$5, 286, 22, 7508);
     			attr_dev(select1, "class", "form-control");
     			if (/*filter*/ ctx[8].estadoID === void 0) add_render_callback(() => /*select1_change_handler*/ ctx[29].call(select1));
-    			add_location(select1, file$5, 283, 20, 7200);
+    			add_location(select1, file$5, 284, 20, 7313);
     			attr_dev(div3, "class", "col-lg-6 col-md-6");
-    			add_location(div3, file$5, 281, 18, 7103);
-    			add_location(label1, file$5, 292, 20, 7707);
+    			add_location(div3, file$5, 281, 18, 7155);
+    			add_location(label1, file$5, 293, 20, 7820);
     			attr_dev(input1, "type", "date");
     			attr_dev(input1, "class", "form-control");
-    			add_location(input1, file$5, 293, 20, 7749);
+    			add_location(input1, file$5, 294, 20, 7862);
     			attr_dev(div4, "class", "col-lg-3 col-md-3");
-    			add_location(div4, file$5, 291, 18, 7654);
-    			add_location(label2, file$5, 296, 20, 7943);
+    			add_location(div4, file$5, 292, 18, 7767);
+    			add_location(label2, file$5, 297, 20, 8056);
     			attr_dev(input2, "type", "date");
     			attr_dev(input2, "class", "form-control");
-    			add_location(input2, file$5, 297, 20, 7985);
+    			add_location(input2, file$5, 298, 20, 8098);
     			attr_dev(div5, "class", "col-lg-3 col-md-3");
-    			add_location(div5, file$5, 295, 18, 7890);
+    			add_location(div5, file$5, 296, 18, 8003);
     			attr_dev(div6, "class", "row");
-    			add_location(div6, file$5, 280, 16, 7066);
+    			add_location(div6, file$5, 280, 16, 7118);
     			attr_dev(div7, "class", "alert alert-secondary");
-    			add_location(div7, file$5, 279, 14, 7013);
+    			add_location(div7, file$5, 279, 14, 7065);
     			attr_dev(div8, "id", "filtroAvanzado");
     			attr_dev(div8, "class", "col-lg-12 mt-2");
     			set_style(div8, "display", "none");
-    			add_location(div8, file$5, 278, 10, 6926);
+    			add_location(div8, file$5, 278, 10, 6978);
     			toggle_class(h4, "d-none", /*citasPendientes*/ ctx[1].length > 0);
-    			add_location(h4, file$5, 306, 14, 8303);
+    			add_location(h4, file$5, 307, 14, 8416);
     			attr_dev(div9, "class", "table-responsive");
-    			add_location(div9, file$5, 307, 14, 8381);
+    			add_location(div9, file$5, 308, 14, 8494);
     			attr_dev(div10, "class", "alert alert-primary");
     			attr_dev(div10, "role", "alert");
-    			add_location(div10, file$5, 304, 12, 8223);
+    			add_location(div10, file$5, 305, 12, 8336);
     			attr_dev(div11, "class", "col-md-12 mt-2");
-    			add_location(div11, file$5, 303, 10, 8181);
+    			add_location(div11, file$5, 304, 10, 8294);
     			attr_dev(div12, "class", "row");
-    			add_location(div12, file$5, 260, 8, 6092);
+    			add_location(div12, file$5, 260, 8, 6144);
     			attr_dev(div13, "class", "col-md-12");
-    			add_location(div13, file$5, 259, 6, 6059);
+    			add_location(div13, file$5, 259, 6, 6111);
     			attr_dev(div14, "class", "container mt-3");
-    			add_location(div14, file$5, 258, 4, 6023);
+    			add_location(div14, file$5, 258, 4, 6075);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$5, 257, 2, 5986);
+    			add_location(section, file$5, 257, 2, 6038);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$5, 255, 0, 5943);
+    			add_location(main, file$5, 255, 0, 5995);
     			attr_dev(i0, "class", "mdi mdi-account-search-outline");
-    			add_location(i0, file$5, 375, 10, 11137);
+    			add_location(i0, file$5, 376, 10, 11250);
     			attr_dev(h50, "class", "modal-title");
     			attr_dev(h50, "id", "modalPacienteLabel");
-    			add_location(h50, file$5, 374, 8, 11077);
+    			add_location(h50, file$5, 375, 8, 11190);
     			attr_dev(span0, "aria-hidden", "true");
-    			add_location(span0, file$5, 383, 10, 11358);
+    			add_location(span0, file$5, 384, 10, 11471);
     			attr_dev(button1, "type", "button");
     			attr_dev(button1, "class", "close");
     			attr_dev(button1, "data-dismiss", "modal");
     			attr_dev(button1, "aria-label", "Close");
-    			add_location(button1, file$5, 378, 8, 11226);
+    			add_location(button1, file$5, 379, 8, 11339);
     			attr_dev(div15, "class", "modal-header");
-    			add_location(div15, file$5, 373, 6, 11041);
+    			add_location(div15, file$5, 374, 6, 11154);
     			attr_dev(input3, "type", "hidden");
     			attr_dev(input3, "name", "IdUser");
     			input3.value = "0";
-    			add_location(input3, file$5, 387, 10, 11468);
+    			add_location(input3, file$5, 388, 10, 11581);
     			attr_dev(label3, "for", "");
-    			add_location(label3, file$5, 390, 14, 11613);
+    			add_location(label3, file$5, 391, 14, 11726);
     			attr_dev(input4, "type", "name");
     			attr_dev(input4, "class", "form-control");
     			attr_dev(input4, "name", "Name");
     			attr_dev(input4, "maxlength", "200");
     			input4.required = true;
-    			add_location(input4, file$5, 391, 14, 11657);
+    			add_location(input4, file$5, 392, 14, 11770);
     			attr_dev(div16, "class", "form-group col-md-12");
-    			add_location(div16, file$5, 389, 12, 11563);
+    			add_location(div16, file$5, 390, 12, 11676);
     			attr_dev(div17, "class", "form-row");
-    			add_location(div17, file$5, 388, 10, 11527);
+    			add_location(div17, file$5, 389, 10, 11640);
     			attr_dev(label4, "for", "");
-    			add_location(label4, file$5, 402, 14, 12003);
+    			add_location(label4, file$5, 403, 14, 12116);
     			attr_dev(input5, "type", "name");
     			attr_dev(input5, "class", "form-control");
     			attr_dev(input5, "name", "Name");
     			attr_dev(input5, "maxlength", "200");
     			input5.required = true;
-    			add_location(input5, file$5, 403, 14, 12049);
+    			add_location(input5, file$5, 404, 14, 12162);
     			attr_dev(div18, "class", "form-group col-md-12");
-    			add_location(div18, file$5, 401, 12, 11953);
+    			add_location(div18, file$5, 402, 12, 12066);
     			attr_dev(div19, "class", "form-row");
-    			add_location(div19, file$5, 400, 10, 11917);
+    			add_location(div19, file$5, 401, 10, 12030);
     			attr_dev(label5, "for", "");
-    			add_location(label5, file$5, 414, 14, 12398);
+    			add_location(label5, file$5, 415, 14, 12511);
     			attr_dev(input6, "type", "name");
     			attr_dev(input6, "class", "form-control");
     			attr_dev(input6, "name", "Name");
     			attr_dev(input6, "maxlength", "200");
-    			add_location(input6, file$5, 415, 14, 12442);
+    			add_location(input6, file$5, 416, 14, 12555);
     			attr_dev(div20, "class", "form-group col-md-12");
-    			add_location(div20, file$5, 413, 12, 12348);
+    			add_location(div20, file$5, 414, 12, 12461);
     			attr_dev(div21, "class", "form-row");
-    			add_location(div21, file$5, 412, 10, 12312);
+    			add_location(div21, file$5, 413, 10, 12425);
     			attr_dev(label6, "for", "");
-    			add_location(label6, file$5, 425, 14, 12762);
+    			add_location(label6, file$5, 426, 14, 12875);
     			attr_dev(input7, "type", "tel");
     			attr_dev(input7, "class", "form-control");
     			attr_dev(input7, "name", "Name");
     			attr_dev(input7, "maxlength", "200");
     			input7.required = true;
-    			add_location(input7, file$5, 426, 14, 12808);
+    			add_location(input7, file$5, 427, 14, 12921);
     			attr_dev(div22, "class", "form-group col-md-12");
-    			add_location(div22, file$5, 424, 12, 12712);
+    			add_location(div22, file$5, 425, 12, 12825);
     			attr_dev(div23, "class", "form-row");
-    			add_location(div23, file$5, 423, 10, 12676);
+    			add_location(div23, file$5, 424, 10, 12789);
     			attr_dev(label7, "for", "");
-    			add_location(label7, file$5, 437, 14, 13155);
+    			add_location(label7, file$5, 438, 14, 13268);
     			attr_dev(input8, "type", "email");
     			attr_dev(input8, "class", "form-control");
     			attr_dev(input8, "name", "Name");
     			attr_dev(input8, "maxlength", "200");
-    			add_location(input8, file$5, 438, 14, 13211);
+    			add_location(input8, file$5, 439, 14, 13324);
     			attr_dev(div24, "class", "form-group col-md-12");
-    			add_location(div24, file$5, 436, 12, 13105);
+    			add_location(div24, file$5, 437, 12, 13218);
     			attr_dev(div25, "class", "form-row");
-    			add_location(div25, file$5, 435, 10, 13069);
+    			add_location(div25, file$5, 436, 10, 13182);
     			attr_dev(label8, "for", "");
-    			add_location(label8, file$5, 448, 14, 13531);
+    			add_location(label8, file$5, 449, 14, 13644);
     			option4.__value = "0";
     			option4.value = option4.__value;
     			option4.disabled = true;
     			option4.selected = true;
-    			add_location(option4, file$5, 452, 16, 13708);
+    			add_location(option4, file$5, 453, 16, 13821);
     			attr_dev(select2, "class", "form-control js-select2");
     			if (/*paciente*/ ctx[7].aseguradoraID === void 0) add_render_callback(() => /*select2_change_handler*/ ctx[39].call(select2));
-    			add_location(select2, file$5, 449, 14, 13580);
+    			add_location(select2, file$5, 450, 14, 13693);
     			attr_dev(div26, "class", "form-group col-md-12");
-    			add_location(div26, file$5, 447, 12, 13481);
+    			add_location(div26, file$5, 448, 12, 13594);
     			attr_dev(div27, "class", "form-row");
-    			add_location(div27, file$5, 446, 10, 13445);
+    			add_location(div27, file$5, 447, 10, 13558);
     			attr_dev(label9, "for", "");
-    			add_location(label9, file$5, 461, 14, 14066);
+    			add_location(label9, file$5, 462, 14, 14179);
     			attr_dev(input9, "type", "text");
     			attr_dev(input9, "class", "form-control");
     			attr_dev(input9, "name", "Name");
     			attr_dev(input9, "maxlength", "200");
-    			add_location(input9, file$5, 462, 14, 14114);
+    			add_location(input9, file$5, 463, 14, 14227);
     			attr_dev(div28, "class", "form-group col-md-12");
-    			add_location(div28, file$5, 460, 12, 14016);
+    			add_location(div28, file$5, 461, 12, 14129);
     			attr_dev(div29, "class", "form-row");
-    			add_location(div29, file$5, 459, 10, 13980);
+    			add_location(div29, file$5, 460, 10, 14093);
     			attr_dev(label10, "for", "");
-    			add_location(label10, file$5, 472, 14, 14438);
+    			add_location(label10, file$5, 473, 14, 14551);
     			option5.__value = "0";
     			option5.value = option5.__value;
     			option5.disabled = true;
     			option5.selected = true;
-    			add_location(option5, file$5, 474, 16, 14573);
+    			add_location(option5, file$5, 475, 16, 14686);
     			option6.__value = option6_value_value = "Rep. Dom.";
     			option6.value = option6.__value;
-    			add_location(option6, file$5, 475, 16, 14651);
+    			add_location(option6, file$5, 476, 16, 14764);
     			option7.__value = option7_value_value = "Haiti";
     			option7.value = option7.__value;
-    			add_location(option7, file$5, 476, 16, 14715);
+    			add_location(option7, file$5, 477, 16, 14828);
     			option8.__value = option8_value_value = "Venezuela";
     			option8.value = option8.__value;
-    			add_location(option8, file$5, 477, 16, 14771);
+    			add_location(option8, file$5, 478, 16, 14884);
     			attr_dev(select3, "class", "form-control js-select2");
     			if (/*paciente*/ ctx[7].nacionalidad === void 0) add_render_callback(() => /*select3_change_handler*/ ctx[41].call(select3));
-    			add_location(select3, file$5, 473, 14, 14480);
+    			add_location(select3, file$5, 474, 14, 14593);
     			attr_dev(div30, "class", "form-group col-md-12");
-    			add_location(div30, file$5, 471, 12, 14388);
+    			add_location(div30, file$5, 472, 12, 14501);
     			attr_dev(div31, "class", "form-row");
-    			add_location(div31, file$5, 470, 10, 14352);
+    			add_location(div31, file$5, 471, 10, 14465);
     			attr_dev(label11, "for", "");
-    			add_location(label11, file$5, 483, 14, 14978);
+    			add_location(label11, file$5, 484, 14, 15091);
     			option9.__value = "0";
     			option9.value = option9.__value;
     			option9.disabled = true;
     			option9.selected = true;
-    			add_location(option9, file$5, 487, 16, 15151);
+    			add_location(option9, file$5, 488, 16, 15264);
     			attr_dev(select4, "class", "form-control js-select2");
     			if (/*paciente*/ ctx[7].provinciaID === void 0) add_render_callback(() => /*select4_change_handler*/ ctx[42].call(select4));
-    			add_location(select4, file$5, 484, 14, 15025);
+    			add_location(select4, file$5, 485, 14, 15138);
     			attr_dev(div32, "class", "form-group col-md-12");
-    			add_location(div32, file$5, 482, 12, 14928);
+    			add_location(div32, file$5, 483, 12, 15041);
     			attr_dev(div33, "class", "form-row");
-    			add_location(div33, file$5, 481, 10, 14892);
+    			add_location(div33, file$5, 482, 10, 15005);
     			attr_dev(label12, "for", "");
-    			add_location(label12, file$5, 496, 14, 15507);
+    			add_location(label12, file$5, 497, 14, 15620);
     			attr_dev(textarea0, "class", "form-control");
     			attr_dev(textarea0, "rows", "2");
-    			add_location(textarea0, file$5, 497, 14, 15554);
+    			add_location(textarea0, file$5, 498, 14, 15667);
     			attr_dev(div34, "class", "form-group col-md-12");
-    			add_location(div34, file$5, 495, 12, 15457);
+    			add_location(div34, file$5, 496, 12, 15570);
     			attr_dev(div35, "class", "form-row");
-    			add_location(div35, file$5, 494, 10, 15421);
+    			add_location(div35, file$5, 495, 10, 15534);
     			attr_dev(label13, "for", "");
-    			add_location(label13, file$5, 505, 14, 15815);
+    			add_location(label13, file$5, 506, 14, 15928);
     			attr_dev(textarea1, "class", "form-control");
     			attr_dev(textarea1, "rows", "3");
-    			add_location(textarea1, file$5, 506, 14, 15866);
+    			add_location(textarea1, file$5, 507, 14, 15979);
     			attr_dev(div36, "class", "form-group col-md-12");
-    			add_location(div36, file$5, 504, 12, 15765);
+    			add_location(div36, file$5, 505, 12, 15878);
     			attr_dev(div37, "class", "form-row");
-    			add_location(div37, file$5, 503, 10, 15729);
-    			add_location(br, file$5, 513, 10, 16047);
+    			add_location(div37, file$5, 504, 10, 15842);
+    			add_location(br, file$5, 514, 10, 16160);
     			attr_dev(div38, "class", "modal-body svelte-178y1a3");
-    			add_location(div38, file$5, 386, 6, 11432);
+    			add_location(div38, file$5, 387, 6, 11545);
     			attr_dev(button2, "type", "button");
     			attr_dev(button2, "class", "btn btn-outline-danger");
     			attr_dev(button2, "data-dismiss", "modal");
-    			add_location(button2, file$5, 516, 10, 16117);
+    			add_location(button2, file$5, 517, 10, 16230);
     			attr_dev(i1, "class", "mdi mdi-content-save-outline");
-    			add_location(i1, file$5, 524, 12, 16372);
+    			add_location(i1, file$5, 525, 12, 16485);
     			attr_dev(button3, "type", "submit");
     			attr_dev(button3, "class", "btn btn-outline-primary");
-    			add_location(button3, file$5, 522, 10, 16283);
+    			add_location(button3, file$5, 523, 10, 16396);
     			attr_dev(div39, "class", "modal-footer");
-    			add_location(div39, file$5, 515, 8, 16079);
+    			add_location(div39, file$5, 516, 8, 16192);
     			attr_dev(div40, "class", "modal-content");
-    			add_location(div40, file$5, 372, 4, 11006);
+    			add_location(div40, file$5, 373, 4, 11119);
     			attr_dev(div41, "class", "modal-dialog svelte-178y1a3");
     			attr_dev(div41, "role", "document");
-    			add_location(div41, file$5, 371, 2, 10958);
+    			add_location(div41, file$5, 372, 2, 11071);
     			attr_dev(div42, "class", "modal fade modal-slide-right svelte-178y1a3");
     			attr_dev(div42, "id", "modalPaciente");
     			attr_dev(div42, "tabindex", "-1");
@@ -16462,65 +16787,65 @@ var app = (function (moment) {
     			set_style(div42, "display", "none");
     			set_style(div42, "padding-right", "16px");
     			attr_dev(div42, "aria-modal", "true");
-    			add_location(div42, file$5, 363, 0, 10745);
+    			add_location(div42, file$5, 364, 0, 10858);
     			attr_dev(form, "id", "frmPaciente");
-    			add_location(form, file$5, 362, 0, 10677);
+    			add_location(form, file$5, 363, 0, 10790);
     			attr_dev(i2, "class", "mdi mdi-calendar-plus");
-    			add_location(i2, file$5, 545, 10, 16905);
+    			add_location(i2, file$5, 546, 10, 17018);
     			attr_dev(h51, "class", "modal-title");
     			attr_dev(h51, "id", "modalCrearCitaLabel");
-    			add_location(h51, file$5, 544, 8, 16844);
+    			add_location(h51, file$5, 545, 8, 16957);
     			attr_dev(span1, "aria-hidden", "true");
-    			add_location(span1, file$5, 553, 10, 17131);
+    			add_location(span1, file$5, 554, 10, 17244);
     			attr_dev(button4, "type", "button");
     			attr_dev(button4, "class", "close");
     			attr_dev(button4, "data-dismiss", "modal");
     			attr_dev(button4, "aria-label", "Close");
-    			add_location(button4, file$5, 548, 8, 16999);
+    			add_location(button4, file$5, 549, 8, 17112);
     			attr_dev(div43, "class", "modal-header");
-    			add_location(div43, file$5, 543, 6, 16808);
+    			add_location(div43, file$5, 544, 6, 16921);
     			attr_dev(label14, "for", "inputAddress");
-    			add_location(label14, file$5, 561, 14, 17392);
+    			add_location(label14, file$5, 562, 14, 17505);
     			attr_dev(input10, "type", "date");
     			attr_dev(input10, "class", "form-control form-control-sm");
-    			add_location(input10, file$5, 562, 14, 17447);
+    			add_location(input10, file$5, 563, 14, 17560);
     			attr_dev(div44, "class", "form-group");
-    			add_location(div44, file$5, 560, 12, 17352);
+    			add_location(div44, file$5, 561, 12, 17465);
     			attr_dev(div45, "class", "col-lg-6");
-    			add_location(div45, file$5, 559, 10, 17316);
+    			add_location(div45, file$5, 560, 10, 17429);
     			attr_dev(label15, "class", "font-secondary");
-    			add_location(label15, file$5, 571, 14, 17759);
+    			add_location(label15, file$5, 572, 14, 17872);
     			option10.__value = option10_value_value = 0;
     			option10.value = option10.__value;
     			option10.disabled = true;
-    			add_location(option10, file$5, 576, 16, 18004);
+    			add_location(option10, file$5, 578, 16, 18172);
     			option11.__value = option11_value_value = 1;
     			option11.value = option11.__value;
-    			add_location(option11, file$5, 577, 16, 18073);
+    			add_location(option11, file$5, 579, 16, 18241);
     			option12.__value = option12_value_value = 2;
     			option12.value = option12.__value;
-    			add_location(option12, file$5, 578, 16, 18126);
+    			add_location(option12, file$5, 580, 16, 18294);
     			attr_dev(select5, "class", "form-control form-control-sm js-select2");
     			if (/*tandaID*/ ctx[6] === void 0) add_render_callback(() => /*select5_change_handler*/ ctx[46].call(select5));
-    			add_location(select5, file$5, 572, 14, 17818);
+    			add_location(select5, file$5, 574, 14, 17986);
     			attr_dev(div46, "class", "form-group ");
-    			add_location(div46, file$5, 570, 12, 17718);
+    			add_location(div46, file$5, 571, 12, 17831);
     			attr_dev(div47, "class", "col-lg-6");
-    			add_location(div47, file$5, 569, 10, 17682);
+    			add_location(div47, file$5, 570, 10, 17795);
     			attr_dev(div48, "class", "row");
-    			add_location(div48, file$5, 558, 8, 17287);
+    			add_location(div48, file$5, 559, 8, 17400);
     			attr_dev(div49, "class", "list-group list");
-    			add_location(div49, file$5, 583, 8, 18252);
+    			add_location(div49, file$5, 585, 8, 18420);
     			attr_dev(div50, "class", "modal-body svelte-178y1a3");
     			set_style(div50, "height", "100%");
     			set_style(div50, "top", "0");
     			set_style(div50, "overflow", "auto");
-    			add_location(div50, file$5, 556, 6, 17205);
+    			add_location(div50, file$5, 557, 6, 17318);
     			attr_dev(div51, "class", "modal-content");
-    			add_location(div51, file$5, 542, 4, 16773);
+    			add_location(div51, file$5, 543, 4, 16886);
     			attr_dev(div52, "class", "modal-dialog svelte-178y1a3");
     			attr_dev(div52, "role", "document");
-    			add_location(div52, file$5, 541, 2, 16725);
+    			add_location(div52, file$5, 542, 2, 16838);
     			attr_dev(div53, "class", "modal fade modal-slide-right svelte-178y1a3");
     			attr_dev(div53, "id", "modalCrearCita");
     			attr_dev(div53, "tabindex", "-1");
@@ -16529,63 +16854,63 @@ var app = (function (moment) {
     			set_style(div53, "display", "none");
     			set_style(div53, "padding-right", "16px");
     			attr_dev(div53, "aria-modal", "true");
-    			add_location(div53, file$5, 533, 0, 16510);
+    			add_location(div53, file$5, 534, 0, 16623);
     			attr_dev(i3, "class", "mdi mdi-calendar-plus");
-    			add_location(i3, file$5, 623, 10, 19475);
+    			add_location(i3, file$5, 625, 10, 19643);
     			attr_dev(h52, "class", "modal-title");
     			attr_dev(h52, "id", "modalNuevaCitaLabel");
-    			add_location(h52, file$5, 622, 8, 19414);
+    			add_location(h52, file$5, 624, 8, 19582);
     			attr_dev(span2, "aria-hidden", "true");
-    			add_location(span2, file$5, 631, 10, 19695);
+    			add_location(span2, file$5, 633, 10, 19863);
     			attr_dev(button5, "type", "button");
     			attr_dev(button5, "class", "close");
     			attr_dev(button5, "data-dismiss", "modal");
     			attr_dev(button5, "aria-label", "Close");
-    			add_location(button5, file$5, 626, 8, 19563);
+    			add_location(button5, file$5, 628, 8, 19731);
     			attr_dev(div54, "class", "modal-header");
-    			add_location(div54, file$5, 621, 6, 19378);
+    			add_location(div54, file$5, 623, 6, 19546);
     			attr_dev(label16, "for", "inputAddress");
-    			add_location(label16, file$5, 639, 14, 19956);
+    			add_location(label16, file$5, 641, 14, 20124);
     			attr_dev(input11, "type", "date");
     			attr_dev(input11, "class", "form-control form-control-sm");
-    			add_location(input11, file$5, 640, 14, 20011);
+    			add_location(input11, file$5, 642, 14, 20179);
     			attr_dev(div55, "class", "form-group");
-    			add_location(div55, file$5, 638, 12, 19916);
+    			add_location(div55, file$5, 640, 12, 20084);
     			attr_dev(div56, "class", "col-lg-6");
-    			add_location(div56, file$5, 637, 10, 19880);
+    			add_location(div56, file$5, 639, 10, 20048);
     			attr_dev(label17, "class", "font-secondary");
-    			add_location(label17, file$5, 649, 14, 20323);
+    			add_location(label17, file$5, 651, 14, 20491);
     			option13.__value = option13_value_value = 0;
     			option13.value = option13.__value;
     			option13.disabled = true;
-    			add_location(option13, file$5, 654, 16, 20568);
+    			add_location(option13, file$5, 657, 16, 20791);
     			option14.__value = option14_value_value = 1;
     			option14.value = option14.__value;
-    			add_location(option14, file$5, 655, 16, 20637);
+    			add_location(option14, file$5, 658, 16, 20860);
     			option15.__value = option15_value_value = 2;
     			option15.value = option15.__value;
-    			add_location(option15, file$5, 656, 16, 20690);
+    			add_location(option15, file$5, 659, 16, 20913);
     			attr_dev(select6, "class", "form-control form-control-sm js-select2");
     			if (/*tandaID*/ ctx[6] === void 0) add_render_callback(() => /*select6_change_handler*/ ctx[48].call(select6));
-    			add_location(select6, file$5, 650, 14, 20382);
+    			add_location(select6, file$5, 653, 14, 20605);
     			attr_dev(div57, "class", "form-group ");
-    			add_location(div57, file$5, 648, 12, 20282);
+    			add_location(div57, file$5, 650, 12, 20450);
     			attr_dev(div58, "class", "col-lg-6");
-    			add_location(div58, file$5, 647, 10, 20246);
+    			add_location(div58, file$5, 649, 10, 20414);
     			attr_dev(div59, "class", "row");
-    			add_location(div59, file$5, 636, 8, 19851);
+    			add_location(div59, file$5, 638, 8, 20019);
     			attr_dev(div60, "class", "list-group list");
-    			add_location(div60, file$5, 661, 8, 20816);
+    			add_location(div60, file$5, 664, 8, 21039);
     			attr_dev(div61, "class", "modal-body svelte-178y1a3");
     			set_style(div61, "height", "100%");
     			set_style(div61, "top", "0");
     			set_style(div61, "overflow", "auto");
-    			add_location(div61, file$5, 634, 6, 19769);
+    			add_location(div61, file$5, 636, 6, 19937);
     			attr_dev(div62, "class", "modal-content");
-    			add_location(div62, file$5, 620, 4, 19343);
+    			add_location(div62, file$5, 622, 4, 19511);
     			attr_dev(div63, "class", "modal-dialog svelte-178y1a3");
     			attr_dev(div63, "role", "document");
-    			add_location(div63, file$5, 619, 2, 19295);
+    			add_location(div63, file$5, 621, 2, 19463);
     			attr_dev(div64, "class", "modal fade modal-slide-right svelte-178y1a3");
     			attr_dev(div64, "id", "modalNuevaCita");
     			attr_dev(div64, "tabindex", "-1");
@@ -16594,7 +16919,7 @@ var app = (function (moment) {
     			set_style(div64, "display", "none");
     			set_style(div64, "padding-right", "16px");
     			attr_dev(div64, "aria-modal", "true");
-    			add_location(div64, file$5, 611, 0, 19080);
+    			add_location(div64, file$5, 613, 0, 19248);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -17391,7 +17716,7 @@ var app = (function (moment) {
     		cita = item;
 
     		if (fecha == "" || tandaID <= 0) {
-    			$$invalidate(5, fecha = moment().format("YYYY-MM-DD"));
+    			$$invalidate(5, fecha = moment().format("YYYY-MM-DD")); // asignando fecha de hoy con un formato especifico
     			$$invalidate(6, tandaID = 1);
     		}
 
@@ -24014,7 +24339,7 @@ var app = (function (moment) {
 
     /* src\Pages\Usuario\Index.svelte generated by Svelte v3.23.0 */
 
-    const { Object: Object_1$2, console: console_1$8 } = globals;
+    const { console: console_1$8 } = globals;
     const file$b = "src\\Pages\\Usuario\\Index.svelte";
 
     function get_each_context$6(ctx, list, i) {
@@ -24055,7 +24380,7 @@ var app = (function (moment) {
     	return child_ctx;
     }
 
-    // (307:30) {#if i.isDoctor}
+    // (309:30) {#if i.isDoctor}
     function create_if_block_3$2(ctx) {
     	let a;
     	let i;
@@ -24066,16 +24391,16 @@ var app = (function (moment) {
     			a = element("a");
     			i = element("i");
     			attr_dev(i, "class", " mdi-24px mdi mdi-doctor");
-    			add_location(i, file$b, 308, 32, 8323);
+    			add_location(i, file$b, 310, 32, 8489);
     			attr_dev(a, "href", a_href_value = "#/Medico/Perfil/" + /*i*/ ctx[57].id);
-    			add_location(a, file$b, 307, 30, 8256);
+    			add_location(a, file$b, 309, 30, 8422);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, a, anchor);
     			append_dev(a, i);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*list*/ 8 && a_href_value !== (a_href_value = "#/Medico/Perfil/" + /*i*/ ctx[57].id)) {
+    			if (dirty[0] & /*usuarios*/ 8 && a_href_value !== (a_href_value = "#/Medico/Perfil/" + /*i*/ ctx[57].id)) {
     				attr_dev(a, "href", a_href_value);
     			}
     		},
@@ -24088,14 +24413,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_3$2.name,
     		type: "if",
-    		source: "(307:30) {#if i.isDoctor}",
+    		source: "(309:30) {#if i.isDoctor}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (294:22) {#each list as i}
+    // (296:22) {#each usuarios as i}
     function create_each_block_5$2(ctx) {
     	let tr;
     	let td0;
@@ -24160,16 +24485,16 @@ var app = (function (moment) {
     			i1 = element("i");
     			t8 = space();
     			attr_dev(span0, "class", "avatar-title rounded-circle ");
-    			add_location(span0, file$b, 298, 32, 7787);
+    			add_location(span0, file$b, 300, 32, 7953);
     			attr_dev(div0, "class", "avatar avatar-sm");
-    			add_location(div0, file$b, 297, 30, 7723);
+    			add_location(div0, file$b, 299, 30, 7889);
     			attr_dev(div1, "class", "avatar avatar-sm mr-2 d-block-sm");
-    			add_location(div1, file$b, 296, 28, 7645);
-    			add_location(span1, file$b, 301, 28, 7952);
-    			add_location(td0, file$b, 295, 26, 7611);
-    			add_location(td1, file$b, 303, 26, 8034);
+    			add_location(div1, file$b, 298, 28, 7811);
+    			add_location(span1, file$b, 303, 28, 8118);
+    			add_location(td0, file$b, 297, 26, 7777);
+    			add_location(td1, file$b, 305, 26, 8200);
     			attr_dev(i0, "class", " mdi-24px mdi mdi-circle-edit-outline");
-    			add_location(i0, file$b, 319, 32, 8947);
+    			add_location(i0, file$b, 321, 32, 9113);
     			attr_dev(a0, "href", "#!");
     			attr_dev(a0, "data-toggle", "modal");
     			set_style(a0, "cursor", "pointer");
@@ -24177,22 +24502,22 @@ var app = (function (moment) {
     			attr_dev(a0, "data-target", "#modalUsuario");
     			attr_dev(a0, "data-original-title", "Modificar usuario");
     			attr_dev(a0, "class", "icon-table hover-cursor");
-    			add_location(a0, file$b, 311, 30, 8466);
+    			add_location(a0, file$b, 313, 30, 8632);
     			attr_dev(i1, "class", " mdi-24px mdi mdi-security");
-    			add_location(i1, file$b, 328, 32, 9459);
+    			add_location(i1, file$b, 330, 32, 9625);
     			attr_dev(a1, "href", "#!");
     			attr_dev(a1, "data-toggle", "modal");
     			attr_dev(a1, "data-target", "#modalRoles");
     			attr_dev(a1, "data-placement", "bottom");
     			attr_dev(a1, "title", "Asignar Roles");
     			attr_dev(a1, "class", "icon-rol svelte-lim7lj");
-    			add_location(a1, file$b, 321, 30, 9066);
+    			add_location(a1, file$b, 323, 30, 9232);
     			set_style(div2, "width", "150px");
     			set_style(div2, "text-align", "right");
     			attr_dev(div2, "class", "ml-auto");
-    			add_location(div2, file$b, 305, 28, 8114);
-    			add_location(td2, file$b, 304, 26, 8080);
-    			add_location(tr, file$b, 294, 24, 7579);
+    			add_location(div2, file$b, 307, 28, 8280);
+    			add_location(td2, file$b, 306, 26, 8246);
+    			add_location(tr, file$b, 296, 24, 7745);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -24230,9 +24555,9 @@ var app = (function (moment) {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty[0] & /*list*/ 8 && t0_value !== (t0_value = /*i*/ ctx[57].name[0] + "")) set_data_dev(t0, t0_value);
-    			if (dirty[0] & /*list*/ 8 && t2_value !== (t2_value = /*i*/ ctx[57].name + "")) set_data_dev(t2, t2_value);
-    			if (dirty[0] & /*list*/ 8 && t4_value !== (t4_value = /*i*/ ctx[57].email + "")) set_data_dev(t4, t4_value);
+    			if (dirty[0] & /*usuarios*/ 8 && t0_value !== (t0_value = /*i*/ ctx[57].name[0] + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*usuarios*/ 8 && t2_value !== (t2_value = /*i*/ ctx[57].name + "")) set_data_dev(t2, t2_value);
+    			if (dirty[0] & /*usuarios*/ 8 && t4_value !== (t4_value = /*i*/ ctx[57].email + "")) set_data_dev(t4, t4_value);
 
     			if (/*i*/ ctx[57].isDoctor) {
     				if (if_block) {
@@ -24259,14 +24584,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_5$2.name,
     		type: "each",
-    		source: "(294:22) {#each list as i}",
+    		source: "(296:22) {#each usuarios as i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (383:18) {#each prefijos as item}
+    // (385:18) {#each prefijos as item}
     function create_each_block_4$4(ctx) {
     	let option;
     	let t_value = /*item*/ ctx[46].name + "";
@@ -24279,7 +24604,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*item*/ ctx[46].value;
     			option.value = option.__value;
-    			add_location(option, file$b, 383, 20, 11183);
+    			add_location(option, file$b, 385, 20, 11353);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -24295,14 +24620,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_4$4.name,
     		type: "each",
-    		source: "(383:18) {#each prefijos as item}",
+    		source: "(385:18) {#each prefijos as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (427:12) {#if userID == ""}
+    // (429:12) {#if userID == ""}
     function create_if_block_2$2(ctx) {
     	let div1;
     	let div0;
@@ -24321,17 +24646,17 @@ var app = (function (moment) {
     			t1 = space();
     			input = element("input");
     			attr_dev(label, "for", "");
-    			add_location(label, file$b, 429, 16, 12832);
+    			add_location(label, file$b, 431, 16, 13010);
     			attr_dev(input, "type", "password");
     			attr_dev(input, "class", "form-control");
     			input.required = true;
     			attr_dev(input, "name", "PasswordHash");
     			attr_dev(input, "maxlength", "50");
-    			add_location(input, file$b, 430, 16, 12882);
+    			add_location(input, file$b, 432, 16, 13060);
     			attr_dev(div0, "class", "form-group col-md-12");
-    			add_location(div0, file$b, 428, 14, 12780);
+    			add_location(div0, file$b, 430, 14, 12958);
     			attr_dev(div1, "class", "form-row");
-    			add_location(div1, file$b, 427, 12, 12742);
+    			add_location(div1, file$b, 429, 12, 12920);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div1, anchor);
@@ -24339,7 +24664,7 @@ var app = (function (moment) {
     			append_dev(div0, label);
     			append_dev(div0, t1);
     			append_dev(div0, input);
-    			set_input_value(input, /*obj*/ ctx[4].passwordHash);
+    			set_input_value(input, /*usuario*/ ctx[4].passwordHash);
 
     			if (!mounted) {
     				dispose = listen_dev(input, "input", /*input_input_handler*/ ctx[36]);
@@ -24347,8 +24672,8 @@ var app = (function (moment) {
     			}
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*obj, prefijos*/ 1040 && input.value !== /*obj*/ ctx[4].passwordHash) {
-    				set_input_value(input, /*obj*/ ctx[4].passwordHash);
+    			if (dirty[0] & /*usuario, prefijos*/ 1040 && input.value !== /*usuario*/ ctx[4].passwordHash) {
+    				set_input_value(input, /*usuario*/ ctx[4].passwordHash);
     			}
     		},
     		d: function destroy(detaching) {
@@ -24362,14 +24687,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_2$2.name,
     		type: "if",
-    		source: "(427:12) {#if userID == \\\"\\\"}",
+    		source: "(429:12) {#if userID == \\\"\\\"}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (467:14) {#if obj.isDoctor}
+    // (469:14) {#if usuario.isDoctor}
     function create_if_block$5(ctx) {
     	let div0;
     	let label0;
@@ -24419,34 +24744,34 @@ var app = (function (moment) {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			attr_dev(label0, "for", "");
-    			add_location(label0, file$b, 468, 18, 14313);
+    			add_location(label0, file$b, 470, 18, 14507);
     			attr_dev(input, "type", "text");
     			attr_dev(input, "class", "form-control");
     			input.required = true;
-    			add_location(input, file$b, 469, 18, 14364);
+    			add_location(input, file$b, 471, 18, 14558);
     			attr_dev(div0, "class", "form-group col-md-12");
-    			add_location(div0, file$b, 467, 16, 14259);
+    			add_location(div0, file$b, 469, 16, 14453);
     			attr_dev(label1, "for", "");
-    			add_location(label1, file$b, 475, 18, 14600);
+    			add_location(label1, file$b, 477, 18, 14798);
     			option.__value = "";
     			option.value = option.__value;
     			option.disabled = true;
     			option.selected = true;
-    			add_location(option, file$b, 478, 20, 14769);
+    			add_location(option, file$b, 480, 20, 14971);
     			attr_dev(select, "class", "form-control");
     			attr_dev(select, "name", "perfil");
     			select.required = true;
-    			if (/*obj*/ ctx[4].perfilID === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[40].call(select));
-    			add_location(select, file$b, 476, 18, 14648);
+    			if (/*usuario*/ ctx[4].perfilID === void 0) add_render_callback(() => /*select_change_handler_1*/ ctx[40].call(select));
+    			add_location(select, file$b, 478, 18, 14846);
     			attr_dev(div1, "class", "form-group col-md-12");
-    			add_location(div1, file$b, 474, 16, 14546);
+    			add_location(div1, file$b, 476, 16, 14744);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
     			append_dev(div0, label0);
     			append_dev(div0, t1);
     			append_dev(div0, input);
-    			set_input_value(input, /*obj*/ ctx[4].ubicacion);
+    			set_input_value(input, /*usuario*/ ctx[4].ubicacion);
     			insert_dev(target, t2, anchor);
     			insert_dev(target, div1, anchor);
     			append_dev(div1, label1);
@@ -24458,7 +24783,7 @@ var app = (function (moment) {
     				each_blocks[i].m(select, null);
     			}
 
-    			select_option(select, /*obj*/ ctx[4].perfilID);
+    			select_option(select, /*usuario*/ ctx[4].perfilID);
     			insert_dev(target, t6, anchor);
     			if (if_block) if_block.m(target, anchor);
     			insert_dev(target, if_block_anchor, anchor);
@@ -24473,8 +24798,8 @@ var app = (function (moment) {
     			}
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*obj, prefijos*/ 1040 && input.value !== /*obj*/ ctx[4].ubicacion) {
-    				set_input_value(input, /*obj*/ ctx[4].ubicacion);
+    			if (dirty[0] & /*usuario, prefijos*/ 1040 && input.value !== /*usuario*/ ctx[4].ubicacion) {
+    				set_input_value(input, /*usuario*/ ctx[4].ubicacion);
     			}
 
     			if (dirty[0] & /*perfiles*/ 4) {
@@ -24501,8 +24826,8 @@ var app = (function (moment) {
     				each_blocks.length = each_value_3.length;
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 1040) {
-    				select_option(select, /*obj*/ ctx[4].perfilID);
+    			if (dirty[0] & /*usuario, prefijos*/ 1040) {
+    				select_option(select, /*usuario*/ ctx[4].perfilID);
     			}
 
     			if (/*userID*/ ctx[5] != "" && /*userID*/ ctx[5] != undefined) {
@@ -24535,14 +24860,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block$5.name,
     		type: "if",
-    		source: "(467:14) {#if obj.isDoctor}",
+    		source: "(469:14) {#if usuario.isDoctor}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (480:20) {#each perfiles as item}
+    // (482:20) {#each perfiles as item}
     function create_each_block_3$6(ctx) {
     	let option;
     	let t_value = /*item*/ ctx[46].nombre + "";
@@ -24555,7 +24880,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*item*/ ctx[46].id;
     			option.value = option.__value;
-    			add_location(option, file$b, 480, 22, 14898);
+    			add_location(option, file$b, 482, 22, 15100);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -24579,14 +24904,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_3$6.name,
     		type: "each",
-    		source: "(480:20) {#each perfiles as item}",
+    		source: "(482:20) {#each perfiles as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (485:16) {#if userID != "" && userID != undefined}
+    // (487:16) {#if userID != "" && userID != undefined}
     function create_if_block_1$3(ctx) {
     	let div0;
     	let label;
@@ -24635,19 +24960,19 @@ var app = (function (moment) {
     			}
 
     			attr_dev(label, "for", "");
-    			add_location(label, file$b, 486, 18, 15157);
+    			add_location(label, file$b, 488, 18, 15359);
     			option.__value = "";
     			option.value = option.__value;
     			option.disabled = true;
-    			add_location(option, file$b, 493, 20, 15475);
+    			add_location(option, file$b, 495, 20, 15677);
     			attr_dev(select, "class", "form-control");
     			attr_dev(select, "name", "asistentes");
     			if (/*asistenteID*/ ctx[8] === void 0) add_render_callback(() => /*select_change_handler_2*/ ctx[41].call(select));
-    			add_location(select, file$b, 488, 18, 15268);
+    			add_location(select, file$b, 490, 18, 15470);
     			attr_dev(div0, "class", "form-group col-md-12");
-    			add_location(div0, file$b, 485, 16, 15103);
+    			add_location(div0, file$b, 487, 16, 15305);
     			attr_dev(div1, "class", "agregados col-lg-12");
-    			add_location(div1, file$b, 499, 16, 15735);
+    			add_location(div1, file$b, 501, 16, 15937);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -24745,14 +25070,14 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_1$3.name,
     		type: "if",
-    		source: "(485:16) {#if userID != \\\"\\\" && userID != undefined}",
+    		source: "(487:16) {#if userID != \\\"\\\" && userID != undefined}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (495:20) {#each asistentes as item}
+    // (497:20) {#each asistentes as item}
     function create_each_block_2$6(ctx) {
     	let option;
     	let t_value = /*item*/ ctx[46].name + "";
@@ -24765,7 +25090,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			option.__value = option_value_value = /*item*/ ctx[46].id;
     			option.value = option.__value;
-    			add_location(option, file$b, 495, 20, 15591);
+    			add_location(option, file$b, 497, 20, 15793);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -24789,14 +25114,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_2$6.name,
     		type: "each",
-    		source: "(495:20) {#each asistentes as item}",
+    		source: "(497:20) {#each asistentes as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (501:18) {#each asistentesAsignado as item}
+    // (503:18) {#each asistentesAsignado as item}
     function create_each_block_1$6(ctx) {
     	let button;
     	let t_value = /*item*/ ctx[46].nombreAsistente + "";
@@ -24814,7 +25139,7 @@ var app = (function (moment) {
     			t = text(t_value);
     			attr_dev(button, "type", "button");
     			attr_dev(button, "class", "btn btn-primary btn-block");
-    			add_location(button, file$b, 501, 18, 15842);
+    			add_location(button, file$b, 503, 18, 16044);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -24840,14 +25165,14 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_1$6.name,
     		type: "each",
-    		source: "(501:18) {#each asistentesAsignado as item}",
+    		source: "(503:18) {#each asistentesAsignado as item}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (608:12) {#each filterRoles as item}
+    // (610:12) {#each filterRoles as item}
     function create_each_block$6(ctx) {
     	let div;
     	let label;
@@ -24883,19 +25208,19 @@ var app = (function (moment) {
     			span1 = element("span");
     			t3 = space();
     			attr_dev(span0, "class", "cstm-switch-description mr-auto bd-highlight");
-    			add_location(span0, file$b, 610, 16, 19895);
+    			add_location(span0, file$b, 612, 16, 20097);
     			attr_dev(input, "type", "checkbox");
     			attr_dev(input, "name", "option");
     			input.__value = input_value_value = /*item*/ ctx[46].id;
     			input.value = input.__value;
     			attr_dev(input, "class", "cstm-switch-input");
-    			add_location(input, file$b, 613, 16, 20035);
+    			add_location(input, file$b, 615, 16, 20237);
     			attr_dev(span1, "class", "cstm-switch-indicator bg-success bd-highlight");
-    			add_location(span1, file$b, 620, 16, 20329);
+    			add_location(span1, file$b, 622, 16, 20531);
     			attr_dev(label, "class", "cstm-switch d-flex bd-highlight");
-    			add_location(label, file$b, 609, 14, 19830);
+    			add_location(label, file$b, 611, 14, 20032);
     			attr_dev(div, "class", "lista-rol m-b-10");
-    			add_location(div, file$b, 608, 12, 19784);
+    			add_location(div, file$b, 610, 12, 19986);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -24943,7 +25268,7 @@ var app = (function (moment) {
     		block,
     		id: create_each_block$6.name,
     		type: "each",
-    		source: "(608:12) {#each filterRoles as item}",
+    		source: "(610:12) {#each filterRoles as item}",
     		ctx
     	});
 
@@ -25077,7 +25402,7 @@ var app = (function (moment) {
     	let dispose;
     	const aside = new Aside({ $$inline: true });
     	const header = new Header({ $$inline: true });
-    	let each_value_5 = /*list*/ ctx[3];
+    	let each_value_5 = /*usuarios*/ ctx[3];
     	validate_each_argument(each_value_5);
     	let each_blocks_2 = [];
 
@@ -25094,7 +25419,7 @@ var app = (function (moment) {
     	}
 
     	let if_block0 = /*userID*/ ctx[5] == "" && create_if_block_2$2(ctx);
-    	let if_block1 = /*obj*/ ctx[4].isDoctor && create_if_block$5(ctx);
+    	let if_block1 = /*usuario*/ ctx[4].isDoctor && create_if_block$5(ctx);
     	let each_value = /*filterRoles*/ ctx[9];
     	validate_each_argument(each_value);
     	let each_blocks = [];
@@ -25265,115 +25590,115 @@ var app = (function (moment) {
     			attr_dev(input0, "type", "search");
     			attr_dev(input0, "class", "form-control form-control-appended");
     			attr_dev(input0, "placeholder", "Buscar");
-    			add_location(input0, file$b, 251, 16, 6054);
+    			add_location(input0, file$b, 253, 16, 6208);
     			attr_dev(span0, "class", "mdi mdi-magnify");
-    			add_location(span0, file$b, 259, 20, 6398);
+    			add_location(span0, file$b, 261, 20, 6560);
     			attr_dev(div0, "class", "input-group-text");
-    			add_location(div0, file$b, 258, 18, 6346);
+    			add_location(div0, file$b, 260, 18, 6508);
     			attr_dev(div1, "class", "input-group-append");
-    			add_location(div1, file$b, 257, 16, 6294);
+    			add_location(div1, file$b, 259, 16, 6456);
     			attr_dev(div2, "class", "input-group input-group-flush mb-3");
-    			add_location(div2, file$b, 250, 14, 5988);
+    			add_location(div2, file$b, 252, 14, 6142);
     			attr_dev(div3, "class", "col-md-5");
-    			add_location(div3, file$b, 249, 12, 5950);
+    			add_location(div3, file$b, 251, 12, 6104);
     			attr_dev(i, "class", "mdi mdi-account-plus");
-    			add_location(i, file$b, 268, 14, 6723);
+    			add_location(i, file$b, 270, 14, 6885);
     			attr_dev(button0, "class", "btn m-b-30 ml-2 mr-2 ml-3 btn-primary");
     			attr_dev(button0, "data-toggle", "modal");
     			attr_dev(button0, "data-target", "#modalUsuario");
-    			add_location(button0, file$b, 264, 12, 6536);
+    			add_location(button0, file$b, 266, 12, 6698);
     			attr_dev(div4, "class", "row");
-    			add_location(div4, file$b, 248, 10, 5919);
+    			add_location(div4, file$b, 250, 10, 6073);
     			attr_dev(div5, "class", "mt-4 col-md-12");
-    			add_location(div5, file$b, 247, 8, 5879);
+    			add_location(div5, file$b, 249, 8, 6033);
     			attr_dev(h50, "class", "m-b-0");
-    			add_location(h50, file$b, 277, 14, 6970);
+    			add_location(h50, file$b, 279, 14, 7132);
     			attr_dev(div6, "class", "card-header");
-    			add_location(div6, file$b, 276, 12, 6929);
-    			add_location(th0, file$b, 286, 24, 7284);
-    			add_location(th1, file$b, 288, 24, 7377);
-    			add_location(th2, file$b, 289, 24, 7418);
-    			add_location(tr, file$b, 285, 22, 7254);
-    			add_location(thead, file$b, 284, 20, 7223);
-    			add_location(tbody, file$b, 292, 20, 7505);
+    			add_location(div6, file$b, 278, 12, 7091);
+    			add_location(th0, file$b, 288, 24, 7446);
+    			add_location(th1, file$b, 290, 24, 7539);
+    			add_location(th2, file$b, 291, 24, 7580);
+    			add_location(tr, file$b, 287, 22, 7416);
+    			add_location(thead, file$b, 286, 20, 7385);
+    			add_location(tbody, file$b, 294, 20, 7667);
     			attr_dev(table, "class", "table align-td-middle");
-    			add_location(table, file$b, 283, 18, 7164);
+    			add_location(table, file$b, 285, 18, 7326);
     			attr_dev(div7, "class", "table-responsive");
-    			add_location(div7, file$b, 282, 16, 7114);
+    			add_location(div7, file$b, 284, 16, 7276);
     			attr_dev(div8, "class", "m-b-30");
-    			add_location(div8, file$b, 281, 14, 7076);
+    			add_location(div8, file$b, 283, 14, 7238);
     			attr_dev(div9, "class", "card-body");
-    			add_location(div9, file$b, 280, 12, 7037);
+    			add_location(div9, file$b, 282, 12, 7199);
     			attr_dev(div10, "class", "card m-b-30");
-    			add_location(div10, file$b, 275, 10, 6890);
+    			add_location(div10, file$b, 277, 10, 7052);
     			attr_dev(div11, "class", "col-lg-12");
-    			add_location(div11, file$b, 274, 8, 6855);
+    			add_location(div11, file$b, 276, 8, 7017);
     			attr_dev(div12, "class", "row");
-    			add_location(div12, file$b, 245, 6, 5850);
+    			add_location(div12, file$b, 247, 6, 6004);
     			attr_dev(div13, "class", "container");
-    			add_location(div13, file$b, 244, 4, 5819);
+    			add_location(div13, file$b, 246, 4, 5973);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$b, 243, 2, 5782);
+    			add_location(section, file$b, 245, 2, 5936);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$b, 241, 0, 5739);
+    			add_location(main, file$b, 243, 0, 5893);
     			attr_dev(h51, "class", "modal-title");
     			attr_dev(h51, "id", "modalUsuarioLabel");
-    			add_location(h51, file$b, 362, 10, 10325);
+    			add_location(h51, file$b, 364, 10, 10491);
     			attr_dev(span1, "aria-hidden", "true");
-    			add_location(span1, file$b, 368, 12, 10538);
+    			add_location(span1, file$b, 370, 12, 10704);
     			attr_dev(button1, "type", "button");
     			attr_dev(button1, "class", "close");
     			attr_dev(button1, "data-dismiss", "modal");
     			attr_dev(button1, "aria-label", "Close");
-    			add_location(button1, file$b, 363, 10, 10396);
+    			add_location(button1, file$b, 365, 10, 10562);
     			attr_dev(div14, "class", "modal-header");
-    			add_location(div14, file$b, 361, 8, 10287);
+    			add_location(div14, file$b, 363, 8, 10453);
     			attr_dev(input1, "type", "hidden");
     			attr_dev(input1, "name", "IdUser");
     			input1.value = "0";
-    			add_location(input1, file$b, 373, 12, 10715);
+    			add_location(input1, file$b, 375, 12, 10881);
     			attr_dev(label0, "for", "");
-    			add_location(label0, file$b, 376, 16, 10866);
+    			add_location(label0, file$b, 378, 16, 11032);
     			option.__value = "";
     			option.value = option.__value;
     			option.disabled = true;
-    			add_location(option, file$b, 381, 18, 11067);
+    			add_location(option, file$b, 383, 18, 11237);
     			attr_dev(select, "class", "form-control");
     			attr_dev(select, "name", "prefijo");
     			select.required = true;
-    			if (/*obj*/ ctx[4].prefix === void 0) add_render_callback(() => /*select_change_handler*/ ctx[33].call(select));
-    			add_location(select, file$b, 377, 16, 10913);
+    			if (/*usuario*/ ctx[4].prefix === void 0) add_render_callback(() => /*select_change_handler*/ ctx[33].call(select));
+    			add_location(select, file$b, 379, 16, 11079);
     			attr_dev(div15, "class", "form-group col-md-12");
-    			add_location(div15, file$b, 375, 14, 10814);
+    			add_location(div15, file$b, 377, 14, 10980);
     			attr_dev(div16, "class", "form-row");
-    			add_location(div16, file$b, 374, 12, 10776);
+    			add_location(div16, file$b, 376, 12, 10942);
     			attr_dev(label1, "for", "");
-    			add_location(label1, file$b, 390, 16, 11430);
+    			add_location(label1, file$b, 392, 16, 11600);
     			attr_dev(input2, "type", "name");
     			attr_dev(input2, "class", "form-control");
     			attr_dev(input2, "placeholder", "Ing. John Doe");
     			attr_dev(input2, "name", "Name");
     			attr_dev(input2, "maxlength", "200");
     			input2.required = true;
-    			add_location(input2, file$b, 391, 16, 11485);
+    			add_location(input2, file$b, 393, 16, 11655);
     			attr_dev(div17, "class", "form-group col-md-12");
-    			add_location(div17, file$b, 389, 14, 11378);
+    			add_location(div17, file$b, 391, 14, 11548);
     			attr_dev(div18, "class", "form-row");
-    			add_location(div18, file$b, 388, 12, 11340);
+    			add_location(div18, file$b, 390, 12, 11510);
     			attr_dev(label2, "for", "");
-    			add_location(label2, file$b, 403, 16, 11916);
+    			add_location(label2, file$b, 405, 16, 12090);
     			attr_dev(input3, "type", "email");
     			attr_dev(input3, "class", "form-control");
     			attr_dev(input3, "autocomplete", "off");
     			attr_dev(input3, "name", "UserName");
     			attr_dev(input3, "id", "");
     			attr_dev(input3, "maxlength", "100");
-    			add_location(input3, file$b, 404, 16, 11963);
+    			add_location(input3, file$b, 406, 16, 12137);
     			attr_dev(div19, "class", "form-group col-md-12");
     			set_style(div19, "display", "none");
-    			add_location(div19, file$b, 402, 14, 11841);
+    			add_location(div19, file$b, 404, 14, 12015);
     			attr_dev(label3, "for", "");
-    			add_location(label3, file$b, 413, 16, 12267);
+    			add_location(label3, file$b, 415, 16, 12441);
     			attr_dev(input4, "type", "email");
     			input4.required = true;
     			attr_dev(input4, "class", "form-control");
@@ -25382,13 +25707,13 @@ var app = (function (moment) {
     			attr_dev(input4, "name", "Email");
     			attr_dev(input4, "id", "txtCorreo");
     			attr_dev(input4, "maxlength", "100");
-    			add_location(input4, file$b, 414, 16, 12312);
+    			add_location(input4, file$b, 416, 16, 12486);
     			attr_dev(div20, "class", "form-group col-md-12");
-    			add_location(div20, file$b, 412, 14, 12215);
+    			add_location(div20, file$b, 414, 14, 12389);
     			attr_dev(div21, "class", "form-row");
-    			add_location(div21, file$b, 401, 12, 11803);
+    			add_location(div21, file$b, 403, 12, 11977);
     			attr_dev(label4, "for", "");
-    			add_location(label4, file$b, 443, 16, 13283);
+    			add_location(label4, file$b, 445, 16, 13465);
     			attr_dev(input5, "type", "text");
     			attr_dev(input5, "class", "form-control");
     			attr_dev(input5, "data-mask", "(000) 000-0000");
@@ -25396,45 +25721,45 @@ var app = (function (moment) {
     			attr_dev(input5, "autocomplete", "off");
     			attr_dev(input5, "maxlength", "14");
     			attr_dev(input5, "placeholder", "(809) 000-0000");
-    			add_location(input5, file$b, 444, 16, 13331);
+    			add_location(input5, file$b, 446, 16, 13513);
     			attr_dev(div22, "class", "form-group col-md-12");
-    			add_location(div22, file$b, 442, 14, 13231);
+    			add_location(div22, file$b, 444, 14, 13413);
     			attr_dev(input6, "type", "checkbox");
     			input6.__value = "true";
     			input6.value = input6.__value;
     			attr_dev(input6, "name", "EsMedico");
     			attr_dev(input6, "class", "cstm-switch-input");
-    			add_location(input6, file$b, 456, 18, 13813);
+    			add_location(input6, file$b, 458, 18, 13999);
     			attr_dev(span2, "class", "cstm-switch-indicator ");
-    			add_location(span2, file$b, 462, 18, 14046);
+    			add_location(span2, file$b, 464, 18, 14236);
     			attr_dev(span3, "class", "cstm-switch-description");
-    			add_location(span3, file$b, 463, 18, 14105);
+    			add_location(span3, file$b, 465, 18, 14295);
     			attr_dev(label5, "class", "cstm-switch");
-    			add_location(label5, file$b, 455, 16, 13766);
+    			add_location(label5, file$b, 457, 16, 13952);
     			attr_dev(div23, "class", "form-group col-md-12");
-    			add_location(div23, file$b, 454, 14, 13714);
+    			add_location(div23, file$b, 456, 14, 13900);
     			attr_dev(div24, "class", "form-row");
-    			add_location(div24, file$b, 441, 12, 13193);
-    			add_location(br, file$b, 556, 12, 18245);
+    			add_location(div24, file$b, 443, 12, 13375);
+    			add_location(br, file$b, 558, 12, 18447);
     			attr_dev(div25, "class", "modal-body");
     			set_style(div25, "height", "100%", 1);
     			set_style(div25, "top", "0");
     			set_style(div25, "overflow", "auto");
-    			add_location(div25, file$b, 371, 8, 10618);
+    			add_location(div25, file$b, 373, 8, 10784);
     			attr_dev(button2, "type", "button");
     			attr_dev(button2, "class", "btn btn-secondary");
     			attr_dev(button2, "data-dismiss", "modal");
-    			add_location(button2, file$b, 559, 12, 18321);
+    			add_location(button2, file$b, 561, 12, 18523);
     			attr_dev(button3, "type", "submit");
     			attr_dev(button3, "class", "btn btn-success");
-    			add_location(button3, file$b, 564, 12, 18479);
+    			add_location(button3, file$b, 566, 12, 18681);
     			attr_dev(div26, "class", "modal-footer");
-    			add_location(div26, file$b, 558, 10, 18281);
+    			add_location(div26, file$b, 560, 10, 18483);
     			attr_dev(div27, "class", "modal-content");
-    			add_location(div27, file$b, 360, 6, 10250);
+    			add_location(div27, file$b, 362, 6, 10416);
     			attr_dev(div28, "class", "modal-dialog");
     			attr_dev(div28, "role", "document");
-    			add_location(div28, file$b, 359, 4, 10200);
+    			add_location(div28, file$b, 361, 4, 10366);
     			attr_dev(div29, "class", "modal fade modal-slide-right");
     			attr_dev(div29, "id", "modalUsuario");
     			attr_dev(div29, "tabindex", "-1");
@@ -25443,47 +25768,47 @@ var app = (function (moment) {
     			set_style(div29, "display", "none");
     			set_style(div29, "padding-right", "16px");
     			attr_dev(div29, "aria-modal", "true");
-    			add_location(div29, file$b, 352, 2, 9978);
+    			add_location(div29, file$b, 354, 2, 10144);
     			attr_dev(form0, "id", "frmUsuario");
-    			add_location(form0, file$b, 351, 0, 9917);
+    			add_location(form0, file$b, 353, 0, 10083);
     			attr_dev(h52, "class", "modal-title");
     			attr_dev(h52, "id", "modalRolesLabel");
-    			add_location(h52, file$b, 582, 8, 18932);
+    			add_location(h52, file$b, 584, 8, 19134);
     			attr_dev(span4, "aria-hidden", "true");
-    			add_location(span4, file$b, 588, 10, 19129);
+    			add_location(span4, file$b, 590, 10, 19331);
     			attr_dev(button4, "type", "button");
     			attr_dev(button4, "class", "close");
     			attr_dev(button4, "data-dismiss", "modal");
     			attr_dev(button4, "aria-label", "Close");
-    			add_location(button4, file$b, 583, 8, 18997);
+    			add_location(button4, file$b, 585, 8, 19199);
     			attr_dev(div30, "class", "modal-header");
-    			add_location(div30, file$b, 581, 6, 18896);
+    			add_location(div30, file$b, 583, 6, 19098);
     			attr_dev(input7, "type", "hidden");
     			attr_dev(input7, "name", "idPaciente");
     			input7.value = "";
-    			add_location(input7, file$b, 594, 10, 19263);
+    			add_location(input7, file$b, 596, 10, 19465);
     			attr_dev(span5, "class", "badge badge-soft-primary");
     			set_style(span5, "font-size", "17px");
-    			add_location(span5, file$b, 596, 12, 19342);
-    			add_location(p, file$b, 595, 10, 19325);
-    			add_location(label6, file$b, 599, 12, 19489);
+    			add_location(span5, file$b, 598, 12, 19544);
+    			add_location(p, file$b, 597, 10, 19527);
+    			add_location(label6, file$b, 601, 12, 19691);
     			attr_dev(input8, "type", "text");
     			attr_dev(input8, "class", "form-control");
     			attr_dev(input8, "placeholder", "Buscar roles");
-    			add_location(input8, file$b, 600, 12, 19524);
+    			add_location(input8, file$b, 602, 12, 19726);
     			attr_dev(div31, "class", "form-group floating-label");
-    			add_location(div31, file$b, 598, 10, 19436);
+    			add_location(div31, file$b, 600, 10, 19638);
     			attr_dev(div32, "class", "roles");
-    			add_location(div32, file$b, 606, 10, 19710);
+    			add_location(div32, file$b, 608, 10, 19912);
     			attr_dev(form1, "id", "");
-    			add_location(form1, file$b, 593, 8, 19239);
+    			add_location(form1, file$b, 595, 8, 19441);
     			attr_dev(div33, "class", "modal-body");
-    			add_location(div33, file$b, 591, 6, 19203);
+    			add_location(div33, file$b, 593, 6, 19405);
     			attr_dev(div34, "class", "modal-content");
-    			add_location(div34, file$b, 580, 4, 18861);
+    			add_location(div34, file$b, 582, 4, 19063);
     			attr_dev(div35, "class", "modal-dialog");
     			attr_dev(div35, "role", "document");
-    			add_location(div35, file$b, 579, 2, 18813);
+    			add_location(div35, file$b, 581, 2, 19015);
     			attr_dev(div36, "class", "modal fade modal-slide-right");
     			attr_dev(div36, "id", "modalRoles");
     			attr_dev(div36, "tabindex", "-1");
@@ -25492,7 +25817,7 @@ var app = (function (moment) {
     			set_style(div36, "display", "none");
     			set_style(div36, "padding-right", "16px");
     			attr_dev(div36, "aria-modal", "true");
-    			add_location(div36, file$b, 571, 0, 18606);
+    			add_location(div36, file$b, 573, 0, 18808);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -25569,14 +25894,14 @@ var app = (function (moment) {
     				each_blocks_1[i].m(select, null);
     			}
 
-    			select_option(select, /*obj*/ ctx[4].prefix);
+    			select_option(select, /*usuario*/ ctx[4].prefix);
     			append_dev(div25, t22);
     			append_dev(div25, div18);
     			append_dev(div18, div17);
     			append_dev(div17, label1);
     			append_dev(div17, t24);
     			append_dev(div17, input2);
-    			set_input_value(input2, /*obj*/ ctx[4].name);
+    			set_input_value(input2, /*usuario*/ ctx[4].name);
     			append_dev(div25, t25);
     			append_dev(div25, div21);
     			append_dev(div21, div19);
@@ -25588,7 +25913,7 @@ var app = (function (moment) {
     			append_dev(div20, label3);
     			append_dev(div20, t30);
     			append_dev(div20, input4);
-    			set_input_value(input4, /*obj*/ ctx[4].email);
+    			set_input_value(input4, /*usuario*/ ctx[4].email);
     			append_dev(div25, t31);
     			if (if_block0) if_block0.m(div25, null);
     			append_dev(div25, t32);
@@ -25597,12 +25922,12 @@ var app = (function (moment) {
     			append_dev(div22, label4);
     			append_dev(div22, t34);
     			append_dev(div22, input5);
-    			set_input_value(input5, /*obj*/ ctx[4].phoneNumber);
+    			set_input_value(input5, /*usuario*/ ctx[4].phoneNumber);
     			append_dev(div24, t35);
     			append_dev(div24, div23);
     			append_dev(div23, label5);
     			append_dev(label5, input6);
-    			input6.checked = /*obj*/ ctx[4].isDoctor;
+    			input6.checked = /*usuario*/ ctx[4].isDoctor;
     			append_dev(label5, t36);
     			append_dev(label5, span2);
     			append_dev(label5, t37);
@@ -25650,7 +25975,7 @@ var app = (function (moment) {
     			if (!mounted) {
     				dispose = [
     					listen_dev(input0, "input", /*input0_input_handler*/ ctx[30]),
-    					listen_dev(input0, "input", /*cargar*/ ctx[11], false, false, false),
+    					listen_dev(input0, "input", /*cargarUsuarios*/ ctx[11], false, false, false),
     					listen_dev(button0, "click", /*agregarNuevo*/ ctx[18], false, false, false),
     					listen_dev(select, "change", /*select_change_handler*/ ctx[33]),
     					listen_dev(input2, "input", /*input2_input_handler*/ ctx[34]),
@@ -25669,8 +25994,8 @@ var app = (function (moment) {
     				set_input_value(input0, /*busqueda*/ ctx[6]);
     			}
 
-    			if (dirty[0] & /*cargarRolesUser, list, cargarDetalle*/ 12296) {
-    				each_value_5 = /*list*/ ctx[3];
+    			if (dirty[0] & /*cargarRolesUser, usuarios, cargarDetalle*/ 12296) {
+    				each_value_5 = /*usuarios*/ ctx[3];
     				validate_each_argument(each_value_5);
     				let i;
 
@@ -25717,16 +26042,16 @@ var app = (function (moment) {
     				each_blocks_1.length = each_value_4.length;
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 1040) {
-    				select_option(select, /*obj*/ ctx[4].prefix);
+    			if (dirty[0] & /*usuario, prefijos*/ 1040) {
+    				select_option(select, /*usuario*/ ctx[4].prefix);
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 1040) {
-    				set_input_value(input2, /*obj*/ ctx[4].name);
+    			if (dirty[0] & /*usuario, prefijos*/ 1040) {
+    				set_input_value(input2, /*usuario*/ ctx[4].name);
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 1040 && input4.value !== /*obj*/ ctx[4].email) {
-    				set_input_value(input4, /*obj*/ ctx[4].email);
+    			if (dirty[0] & /*usuario, prefijos*/ 1040 && input4.value !== /*usuario*/ ctx[4].email) {
+    				set_input_value(input4, /*usuario*/ ctx[4].email);
     			}
 
     			if (/*userID*/ ctx[5] == "") {
@@ -25742,15 +26067,15 @@ var app = (function (moment) {
     				if_block0 = null;
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 1040 && input5.value !== /*obj*/ ctx[4].phoneNumber) {
-    				set_input_value(input5, /*obj*/ ctx[4].phoneNumber);
+    			if (dirty[0] & /*usuario, prefijos*/ 1040 && input5.value !== /*usuario*/ ctx[4].phoneNumber) {
+    				set_input_value(input5, /*usuario*/ ctx[4].phoneNumber);
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 1040) {
-    				input6.checked = /*obj*/ ctx[4].isDoctor;
+    			if (dirty[0] & /*usuario, prefijos*/ 1040) {
+    				input6.checked = /*usuario*/ ctx[4].isDoctor;
     			}
 
-    			if (/*obj*/ ctx[4].isDoctor) {
+    			if (/*usuario*/ ctx[4].isDoctor) {
     				if (if_block1) {
     					if_block1.p(ctx, dirty);
     				} else {
@@ -25863,7 +26188,7 @@ var app = (function (moment) {
     	let perfiles = [];
     	let roles = [];
     	let rolesUser = [];
-    	let list = [];
+    	let usuarios = [];
 
     	let prefijos = [
     		{ value: "Dr", name: "Dr." },
@@ -25874,7 +26199,7 @@ var app = (function (moment) {
     		{ value: "Sra", name: "Sra." }
     	];
 
-    	let obj = {
+    	let usuario = {
     		prefix: "",
     		name: "",
     		email: "",
@@ -25891,15 +26216,15 @@ var app = (function (moment) {
     	let asistenteID = "";
 
     	onMount(() => {
-    		cargar();
+    		cargarUsuarios();
     		cargarAsistentes();
     		cargarPerfil();
     		cargarRoles();
     	});
 
-    	function cargar() {
+    	function cargarUsuarios() {
     		$axios.get("/Users?keyword=" + busqueda).then(res => {
-    			$$invalidate(3, list = res.data);
+    			$$invalidate(3, usuarios = res.data);
     		}).catch(err => {
     			console.error(err);
     			$errorConexion();
@@ -25911,8 +26236,11 @@ var app = (function (moment) {
 
     		$axios.get("/Users/" + id).then(res => {
     			$$invalidate(5, userID = id);
-    			$$invalidate(4, obj = res.data);
-    			cargarAsistentesAsignado();
+    			$$invalidate(4, usuario = res.data);
+
+    			if (usuario.isDoctor) {
+    				cargarAsistentesAsignado();
+    			}
     		}).catch(err => {
     			console.error(err);
     			$errorConexion();
@@ -25968,7 +26296,7 @@ var app = (function (moment) {
 
     	function guardar() {
     		if (userID == "") {
-    			$axios.post("/Users", obj).then(res => {
+    			$axios.post("/Users", usuario).then(res => {
     				if (res.data.success) {
     					$toast(5000).fire({
     						icon: "success",
@@ -25976,14 +26304,14 @@ var app = (function (moment) {
     					});
 
     					jQuery("#modalUsuario").modal("hide");
-    					cargar();
+    					cargarUsuarios();
     				}
     			}).catch(err => {
     				console.error(err);
     				$errorConexion();
     			});
     		} else {
-    			$axios.put("/Users/" + userID, obj).then(res => {
+    			$axios.put("/Users/" + userID, usuario).then(res => {
     				if (res.data.success) {
     					$toast(5000).fire({
     						icon: "success",
@@ -25991,7 +26319,7 @@ var app = (function (moment) {
     					});
 
     					jQuery("#modalUsuario").modal("hide");
-    					cargar();
+    					cargarUsuarios();
     				}
     			}).catch(err => {
     				console.error(err);
@@ -26046,7 +26374,7 @@ var app = (function (moment) {
     			MedicoID: item.medicoID
     		};
 
-    		let qs = Object.entries(obj).map(e => e.join("=")).join("&");
+    		let qs = new URLSearchParams(obj).toString();
 
     		$axios.delete("/MedicosAsistentes?" + qs).then(res => {
     			if (res.data.success) {
@@ -26061,7 +26389,7 @@ var app = (function (moment) {
     	function agregarNuevo() {
     		$$invalidate(5, userID = "");
 
-    		$$invalidate(4, obj = {
+    		$$invalidate(4, usuario = {
     			prefix: "",
     			name: "",
     			email: "",
@@ -26075,7 +26403,7 @@ var app = (function (moment) {
 
     	const writable_props = [];
 
-    	Object_1$2.keys($$props).forEach(key => {
+    	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$8.warn(`<Index> was created with unknown prop '${key}'`);
     	});
 
@@ -26091,50 +26419,50 @@ var app = (function (moment) {
     	const click_handler_1 = i => cargarRolesUser(i.id);
 
     	function select_change_handler() {
-    		obj.prefix = select_value(this);
-    		$$invalidate(4, obj);
+    		usuario.prefix = select_value(this);
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
     	function input2_input_handler() {
-    		obj.name = this.value;
-    		$$invalidate(4, obj);
+    		usuario.name = this.value;
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
     	function input4_input_handler() {
-    		obj.email = this.value;
-    		$$invalidate(4, obj);
+    		usuario.email = this.value;
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
     	function input_input_handler() {
-    		obj.passwordHash = this.value;
-    		$$invalidate(4, obj);
+    		usuario.passwordHash = this.value;
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
     	function input5_input_handler() {
-    		obj.phoneNumber = this.value;
-    		$$invalidate(4, obj);
+    		usuario.phoneNumber = this.value;
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
     	function input6_change_handler() {
-    		obj.isDoctor = this.checked;
-    		$$invalidate(4, obj);
+    		usuario.isDoctor = this.checked;
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
     	function input_input_handler_1() {
-    		obj.ubicacion = this.value;
-    		$$invalidate(4, obj);
+    		usuario.ubicacion = this.value;
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
     	function select_change_handler_1() {
-    		obj.perfilID = select_value(this);
-    		$$invalidate(4, obj);
+    		usuario.perfilID = select_value(this);
+    		$$invalidate(4, usuario);
     		$$invalidate(10, prefijos);
     	}
 
@@ -26174,14 +26502,14 @@ var app = (function (moment) {
     		perfiles,
     		roles,
     		rolesUser,
-    		list,
+    		usuarios,
     		prefijos,
-    		obj,
+    		usuario,
     		userID,
     		busqueda,
     		busquedaRoles,
     		asistenteID,
-    		cargar,
+    		cargarUsuarios,
     		cargarDetalle,
     		cargarPerfil,
     		cargarAsistentesAsignado,
@@ -26207,9 +26535,9 @@ var app = (function (moment) {
     		if ("perfiles" in $$props) $$invalidate(2, perfiles = $$props.perfiles);
     		if ("roles" in $$props) $$invalidate(19, roles = $$props.roles);
     		if ("rolesUser" in $$props) $$invalidate(20, rolesUser = $$props.rolesUser);
-    		if ("list" in $$props) $$invalidate(3, list = $$props.list);
+    		if ("usuarios" in $$props) $$invalidate(3, usuarios = $$props.usuarios);
     		if ("prefijos" in $$props) $$invalidate(10, prefijos = $$props.prefijos);
-    		if ("obj" in $$props) $$invalidate(4, obj = $$props.obj);
+    		if ("usuario" in $$props) $$invalidate(4, usuario = $$props.usuario);
     		if ("userID" in $$props) $$invalidate(5, userID = $$props.userID);
     		if ("busqueda" in $$props) $$invalidate(6, busqueda = $$props.busqueda);
     		if ("busquedaRoles" in $$props) $$invalidate(7, busquedaRoles = $$props.busquedaRoles);
@@ -26230,9 +26558,10 @@ var app = (function (moment) {
     					id: x.id,
     					name: x.name,
     					displayName: x.displayName,
-    					checked: rolesUser.some(y => y == x.name)
+    					checked: rolesUser.some(y => y == x.name), // activando roles ya asignado al usuario
+    					
     				};
-    			}).filter(x => x.displayName.toLowerCase().includes(busquedaRoles.toLowerCase())));
+    			}).filter(x => x.displayName.toLowerCase().includes(busquedaRoles.toLowerCase()))); // filtro de busqueda
     		}
     	};
 
@@ -26240,15 +26569,15 @@ var app = (function (moment) {
     		asistentesAsignado,
     		asistentes,
     		perfiles,
-    		list,
-    		obj,
+    		usuarios,
+    		usuario,
     		userID,
     		busqueda,
     		busquedaRoles,
     		asistenteID,
     		filterRoles,
     		prefijos,
-    		cargar,
+    		cargarUsuarios,
     		cargarDetalle,
     		cargarRolesUser,
     		guardar,
@@ -27480,44 +27809,44 @@ var app = (function (moment) {
 
     function get_each_context$8(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[52] = list[i];
+    	child_ctx[49] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1$8(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[52] = list[i];
+    	child_ctx[49] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_3$7(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[60] = list[i];
+    	child_ctx[57] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_2$7(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[57] = list[i];
+    	child_ctx[54] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_4$5(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[52] = list[i];
+    	child_ctx[49] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_5$3(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[57] = list[i];
+    	child_ctx[54] = list[i];
     	return child_ctx;
     }
 
     // (424:22) {#each tandas as i}
     function create_each_block_5$3(ctx) {
     	let option;
-    	let t_value = /*i*/ ctx[57].nombre + "";
+    	let t_value = /*i*/ ctx[54].nombre + "";
     	let t;
     	let option_value_value;
 
@@ -27525,18 +27854,18 @@ var app = (function (moment) {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*i*/ ctx[57].id;
+    			option.__value = option_value_value = /*i*/ ctx[54].id;
     			option.value = option.__value;
-    			add_location(option, file$f, 424, 22, 12910);
+    			add_location(option, file$f, 424, 22, 13120);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
     			append_dev(option, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*tandas*/ 64 && t_value !== (t_value = /*i*/ ctx[57].nombre + "")) set_data_dev(t, t_value);
+    			if (dirty[0] & /*tandas*/ 64 && t_value !== (t_value = /*i*/ ctx[54].nombre + "")) set_data_dev(t, t_value);
 
-    			if (dirty[0] & /*tandas*/ 64 && option_value_value !== (option_value_value = /*i*/ ctx[57].id)) {
+    			if (dirty[0] & /*tandas*/ 64 && option_value_value !== (option_value_value = /*i*/ ctx[54].id)) {
     				prop_dev(option, "__value", option_value_value);
     			}
 
@@ -27568,7 +27897,7 @@ var app = (function (moment) {
     			div.textContent = "No hay disponibilidad con este horario";
     			attr_dev(div, "class", "alert alert-success");
     			attr_dev(div, "role", "alert");
-    			add_location(div, file$f, 431, 14, 13150);
+    			add_location(div, file$f, 431, 14, 13360);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -27594,7 +27923,7 @@ var app = (function (moment) {
     	let div3;
     	let div1;
     	let div0;
-    	let t0_value = /*item*/ ctx[52].hora + "";
+    	let t0_value = /*item*/ ctx[49].hora + "";
     	let t0;
     	let t1;
     	let div2;
@@ -27618,17 +27947,17 @@ var app = (function (moment) {
     			t2 = text("\r\n                      Crear cita");
     			t3 = space();
     			attr_dev(div0, "class", "name");
-    			add_location(div0, file$f, 440, 20, 13521);
+    			add_location(div0, file$f, 440, 20, 13731);
     			attr_dev(div1, "class", "");
-    			add_location(div1, file$f, 439, 18, 13485);
+    			add_location(div1, file$f, 439, 18, 13695);
     			attr_dev(i, "class", "mdi mdi-calendar-plus");
-    			add_location(i, file$f, 446, 22, 13794);
+    			add_location(i, file$f, 446, 22, 14004);
     			attr_dev(button, "class", "btn btn-outline-success btn-sm");
-    			add_location(button, file$f, 443, 20, 13645);
+    			add_location(button, file$f, 443, 20, 13855);
     			attr_dev(div2, "class", "ml-auto");
-    			add_location(div2, file$f, 442, 18, 13602);
+    			add_location(div2, file$f, 442, 18, 13812);
     			attr_dev(div3, "class", "list-group-item d-flex align-items-center svelte-1nu1nbu");
-    			add_location(div3, file$f, 438, 16, 13410);
+    			add_location(div3, file$f, 438, 16, 13620);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -27647,7 +27976,7 @@ var app = (function (moment) {
     					button,
     					"click",
     					function () {
-    						if (is_function(/*crearCita*/ ctx[18](/*item*/ ctx[52].time))) /*crearCita*/ ctx[18](/*item*/ ctx[52].time).apply(this, arguments);
+    						if (is_function(/*crearCita*/ ctx[18](/*item*/ ctx[49].time))) /*crearCita*/ ctx[18](/*item*/ ctx[49].time).apply(this, arguments);
     					},
     					false,
     					false,
@@ -27659,7 +27988,7 @@ var app = (function (moment) {
     		},
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
-    			if (dirty[0] & /*horasDisponibles*/ 128 && t0_value !== (t0_value = /*item*/ ctx[52].hora + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*horasDisponibles*/ 128 && t0_value !== (t0_value = /*item*/ ctx[49].hora + "")) set_data_dev(t0, t0_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div3);
@@ -27679,7 +28008,7 @@ var app = (function (moment) {
     	return block;
     }
 
-    // (498:14) {#if citas.length == 0}
+    // (498:14) {#if filterCitas.length == 0}
     function create_if_block_1$4(ctx) {
     	let div;
 
@@ -27689,7 +28018,7 @@ var app = (function (moment) {
     			div.textContent = "No hay citas programadas para este dia";
     			attr_dev(div, "class", "alert alert-success");
     			attr_dev(div, "role", "alert");
-    			add_location(div, file$f, 498, 14, 15737);
+    			add_location(div, file$f, 498, 14, 15953);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -27703,7 +28032,7 @@ var app = (function (moment) {
     		block,
     		id: create_if_block_1$4.name,
     		type: "if",
-    		source: "(498:14) {#if citas.length == 0}",
+    		source: "(498:14) {#if filterCitas.length == 0}",
     		ctx
     	});
 
@@ -27715,16 +28044,16 @@ var app = (function (moment) {
     	let div3;
     	let div2;
     	let div0;
-    	let t0_value = /*h*/ ctx[60].nombrePaciente + "";
+    	let t0_value = /*h*/ ctx[57].nombrePaciente + "";
     	let t0;
     	let t1;
     	let div1;
     	let span0;
-    	let t2_value = /*h*/ ctx[60].hora + "";
+    	let t2_value = /*h*/ ctx[57].hora + "";
     	let t2;
     	let t3;
     	let span1;
-    	let t4_value = /*h*/ ctx[60].observaciones + "";
+    	let t4_value = /*h*/ ctx[57].observaciones + "";
     	let t4;
     	let t5;
     	let t6;
@@ -27745,15 +28074,15 @@ var app = (function (moment) {
     			t5 = text(" (Observaciones)");
     			t6 = space();
     			attr_dev(div0, "class", "name text-primary");
-    			add_location(div0, file$f, 516, 28, 16482);
-    			add_location(span0, file$f, 520, 30, 16685);
-    			add_location(span1, file$f, 522, 30, 16771);
+    			add_location(div0, file$f, 516, 28, 16704);
+    			add_location(span0, file$f, 520, 30, 16907);
+    			add_location(span1, file$f, 522, 30, 16993);
     			attr_dev(div1, "class", "text-muted");
-    			add_location(div1, file$f, 519, 28, 16629);
+    			add_location(div1, file$f, 519, 28, 16851);
     			attr_dev(div2, "class", "");
-    			add_location(div2, file$f, 515, 26, 16438);
+    			add_location(div2, file$f, 515, 26, 16660);
     			attr_dev(div3, "class", "list-group-item d-flex align-items-center svelte-1nu1nbu");
-    			add_location(div3, file$f, 514, 24, 16355);
+    			add_location(div3, file$f, 514, 24, 16577);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div3, anchor);
@@ -27771,9 +28100,9 @@ var app = (function (moment) {
     			append_dev(div3, t6);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*citas*/ 256 && t0_value !== (t0_value = /*h*/ ctx[60].nombrePaciente + "")) set_data_dev(t0, t0_value);
-    			if (dirty[0] & /*citas*/ 256 && t2_value !== (t2_value = /*h*/ ctx[60].hora + "")) set_data_dev(t2, t2_value);
-    			if (dirty[0] & /*citas*/ 256 && t4_value !== (t4_value = /*h*/ ctx[60].observaciones + "")) set_data_dev(t4, t4_value);
+    			if (dirty[0] & /*filterCitas*/ 256 && t0_value !== (t0_value = /*h*/ ctx[57].nombrePaciente + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*filterCitas*/ 256 && t2_value !== (t2_value = /*h*/ ctx[57].hora + "")) set_data_dev(t2, t2_value);
+    			if (dirty[0] & /*filterCitas*/ 256 && t4_value !== (t4_value = /*h*/ ctx[57].observaciones + "")) set_data_dev(t4, t4_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div3);
@@ -27791,19 +28120,19 @@ var app = (function (moment) {
     	return block;
     }
 
-    // (505:16) {#each citas as i}
+    // (505:16) {#each filterCitas as i}
     function create_each_block_2$7(ctx) {
     	let div4;
     	let div3;
     	let div0;
     	let h5;
-    	let t0_value = /*i*/ ctx[57].fecha + "";
+    	let t0_value = /*i*/ ctx[54].fecha + "";
     	let t0;
     	let t1;
     	let div2;
     	let div1;
     	let t2;
-    	let each_value_3 = /*i*/ ctx[57].horas;
+    	let each_value_3 = /*i*/ ctx[54].horas;
     	validate_each_argument(each_value_3);
     	let each_blocks = [];
 
@@ -27828,17 +28157,17 @@ var app = (function (moment) {
 
     			t2 = space();
     			attr_dev(h5, "class", "m-b-0");
-    			add_location(h5, file$f, 508, 22, 16118);
+    			add_location(h5, file$f, 508, 22, 16340);
     			attr_dev(div0, "class", "card-header");
-    			add_location(div0, file$f, 507, 20, 16069);
+    			add_location(div0, file$f, 507, 20, 16291);
     			attr_dev(div1, "class", "list-group list ");
-    			add_location(div1, file$f, 512, 22, 16253);
+    			add_location(div1, file$f, 512, 22, 16475);
     			attr_dev(div2, "class", "card-body");
-    			add_location(div2, file$f, 510, 20, 16200);
+    			add_location(div2, file$f, 510, 20, 16422);
     			attr_dev(div3, "class", "card m-b-20 card-vnc svelte-1nu1nbu");
-    			add_location(div3, file$f, 506, 18, 16013);
+    			add_location(div3, file$f, 506, 18, 16235);
     			attr_dev(div4, "class", "col-lg-6");
-    			add_location(div4, file$f, 505, 16, 15971);
+    			add_location(div4, file$f, 505, 16, 16193);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div4, anchor);
@@ -27857,10 +28186,10 @@ var app = (function (moment) {
     			append_dev(div4, t2);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*citas*/ 256 && t0_value !== (t0_value = /*i*/ ctx[57].fecha + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*filterCitas*/ 256 && t0_value !== (t0_value = /*i*/ ctx[54].fecha + "")) set_data_dev(t0, t0_value);
 
-    			if (dirty[0] & /*citas*/ 256) {
-    				each_value_3 = /*i*/ ctx[57].horas;
+    			if (dirty[0] & /*filterCitas*/ 256) {
+    				each_value_3 = /*i*/ ctx[54].horas;
     				validate_each_argument(each_value_3);
     				let i;
 
@@ -27893,7 +28222,7 @@ var app = (function (moment) {
     		block,
     		id: create_each_block_2$7.name,
     		type: "each",
-    		source: "(505:16) {#each citas as i}",
+    		source: "(505:16) {#each filterCitas as i}",
     		ctx
     	});
 
@@ -27937,15 +28266,15 @@ var app = (function (moment) {
     			}
 
     			attr_dev(i, "class", "mdi mdi-calendar-text");
-    			add_location(i, file$f, 542, 16, 17414);
+    			add_location(i, file$f, 542, 16, 17636);
     			attr_dev(h5, "class", "m-b-0");
-    			add_location(h5, file$f, 541, 14, 17378);
+    			add_location(h5, file$f, 541, 14, 17600);
     			attr_dev(div0, "class", "card-header");
-    			add_location(div0, file$f, 540, 12, 17337);
+    			add_location(div0, file$f, 540, 12, 17559);
     			attr_dev(div1, "class", "card-body");
-    			add_location(div1, file$f, 546, 12, 17546);
+    			add_location(div1, file$f, 546, 12, 17768);
     			attr_dev(article, "class", "card m-b-30 horarioEspecialista");
-    			add_location(article, file$f, 539, 10, 17274);
+    			add_location(article, file$f, 539, 10, 17496);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, article, anchor);
@@ -28032,7 +28361,7 @@ var app = (function (moment) {
 
     	const diasemana = new DiaSemana({
     			props: {
-    				item: /*item*/ ctx[52],
+    				item: /*item*/ ctx[49],
     				tandas: /*tandas*/ ctx[6],
     				horarios: /*horarios*/ ctx[5],
     				medicoID: /*id*/ ctx[14]
@@ -28053,7 +28382,7 @@ var app = (function (moment) {
     		},
     		p: function update(ctx, dirty) {
     			const diasemana_changes = {};
-    			if (dirty[0] & /*diasSemana*/ 4096) diasemana_changes.item = /*item*/ ctx[52];
+    			if (dirty[0] & /*diasSemana*/ 4096) diasemana_changes.item = /*item*/ ctx[49];
     			if (dirty[0] & /*tandas*/ 64) diasemana_changes.tandas = /*tandas*/ ctx[6];
     			if (dirty[0] & /*horarios*/ 32) diasemana_changes.horarios = /*horarios*/ ctx[5];
     			diasemana.$set(diasemana_changes);
@@ -28086,7 +28415,7 @@ var app = (function (moment) {
     // (593:18) {#each prefijos as item}
     function create_each_block$8(ctx) {
     	let option;
-    	let t_value = /*item*/ ctx[52].name + "";
+    	let t_value = /*item*/ ctx[49].name + "";
     	let t;
     	let option_value_value;
 
@@ -28094,9 +28423,9 @@ var app = (function (moment) {
     		c: function create() {
     			option = element("option");
     			t = text(t_value);
-    			option.__value = option_value_value = /*item*/ ctx[52].value;
+    			option.__value = option_value_value = /*item*/ ctx[49].value;
     			option.value = option.__value;
-    			add_location(option, file$f, 593, 20, 19189);
+    			add_location(option, file$f, 593, 20, 19422);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, option, anchor);
@@ -28140,26 +28469,26 @@ var app = (function (moment) {
     	let img_src_value;
     	let t5;
     	let h30;
-    	let t6_value = /*detail*/ ctx[0].prefix + "";
+    	let t6_value = /*medico*/ ctx[0].prefix + "";
     	let t6;
     	let t7;
-    	let t8_value = /*detail*/ ctx[0].name + "";
+    	let t8_value = /*medico*/ ctx[0].name + "";
     	let t8;
     	let t9;
     	let div4;
-    	let t10_value = (/*detail*/ ctx[0].perfil || "") + "";
+    	let t10_value = (/*medico*/ ctx[0].perfil || "") + "";
     	let t10;
     	let t11;
     	let p0;
-    	let t12_value = /*detail*/ ctx[0].email + "";
+    	let t12_value = /*medico*/ ctx[0].email + "";
     	let t12;
     	let t13;
     	let p1;
-    	let t14_value = (/*detail*/ ctx[0].ubicacion || "") + "";
+    	let t14_value = (/*medico*/ ctx[0].ubicacion || "") + "";
     	let t14;
     	let t15;
     	let p2;
-    	let t16_value = /*detail*/ ctx[0].phoneNumber + "";
+    	let t16_value = /*medico*/ ctx[0].phoneNumber + "";
     	let t16;
     	let t17;
     	let div9;
@@ -28328,8 +28657,8 @@ var app = (function (moment) {
     		each_blocks_2[i] = create_each_block_4$5(get_each_context_4$5(ctx, each_value_4, i));
     	}
 
-    	let if_block1 = /*citas*/ ctx[8].length == 0 && create_if_block_1$4(ctx);
-    	let each_value_2 = /*citas*/ ctx[8];
+    	let if_block1 = /*filterCitas*/ ctx[8].length == 0 && create_if_block_1$4(ctx);
+    	let each_value_2 = /*filterCitas*/ ctx[8];
     	validate_each_argument(each_value_2);
     	let each_blocks_1 = [];
 
@@ -28576,214 +28905,214 @@ var app = (function (moment) {
     			button7 = element("button");
     			button7.textContent = "Guardar";
     			attr_dev(h50, "class", "pt-2 pb-2");
-    			add_location(h50, file$f, 328, 6, 8777);
+    			add_location(h50, file$f, 327, 6, 8919);
     			attr_dev(div0, "class", "card-header");
-    			add_location(div0, file$f, 332, 12, 8940);
+    			add_location(div0, file$f, 331, 12, 9082);
     			attr_dev(img, "class", "avatar-img rounded-circle");
     			if (img.src !== (img_src_value = "assets/img/users/user-5.jpg")) attr_dev(img, "src", img_src_value);
     			attr_dev(img, "alt", "name");
-    			add_location(img, file$f, 337, 20, 9154);
+    			add_location(img, file$f, 336, 20, 9296);
     			attr_dev(div1, "class", "avatar avatar-xl avatar-online");
-    			add_location(div1, file$f, 336, 18, 9088);
-    			add_location(div2, file$f, 335, 16, 9063);
+    			add_location(div1, file$f, 335, 18, 9230);
+    			add_location(div2, file$f, 334, 16, 9205);
     			attr_dev(h30, "class", "p-t-10 searchBy-name");
-    			add_location(h30, file$f, 343, 16, 9377);
+    			add_location(h30, file$f, 342, 16, 9519);
     			attr_dev(div3, "class", "text-center");
-    			add_location(div3, file$f, 334, 14, 9020);
+    			add_location(div3, file$f, 333, 14, 9162);
     			attr_dev(div4, "class", "text-muted text-center");
-    			add_location(div4, file$f, 345, 14, 9482);
+    			add_location(div4, file$f, 344, 14, 9624);
     			attr_dev(p0, "class", "text-muted text-center");
     			set_style(p0, "margin-bottom", "0");
-    			add_location(p0, file$f, 348, 14, 9595);
+    			add_location(p0, file$f, 347, 14, 9737);
     			attr_dev(p1, "class", "text-muted text-center");
     			set_style(p1, "margin-bottom", "0");
-    			add_location(p1, file$f, 351, 14, 9723);
+    			add_location(p1, file$f, 350, 14, 9865);
     			attr_dev(p2, "class", "text-muted text-center");
-    			add_location(p2, file$f, 354, 14, 9861);
+    			add_location(p2, file$f, 353, 14, 10003);
     			attr_dev(h31, "class", "mdi mdi-timetable");
-    			add_location(h31, file$f, 367, 20, 10418);
+    			add_location(h31, file$f, 366, 20, 10560);
     			attr_dev(div5, "class", "text-overline");
-    			add_location(div5, file$f, 368, 20, 10476);
+    			add_location(div5, file$f, 367, 20, 10618);
     			attr_dev(a0, "href", "#!");
-    			add_location(a0, file$f, 357, 18, 10026);
+    			add_location(a0, file$f, 356, 18, 10168);
     			attr_dev(div6, "class", "col");
-    			add_location(div6, file$f, 356, 16, 9989);
+    			add_location(div6, file$f, 355, 16, 10131);
     			attr_dev(h32, "class", "mdi mdi-account-edit");
-    			add_location(h32, file$f, 374, 20, 10689);
+    			add_location(h32, file$f, 373, 20, 10838);
     			attr_dev(div7, "class", "text-overline");
-    			add_location(div7, file$f, 375, 20, 10750);
+    			add_location(div7, file$f, 374, 20, 10899);
     			attr_dev(a1, "href", "#/");
-    			add_location(a1, file$f, 373, 18, 10621);
+    			add_location(a1, file$f, 372, 18, 10763);
     			attr_dev(div8, "class", "col");
-    			add_location(div8, file$f, 372, 16, 10584);
+    			add_location(div8, file$f, 371, 16, 10726);
     			attr_dev(div9, "class", "row text-center p-b-10");
-    			add_location(div9, file$f, 355, 14, 9935);
+    			add_location(div9, file$f, 354, 14, 10077);
     			attr_dev(div10, "class", "card-body");
-    			add_location(div10, file$f, 333, 12, 8981);
+    			add_location(div10, file$f, 332, 12, 9123);
     			attr_dev(div11, "class", "card m-b-30");
-    			add_location(div11, file$f, 331, 10, 8901);
+    			add_location(div11, file$f, 330, 10, 9043);
     			attr_dev(div12, "class", "col-sm-12 col-lg-4");
-    			add_location(div12, file$f, 330, 8, 8857);
+    			add_location(div12, file$f, 329, 8, 8999);
     			attr_dev(i0, "class", "mdi mdi-calendar-search");
-    			add_location(i0, file$f, 388, 16, 11104);
+    			add_location(i0, file$f, 387, 16, 11253);
     			attr_dev(h51, "class", "m-b-0");
-    			add_location(h51, file$f, 387, 14, 11068);
+    			add_location(h51, file$f, 386, 14, 11217);
     			attr_dev(i1, "class", "mdi mdi-calendar");
-    			add_location(i1, file$f, 396, 20, 11575);
+    			add_location(i1, file$f, 395, 20, 11724);
     			attr_dev(button0, "type", "button");
     			attr_dev(button0, "class", "btn shadow-none btn-sm svelte-1nu1nbu");
     			toggle_class(button0, "btn-primary", /*btnFechaDisponibilidad*/ ctx[9] == "h");
     			toggle_class(button0, "btn-write", /*btnFechaDisponibilidad*/ ctx[9] != "h");
-    			add_location(button0, file$f, 393, 18, 11338);
+    			add_location(button0, file$f, 392, 18, 11487);
     			attr_dev(button1, "type", "button");
     			attr_dev(button1, "class", "btn shadow-none btn-sm svelte-1nu1nbu");
     			toggle_class(button1, "btn-primary", /*btnFechaDisponibilidad*/ ctx[9] == "m");
     			toggle_class(button1, "btn-write", !/*btnFechaDisponibilidad*/ ctx[9] != "m");
-    			add_location(button1, file$f, 399, 18, 11679);
+    			add_location(button1, file$f, 398, 18, 11828);
     			attr_dev(div13, "class", "btn-group");
     			attr_dev(div13, "role", "group");
     			attr_dev(div13, "aria-label", "Basic example");
-    			add_location(div13, file$f, 392, 16, 11255);
+    			add_location(div13, file$f, 391, 16, 11404);
     			attr_dev(div14, "class", "card-controls");
-    			add_location(div14, file$f, 391, 14, 11210);
+    			add_location(div14, file$f, 390, 14, 11359);
     			attr_dev(div15, "class", "card-header");
-    			add_location(div15, file$f, 386, 12, 11027);
+    			add_location(div15, file$f, 385, 12, 11176);
     			attr_dev(label0, "for", "inputAddress");
-    			add_location(label0, file$f, 412, 20, 12198);
+    			add_location(label0, file$f, 411, 20, 12347);
     			attr_dev(input0, "type", "date");
     			attr_dev(input0, "class", "form-control form-control-sm");
-    			add_location(input0, file$f, 413, 20, 12259);
+    			add_location(input0, file$f, 412, 20, 12408);
     			attr_dev(div16, "class", "form-group");
-    			add_location(div16, file$f, 411, 18, 12152);
+    			add_location(div16, file$f, 410, 18, 12301);
     			attr_dev(div17, "class", "col-lg-6");
-    			add_location(div17, file$f, 410, 16, 12110);
+    			add_location(div17, file$f, 409, 16, 12259);
     			attr_dev(label1, "class", "font-secondary");
-    			add_location(label1, file$f, 419, 20, 12554);
+    			add_location(label1, file$f, 418, 20, 12703);
     			option0.__value = "0";
     			option0.value = option0.__value;
     			option0.disabled = true;
     			option0.selected = true;
-    			add_location(option0, file$f, 422, 22, 12783);
+    			add_location(option0, file$f, 422, 22, 12993);
     			attr_dev(select0, "class", "form-control form-control-sm js-select2");
-    			if (/*tandaID*/ ctx[4] === void 0) add_render_callback(() => /*select0_change_handler*/ ctx[41].call(select0));
-    			add_location(select0, file$f, 420, 20, 12619);
+    			if (/*tandaID*/ ctx[4] === void 0) add_render_callback(() => /*select0_change_handler*/ ctx[38].call(select0));
+    			add_location(select0, file$f, 420, 20, 12829);
     			attr_dev(div18, "class", "form-group ");
-    			add_location(div18, file$f, 418, 18, 12507);
+    			add_location(div18, file$f, 417, 18, 12656);
     			attr_dev(div19, "class", "col-lg-6");
-    			add_location(div19, file$f, 417, 16, 12465);
+    			add_location(div19, file$f, 416, 16, 12614);
     			attr_dev(div20, "class", "row");
-    			add_location(div20, file$f, 409, 14, 12075);
+    			add_location(div20, file$f, 408, 14, 12224);
     			attr_dev(div21, "class", "list-group list");
-    			add_location(div21, file$f, 436, 14, 13313);
+    			add_location(div21, file$f, 436, 14, 13523);
     			attr_dev(div22, "class", "card-body");
-    			add_location(div22, file$f, 407, 12, 12034);
+    			add_location(div22, file$f, 406, 12, 12183);
     			attr_dev(div23, "class", "card m-b-30");
-    			add_location(div23, file$f, 385, 10, 10988);
+    			add_location(div23, file$f, 384, 10, 11137);
     			attr_dev(div24, "class", "col-sm-12 col-md-12 col-lg-8");
-    			add_location(div24, file$f, 384, 8, 10934);
+    			add_location(div24, file$f, 383, 8, 11083);
     			attr_dev(i2, "class", "mdi mdi-calendar-multiselect");
-    			add_location(i2, file$f, 463, 16, 14214);
+    			add_location(i2, file$f, 463, 16, 14424);
     			attr_dev(h52, "class", "m-b-0");
-    			add_location(h52, file$f, 462, 14, 14178);
+    			add_location(h52, file$f, 462, 14, 14388);
     			attr_dev(input1, "type", "date");
     			attr_dev(input1, "class", "form-control form-control-sm");
-    			add_location(input1, file$f, 469, 18, 14458);
+    			add_location(input1, file$f, 469, 18, 14668);
     			attr_dev(button2, "type", "button");
     			attr_dev(button2, "class", "btn shadow-none btn-sm svelte-1nu1nbu");
     			toggle_class(button2, "btn-primary", /*btnFechaCita*/ ctx[10] == "h");
     			toggle_class(button2, "btn-write", /*btnFechaCita*/ ctx[10] != "h");
-    			add_location(button2, file$f, 471, 18, 14622);
+    			add_location(button2, file$f, 471, 18, 14832);
     			attr_dev(button3, "type", "button");
     			attr_dev(button3, "class", "btn shadow-none btn-sm svelte-1nu1nbu");
     			toggle_class(button3, "btn-primary", /*btnFechaCita*/ ctx[10] == "m");
     			toggle_class(button3, "btn-write", /*btnFechaCita*/ ctx[10] != "m");
-    			add_location(button3, file$f, 478, 18, 14945);
+    			add_location(button3, file$f, 478, 18, 15155);
     			attr_dev(button4, "type", "button");
     			attr_dev(button4, "class", "btn shadow-none btn-sm svelte-1nu1nbu");
     			toggle_class(button4, "btn-primary", /*btnFechaCita*/ ctx[10] == "s");
     			toggle_class(button4, "btn-write", /*btnFechaCita*/ ctx[10] != "s");
-    			add_location(button4, file$f, 485, 18, 15271);
+    			add_location(button4, file$f, 485, 18, 15481);
     			attr_dev(div25, "class", "btn-group");
     			attr_dev(div25, "role", "group");
     			attr_dev(div25, "aria-label", "Basic example");
-    			add_location(div25, file$f, 468, 16, 14375);
+    			add_location(div25, file$f, 468, 16, 14585);
     			attr_dev(div26, "class", "card-controls");
-    			add_location(div26, file$f, 466, 14, 14328);
+    			add_location(div26, file$f, 466, 14, 14538);
     			attr_dev(div27, "class", "card-header");
-    			add_location(div27, file$f, 461, 12, 14137);
+    			add_location(div27, file$f, 461, 12, 14347);
     			attr_dev(div28, "class", "row");
-    			add_location(div28, file$f, 503, 14, 15900);
+    			add_location(div28, file$f, 503, 14, 16116);
     			attr_dev(div29, "class", "card-body");
-    			add_location(div29, file$f, 496, 12, 15659);
+    			add_location(div29, file$f, 496, 12, 15869);
     			attr_dev(div30, "class", "card m-b-30");
-    			add_location(div30, file$f, 460, 10, 14098);
+    			add_location(div30, file$f, 460, 10, 14308);
     			attr_dev(div31, "class", "col-lg-12");
-    			add_location(div31, file$f, 459, 8, 14063);
+    			add_location(div31, file$f, 459, 8, 14273);
     			attr_dev(div32, "class", "row list");
-    			add_location(div32, file$f, 329, 6, 8825);
+    			add_location(div32, file$f, 328, 6, 8967);
     			attr_dev(div33, "class", "container mt-3");
-    			add_location(div33, file$f, 327, 4, 8741);
+    			add_location(div33, file$f, 326, 4, 8883);
     			attr_dev(section, "class", "admin-content");
-    			add_location(section, file$f, 326, 2, 8704);
+    			add_location(section, file$f, 325, 2, 8846);
     			attr_dev(main, "class", "admin-main");
-    			add_location(main, file$f, 324, 0, 8661);
+    			add_location(main, file$f, 323, 0, 8803);
     			attr_dev(h53, "class", "modal-title");
     			attr_dev(h53, "id", "modalUsuarioLabel");
-    			add_location(h53, file$f, 572, 10, 18340);
+    			add_location(h53, file$f, 572, 10, 18569);
     			attr_dev(span0, "aria-hidden", "true");
-    			add_location(span0, file$f, 578, 12, 18553);
+    			add_location(span0, file$f, 578, 12, 18782);
     			attr_dev(button5, "type", "button");
     			attr_dev(button5, "class", "close");
     			attr_dev(button5, "data-dismiss", "modal");
     			attr_dev(button5, "aria-label", "Close");
-    			add_location(button5, file$f, 573, 10, 18411);
+    			add_location(button5, file$f, 573, 10, 18640);
     			attr_dev(div34, "class", "modal-header");
-    			add_location(div34, file$f, 571, 8, 18302);
+    			add_location(div34, file$f, 571, 8, 18531);
     			attr_dev(input2, "type", "hidden");
     			attr_dev(input2, "name", "IdUser");
     			input2.value = "0";
-    			add_location(input2, file$f, 583, 12, 18730);
+    			add_location(input2, file$f, 583, 12, 18959);
     			attr_dev(label2, "for", "");
-    			add_location(label2, file$f, 586, 16, 18881);
+    			add_location(label2, file$f, 586, 16, 19110);
     			option1.__value = "";
     			option1.value = option1.__value;
-    			add_location(option1, file$f, 591, 18, 19082);
+    			add_location(option1, file$f, 591, 18, 19315);
     			attr_dev(select1, "class", "form-control");
     			attr_dev(select1, "name", "prefijo");
     			select1.required = true;
-    			if (/*obj*/ ctx[1].prefix === void 0) add_render_callback(() => /*select1_change_handler*/ ctx[47].call(select1));
-    			add_location(select1, file$f, 587, 16, 18928);
+    			if (/*usuario*/ ctx[1].prefix === void 0) add_render_callback(() => /*select1_change_handler*/ ctx[44].call(select1));
+    			add_location(select1, file$f, 587, 16, 19157);
     			attr_dev(div35, "class", "form-group col-md-12");
-    			add_location(div35, file$f, 585, 14, 18829);
+    			add_location(div35, file$f, 585, 14, 19058);
     			attr_dev(div36, "class", "form-row");
-    			add_location(div36, file$f, 584, 12, 18791);
+    			add_location(div36, file$f, 584, 12, 19020);
     			attr_dev(label3, "for", "");
-    			add_location(label3, file$f, 600, 16, 19436);
+    			add_location(label3, file$f, 600, 16, 19669);
     			attr_dev(input3, "type", "name");
     			attr_dev(input3, "class", "form-control");
     			attr_dev(input3, "placeholder", "Ing. John Doe");
     			attr_dev(input3, "name", "Name");
     			attr_dev(input3, "maxlength", "200");
     			input3.required = true;
-    			add_location(input3, file$f, 601, 16, 19491);
+    			add_location(input3, file$f, 601, 16, 19724);
     			attr_dev(div37, "class", "form-group col-md-12");
-    			add_location(div37, file$f, 599, 14, 19384);
+    			add_location(div37, file$f, 599, 14, 19617);
     			attr_dev(div38, "class", "form-row");
-    			add_location(div38, file$f, 598, 12, 19346);
+    			add_location(div38, file$f, 598, 12, 19579);
     			attr_dev(label4, "for", "");
-    			add_location(label4, file$f, 613, 16, 19922);
+    			add_location(label4, file$f, 613, 16, 20159);
     			attr_dev(input4, "type", "email");
     			attr_dev(input4, "class", "form-control");
     			attr_dev(input4, "autocomplete", "off");
     			attr_dev(input4, "name", "UserName");
     			attr_dev(input4, "id", "");
     			attr_dev(input4, "maxlength", "100");
-    			add_location(input4, file$f, 614, 16, 19969);
+    			add_location(input4, file$f, 614, 16, 20206);
     			attr_dev(div39, "class", "form-group col-md-12");
     			set_style(div39, "display", "none");
-    			add_location(div39, file$f, 612, 14, 19847);
+    			add_location(div39, file$f, 612, 14, 20084);
     			attr_dev(label5, "for", "");
-    			add_location(label5, file$f, 623, 16, 20273);
+    			add_location(label5, file$f, 623, 16, 20510);
     			attr_dev(input5, "type", "email");
     			input5.required = true;
     			attr_dev(input5, "class", "form-control");
@@ -28792,13 +29121,13 @@ var app = (function (moment) {
     			attr_dev(input5, "name", "Email");
     			attr_dev(input5, "id", "txtCorreo");
     			attr_dev(input5, "maxlength", "100");
-    			add_location(input5, file$f, 624, 16, 20318);
+    			add_location(input5, file$f, 624, 16, 20555);
     			attr_dev(div40, "class", "form-group col-md-12");
-    			add_location(div40, file$f, 622, 14, 20221);
+    			add_location(div40, file$f, 622, 14, 20458);
     			attr_dev(div41, "class", "form-row");
-    			add_location(div41, file$f, 611, 12, 19809);
+    			add_location(div41, file$f, 611, 12, 20046);
     			attr_dev(label6, "for", "");
-    			add_location(label6, file$f, 639, 16, 20808);
+    			add_location(label6, file$f, 639, 16, 21049);
     			attr_dev(input6, "type", "text");
     			attr_dev(input6, "class", "form-control");
     			attr_dev(input6, "data-mask", "(000) 000-0000");
@@ -28806,94 +29135,94 @@ var app = (function (moment) {
     			attr_dev(input6, "autocomplete", "off");
     			attr_dev(input6, "maxlength", "14");
     			attr_dev(input6, "placeholder", "(809) 000-0000");
-    			add_location(input6, file$f, 640, 16, 20856);
+    			add_location(input6, file$f, 640, 16, 21097);
     			attr_dev(div42, "class", "form-group col-md-12");
-    			add_location(div42, file$f, 638, 14, 20756);
+    			add_location(div42, file$f, 638, 14, 20997);
     			attr_dev(label7, "for", "");
-    			add_location(label7, file$f, 651, 16, 21291);
+    			add_location(label7, file$f, 651, 16, 21536);
     			attr_dev(input7, "type", "text");
     			attr_dev(input7, "class", "form-control");
     			attr_dev(input7, "autocomplete", "off");
-    			add_location(input7, file$f, 652, 16, 21340);
+    			add_location(input7, file$f, 652, 16, 21585);
     			attr_dev(div43, "class", "form-group col-md-12");
-    			add_location(div43, file$f, 650, 14, 21239);
+    			add_location(div43, file$f, 650, 14, 21484);
     			attr_dev(label8, "for", "");
-    			add_location(label8, file$f, 660, 16, 21618);
+    			add_location(label8, file$f, 660, 16, 21867);
     			attr_dev(input8, "type", "text");
     			attr_dev(input8, "class", "form-control");
     			attr_dev(input8, "utocomplete", "off");
     			attr_dev(input8, "name", "Exequatur");
     			attr_dev(input8, "id", "txtTelefono");
-    			add_location(input8, file$f, 661, 16, 21667);
+    			add_location(input8, file$f, 661, 16, 21916);
     			attr_dev(div44, "class", "form-group col-md-12");
     			set_style(div44, "display", "none");
-    			add_location(div44, file$f, 659, 14, 21543);
+    			add_location(div44, file$f, 659, 14, 21792);
     			option2.__value = "";
     			option2.value = option2.__value;
-    			add_location(option2, file$f, 676, 18, 22254);
+    			add_location(option2, file$f, 676, 18, 22503);
     			option3.__value = "1";
     			option3.value = option3.__value;
-    			add_location(option3, file$f, 677, 18, 22293);
+    			add_location(option3, file$f, 677, 18, 22542);
     			attr_dev(select2, "name", "IdDepartamento");
     			attr_dev(select2, "class", "js-select2 select2-hidden-accessible");
     			attr_dev(select2, "id", "sltDepartamentos");
     			set_style(select2, "width", "100%");
     			attr_dev(select2, "aria-hidden", "true");
     			attr_dev(select2, "tabindex", "-1");
-    			add_location(select2, file$f, 669, 16, 21969);
+    			add_location(select2, file$f, 669, 16, 22218);
     			attr_dev(span1, "class", "select2-selection__placeholder");
-    			add_location(span1, file$f, 693, 24, 23119);
+    			add_location(span1, file$f, 693, 24, 23368);
     			attr_dev(span2, "class", "select2-selection__rendered");
     			attr_dev(span2, "id", "select2-sltDepartamentos-container");
     			attr_dev(span2, "role", "textbox");
     			attr_dev(span2, "aria-readonly", "true");
-    			add_location(span2, file$f, 689, 22, 22900);
+    			add_location(span2, file$f, 689, 22, 23149);
     			attr_dev(b, "role", "presentation");
-    			add_location(b, file$f, 698, 24, 23381);
+    			add_location(b, file$f, 698, 24, 23630);
     			attr_dev(span3, "class", "select2-selection__arrow");
     			attr_dev(span3, "role", "presentation");
-    			add_location(span3, file$f, 697, 22, 23296);
+    			add_location(span3, file$f, 697, 22, 23545);
     			attr_dev(span4, "class", "select2-selection select2-selection--single");
     			attr_dev(span4, "role", "combobox");
     			attr_dev(span4, "aria-haspopup", "true");
     			attr_dev(span4, "aria-expanded", "false");
     			attr_dev(span4, "tabindex", "0");
     			attr_dev(span4, "aria-labelledby", "select2-sltDepartamentos-container");
-    			add_location(span4, file$f, 683, 20, 22578);
+    			add_location(span4, file$f, 683, 20, 22827);
     			attr_dev(span5, "class", "selection");
-    			add_location(span5, file$f, 682, 18, 22532);
+    			add_location(span5, file$f, 682, 18, 22781);
     			attr_dev(span6, "class", "dropdown-wrapper");
     			attr_dev(span6, "aria-hidden", "true");
-    			add_location(span6, file$f, 702, 18, 23513);
+    			add_location(span6, file$f, 702, 18, 23762);
     			attr_dev(span7, "class", "select2 select2-container select2-container--default");
     			attr_dev(span7, "dir", "ltr");
     			set_style(span7, "width", "100%");
-    			add_location(span7, file$f, 679, 16, 22376);
+    			add_location(span7, file$f, 679, 16, 22625);
     			attr_dev(div45, "class", "form-group col-md-12");
     			set_style(div45, "display", "none");
-    			add_location(div45, file$f, 668, 14, 21894);
+    			add_location(div45, file$f, 668, 14, 22143);
     			attr_dev(div46, "class", "form-row");
-    			add_location(div46, file$f, 637, 12, 20718);
-    			add_location(br, file$f, 706, 12, 23646);
+    			add_location(div46, file$f, 637, 12, 20959);
+    			add_location(br, file$f, 706, 12, 23895);
     			attr_dev(div47, "class", "modal-body");
     			set_style(div47, "height", "100%", 1);
     			set_style(div47, "top", "0");
     			set_style(div47, "overflow", "auto");
-    			add_location(div47, file$f, 581, 8, 18633);
+    			add_location(div47, file$f, 581, 8, 18862);
     			attr_dev(button6, "type", "button");
     			attr_dev(button6, "class", "btn btn-secondary");
     			attr_dev(button6, "data-dismiss", "modal");
-    			add_location(button6, file$f, 709, 12, 23722);
+    			add_location(button6, file$f, 709, 12, 23971);
     			attr_dev(button7, "type", "submit");
     			attr_dev(button7, "class", "btn btn-success");
-    			add_location(button7, file$f, 714, 12, 23880);
+    			add_location(button7, file$f, 714, 12, 24129);
     			attr_dev(div48, "class", "modal-footer");
-    			add_location(div48, file$f, 708, 10, 23682);
+    			add_location(div48, file$f, 708, 10, 23931);
     			attr_dev(div49, "class", "modal-content");
-    			add_location(div49, file$f, 570, 6, 18265);
+    			add_location(div49, file$f, 570, 6, 18494);
     			attr_dev(div50, "class", "modal-dialog");
     			attr_dev(div50, "role", "document");
-    			add_location(div50, file$f, 569, 4, 18215);
+    			add_location(div50, file$f, 569, 4, 18444);
     			attr_dev(div51, "class", "modal fade modal-slide-right");
     			attr_dev(div51, "id", "modalUsuario");
     			attr_dev(div51, "tabindex", "-1");
@@ -28902,9 +29231,9 @@ var app = (function (moment) {
     			set_style(div51, "display", "none");
     			set_style(div51, "padding-right", "16px");
     			attr_dev(div51, "aria-modal", "true");
-    			add_location(div51, file$f, 562, 2, 17993);
+    			add_location(div51, file$f, 562, 2, 18222);
     			attr_dev(form, "id", "frmUsuario");
-    			add_location(form, file$f, 561, 0, 17932);
+    			add_location(form, file$f, 561, 0, 18154);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -29060,14 +29389,14 @@ var app = (function (moment) {
     				each_blocks[i].m(select1, null);
     			}
 
-    			select_option(select1, /*obj*/ ctx[1].prefix);
+    			select_option(select1, /*usuario*/ ctx[1].prefix);
     			append_dev(div47, t59);
     			append_dev(div47, div38);
     			append_dev(div38, div37);
     			append_dev(div37, label3);
     			append_dev(div37, t61);
     			append_dev(div37, input3);
-    			set_input_value(input3, /*obj*/ ctx[1].name);
+    			set_input_value(input3, /*usuario*/ ctx[1].name);
     			append_dev(div47, t62);
     			append_dev(div47, div41);
     			append_dev(div41, div39);
@@ -29079,20 +29408,20 @@ var app = (function (moment) {
     			append_dev(div40, label5);
     			append_dev(div40, t67);
     			append_dev(div40, input5);
-    			set_input_value(input5, /*obj*/ ctx[1].email);
+    			set_input_value(input5, /*usuario*/ ctx[1].email);
     			append_dev(div47, t68);
     			append_dev(div47, div46);
     			append_dev(div46, div42);
     			append_dev(div42, label6);
     			append_dev(div42, t70);
     			append_dev(div42, input6);
-    			set_input_value(input6, /*obj*/ ctx[1].phoneNumber);
+    			set_input_value(input6, /*usuario*/ ctx[1].phoneNumber);
     			append_dev(div46, t71);
     			append_dev(div46, div43);
     			append_dev(div43, label7);
     			append_dev(div43, t73);
     			append_dev(div43, input7);
-    			set_input_value(input7, /*obj*/ ctx[1].ubicacion);
+    			set_input_value(input7, /*usuario*/ ctx[1].ubicacion);
     			append_dev(div46, t74);
     			append_dev(div46, div44);
     			append_dev(div44, label8);
@@ -29125,37 +29454,37 @@ var app = (function (moment) {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(a0, "click", prevent_default(/*click_handler*/ ctx[39]), false, true, false),
-    					listen_dev(a1, "click", prevent_default(/*editar*/ ctx[22]), false, true, false),
+    					listen_dev(a0, "click", prevent_default(/*click_handler*/ ctx[36]), false, true, false),
+    					listen_dev(a1, "click", prevent_default(/*editarUsuario*/ ctx[22]), false, true, false),
     					listen_dev(button0, "click", /*diaDeHoy*/ ctx[20], false, false, false),
     					listen_dev(button1, "click", /*diaSiguiente*/ ctx[19], false, false, false),
-    					listen_dev(input0, "input", /*input0_input_handler*/ ctx[40]),
+    					listen_dev(input0, "input", /*input0_input_handler*/ ctx[37]),
     					listen_dev(input0, "input", /*buscarDisponibilidadHorario*/ ctx[17], false, false, false),
-    					listen_dev(select0, "change", /*select0_change_handler*/ ctx[41]),
+    					listen_dev(select0, "change", /*select0_change_handler*/ ctx[38]),
     					listen_dev(select0, "change", /*buscarDisponibilidadHorario*/ ctx[17], false, false, false),
-    					listen_dev(input1, "input", /*input1_input_handler*/ ctx[42]),
-    					listen_dev(input1, "change", /*change_handler*/ ctx[43], false, false, false),
-    					listen_dev(button2, "click", /*click_handler_1*/ ctx[44], false, false, false),
-    					listen_dev(button3, "click", /*click_handler_2*/ ctx[45], false, false, false),
-    					listen_dev(button4, "click", /*click_handler_3*/ ctx[46], false, false, false),
-    					listen_dev(select1, "change", /*select1_change_handler*/ ctx[47]),
-    					listen_dev(input3, "input", /*input3_input_handler*/ ctx[48]),
-    					listen_dev(input5, "input", /*input5_input_handler*/ ctx[49]),
-    					listen_dev(input6, "input", /*input6_input_handler*/ ctx[50]),
-    					listen_dev(input7, "input", /*input7_input_handler*/ ctx[51]),
-    					listen_dev(form, "submit", prevent_default(/*guardar*/ ctx[23]), false, true, false)
+    					listen_dev(input1, "input", /*input1_input_handler*/ ctx[39]),
+    					listen_dev(input1, "change", /*change_handler*/ ctx[40], false, false, false),
+    					listen_dev(button2, "click", /*click_handler_1*/ ctx[41], false, false, false),
+    					listen_dev(button3, "click", /*click_handler_2*/ ctx[42], false, false, false),
+    					listen_dev(button4, "click", /*click_handler_3*/ ctx[43], false, false, false),
+    					listen_dev(select1, "change", /*select1_change_handler*/ ctx[44]),
+    					listen_dev(input3, "input", /*input3_input_handler*/ ctx[45]),
+    					listen_dev(input5, "input", /*input5_input_handler*/ ctx[46]),
+    					listen_dev(input6, "input", /*input6_input_handler*/ ctx[47]),
+    					listen_dev(input7, "input", /*input7_input_handler*/ ctx[48]),
+    					listen_dev(form, "submit", prevent_default(/*guardarUsuario*/ ctx[23]), false, true, false)
     				];
 
     				mounted = true;
     			}
     		},
     		p: function update(ctx, dirty) {
-    			if ((!current || dirty[0] & /*detail*/ 1) && t6_value !== (t6_value = /*detail*/ ctx[0].prefix + "")) set_data_dev(t6, t6_value);
-    			if ((!current || dirty[0] & /*detail*/ 1) && t8_value !== (t8_value = /*detail*/ ctx[0].name + "")) set_data_dev(t8, t8_value);
-    			if ((!current || dirty[0] & /*detail*/ 1) && t10_value !== (t10_value = (/*detail*/ ctx[0].perfil || "") + "")) set_data_dev(t10, t10_value);
-    			if ((!current || dirty[0] & /*detail*/ 1) && t12_value !== (t12_value = /*detail*/ ctx[0].email + "")) set_data_dev(t12, t12_value);
-    			if ((!current || dirty[0] & /*detail*/ 1) && t14_value !== (t14_value = (/*detail*/ ctx[0].ubicacion || "") + "")) set_data_dev(t14, t14_value);
-    			if ((!current || dirty[0] & /*detail*/ 1) && t16_value !== (t16_value = /*detail*/ ctx[0].phoneNumber + "")) set_data_dev(t16, t16_value);
+    			if ((!current || dirty[0] & /*medico*/ 1) && t6_value !== (t6_value = /*medico*/ ctx[0].prefix + "")) set_data_dev(t6, t6_value);
+    			if ((!current || dirty[0] & /*medico*/ 1) && t8_value !== (t8_value = /*medico*/ ctx[0].name + "")) set_data_dev(t8, t8_value);
+    			if ((!current || dirty[0] & /*medico*/ 1) && t10_value !== (t10_value = (/*medico*/ ctx[0].perfil || "") + "")) set_data_dev(t10, t10_value);
+    			if ((!current || dirty[0] & /*medico*/ 1) && t12_value !== (t12_value = /*medico*/ ctx[0].email + "")) set_data_dev(t12, t12_value);
+    			if ((!current || dirty[0] & /*medico*/ 1) && t14_value !== (t14_value = (/*medico*/ ctx[0].ubicacion || "") + "")) set_data_dev(t14, t14_value);
+    			if ((!current || dirty[0] & /*medico*/ 1) && t16_value !== (t16_value = /*medico*/ ctx[0].phoneNumber + "")) set_data_dev(t16, t16_value);
 
     			if (dirty[0] & /*btnFechaDisponibilidad*/ 512) {
     				toggle_class(button0, "btn-primary", /*btnFechaDisponibilidad*/ ctx[9] == "h");
@@ -29268,7 +29597,7 @@ var app = (function (moment) {
     				toggle_class(button4, "btn-write", /*btnFechaCita*/ ctx[10] != "s");
     			}
 
-    			if (/*citas*/ ctx[8].length == 0) {
+    			if (/*filterCitas*/ ctx[8].length == 0) {
     				if (if_block1) ; else {
     					if_block1 = create_if_block_1$4(ctx);
     					if_block1.c();
@@ -29279,8 +29608,8 @@ var app = (function (moment) {
     				if_block1 = null;
     			}
 
-    			if (dirty[0] & /*citas*/ 256) {
-    				each_value_2 = /*citas*/ ctx[8];
+    			if (dirty[0] & /*filterCitas*/ 256) {
+    				each_value_2 = /*filterCitas*/ ctx[8];
     				validate_each_argument(each_value_2);
     				let i;
 
@@ -29352,24 +29681,24 @@ var app = (function (moment) {
     				each_blocks.length = each_value.length;
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 32770) {
-    				select_option(select1, /*obj*/ ctx[1].prefix);
+    			if (dirty[0] & /*usuario, prefijos*/ 32770) {
+    				select_option(select1, /*usuario*/ ctx[1].prefix);
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 32770) {
-    				set_input_value(input3, /*obj*/ ctx[1].name);
+    			if (dirty[0] & /*usuario, prefijos*/ 32770) {
+    				set_input_value(input3, /*usuario*/ ctx[1].name);
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 32770 && input5.value !== /*obj*/ ctx[1].email) {
-    				set_input_value(input5, /*obj*/ ctx[1].email);
+    			if (dirty[0] & /*usuario, prefijos*/ 32770 && input5.value !== /*usuario*/ ctx[1].email) {
+    				set_input_value(input5, /*usuario*/ ctx[1].email);
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 32770 && input6.value !== /*obj*/ ctx[1].phoneNumber) {
-    				set_input_value(input6, /*obj*/ ctx[1].phoneNumber);
+    			if (dirty[0] & /*usuario, prefijos*/ 32770 && input6.value !== /*usuario*/ ctx[1].phoneNumber) {
+    				set_input_value(input6, /*usuario*/ ctx[1].phoneNumber);
     			}
 
-    			if (dirty[0] & /*obj, prefijos*/ 32770 && input7.value !== /*obj*/ ctx[1].ubicacion) {
-    				set_input_value(input7, /*obj*/ ctx[1].ubicacion);
+    			if (dirty[0] & /*usuario, prefijos*/ 32770 && input7.value !== /*usuario*/ ctx[1].ubicacion) {
+    				set_input_value(input7, /*usuario*/ ctx[1].ubicacion);
     			}
     		},
     		i: function intro(local) {
@@ -29423,17 +29752,17 @@ var app = (function (moment) {
     	let $errorConexion;
     	let $toast;
     	validate_store(session, "session");
-    	component_subscribe($$self, session, $$value => $$invalidate(27, $session = $$value));
+    	component_subscribe($$self, session, $$value => $$invalidate(26, $session = $$value));
     	validate_store(axios$2, "axios");
-    	component_subscribe($$self, axios$2, $$value => $$invalidate(28, $axios = $$value));
+    	component_subscribe($$self, axios$2, $$value => $$invalidate(27, $axios = $$value));
     	validate_store(activePage, "activePage");
-    	component_subscribe($$self, activePage, $$value => $$invalidate(29, $activePage = $$value));
+    	component_subscribe($$self, activePage, $$value => $$invalidate(28, $activePage = $$value));
     	validate_store(dataCita, "dataCita");
-    	component_subscribe($$self, dataCita, $$value => $$invalidate(30, $dataCita = $$value));
+    	component_subscribe($$self, dataCita, $$value => $$invalidate(29, $dataCita = $$value));
     	validate_store(errorConexion, "errorConexion");
-    	component_subscribe($$self, errorConexion, $$value => $$invalidate(31, $errorConexion = $$value));
+    	component_subscribe($$self, errorConexion, $$value => $$invalidate(30, $errorConexion = $$value));
     	validate_store(toast, "toast");
-    	component_subscribe($$self, toast, $$value => $$invalidate(32, $toast = $$value));
+    	component_subscribe($$self, toast, $$value => $$invalidate(31, $toast = $$value));
     	let user = new UserManager($session.authorizationHeader.Authorization);
 
     	set_store_value(
@@ -29447,9 +29776,8 @@ var app = (function (moment) {
     	set_store_value(activePage, $activePage = "mantenimiento.peril");
     	let { params = {} } = $$props;
     	let id = params.id;
-    	let data = $dataCita;
 
-    	let detail = {
+    	let medico = {
     		medicoID: "",
     		name: "",
     		email: "",
@@ -29458,7 +29786,7 @@ var app = (function (moment) {
     		ubicacion: ""
     	};
 
-    	let obj = {
+    	let usuario = {
     		medicoID: "",
     		name: "",
     		email: "",
@@ -29479,12 +29807,14 @@ var app = (function (moment) {
     	let fecha = "";
     	let fechaBusquedaCita = "";
     	let tandaID = 0;
-    	let perfiles = [];
+
+    	// let perfiles = [];
     	let horarios = [];
+
     	let tandas = [];
     	let horasDisponibles = [];
     	let citas = [];
-    	let citasDB = [];
+    	let filterCitas = [];
     	let btnFechaDisponibilidad = "h";
     	let btnFechaCita = "";
     	let cambioHorarioPermitido = false;
@@ -29515,13 +29845,12 @@ var app = (function (moment) {
     		}
 
     		cargarMedicosDelAsistente();
-    		cargarDetalle();
+    		cargarMedico();
     		buscarDisponibilidadHorario();
     		cargarHorarios();
     		cargarTandas();
     		cargarCitas();
-    		cargarPerfiles();
-    	});
+    	}); // cargarPerfiles();
 
     	function cargarMedicosDelAsistente() {
     		$axios.get("/MedicosAsistentes/" + user.nameid + "/Medicos").then(res => {
@@ -29532,9 +29861,9 @@ var app = (function (moment) {
     		});
     	}
 
-    	function cargarDetalle() {
+    	function cargarMedico() {
     		$axios.get("/Medicos/" + id).then(res => {
-    			$$invalidate(0, detail = res.data);
+    			$$invalidate(0, medico = res.data);
     		}).catch(err => {
     			console.error(err);
     			$errorConexion();
@@ -29557,8 +29886,9 @@ var app = (function (moment) {
     			$$invalidate(12, diasSemana = diasSemana.map(e => {
     				return {
     					check: horarios.some(i => i.dia == e.dia && !i.inactivo),
-    					dia: e.dia,
-    					nombre: e.nombre
+    					dia: e.dia, // Numero del dia
+    					nombre: e.nombre, // Si es Lunes, Martes, ETC.
+    					
     				};
     			}));
     		}).catch(err => {
@@ -29569,7 +29899,7 @@ var app = (function (moment) {
 
     	function cargarCitas() {
     		$axios.get("/Medicos/Citas/" + id).then(res => {
-    			let datos = res.data.map(x => {
+    			let datosCita = res.data.map(x => {
     				return {
     					fecha: moment(x.fecha).format("LL"),
     					hora: moment(x.fecha).format("LT"),
@@ -29579,15 +29909,15 @@ var app = (function (moment) {
     			});
 
     			let diasUnicos = [
-    				...new Set(datos.map(e => {
+    				...new Set(datosCita.map(e => {
     						return e.fecha;
     					}))
-    			];
+    			]; // Eliminando dias repetidos
 
     			diasUnicos.sort();
 
-    			citasDB = diasUnicos.map(e => {
-    				let horas = datos.filter(i => i.fecha == e).map(e => {
+    			citas = diasUnicos.map(e => {
+    				let horas = datosCita.filter(i => i.fecha == e).map(e => {
     					return {
     						hora: moment(e.hora, "LT"),
     						nombrePaciente: e.nombrePaciente,
@@ -29607,7 +29937,7 @@ var app = (function (moment) {
     				};
     			});
 
-    			$$invalidate(8, citas = citasDB);
+    			$$invalidate(8, filterCitas = citas);
     			buscarCitas("s");
     		}).catch(err => {
     			console.error(err);
@@ -29615,15 +29945,15 @@ var app = (function (moment) {
     		});
     	}
 
-    	function cargarPerfiles() {
-    		$axios.get("/Perfiles/GetAll").then(res => {
-    			perfiles = res.data;
-    		}).catch(err => {
-    			console.error(err);
-    			$errorConexion();
-    		});
-    	}
-
+    	// function cargarPerfiles() {
+    	//   $axios.get("/Perfiles/GetAll")
+    	//   .then(res => {
+    	//       perfiles = res.data;
+    	//     }).catch(err => {
+    	//       console.error(err);
+    	//       $errorConexion()
+    	//     });
+    	// }
     	function buscarDisponibilidadHorario() {
     		if (fecha == "" || tandaID <= 0) {
     			$$invalidate(7, horasDisponibles = []);
@@ -29660,7 +29990,7 @@ var app = (function (moment) {
     			tandaID,
     			hora,
     			medicoId: id,
-    			ubicacion: detail.ubicacion
+    			ubicacion: medico.ubicacion
     		});
 
     		push("/Cita/Crear/");
@@ -29684,14 +30014,14 @@ var app = (function (moment) {
 
     		if (tipo == "h") {
     			$$invalidate(3, fechaBusquedaCita = hoy.format("YYYY-MM-DD"));
-    			$$invalidate(8, citas = citasDB.filter(e => e.fecha == hoy.format("LL")));
+    			$$invalidate(8, filterCitas = citas.filter(e => e.fecha == hoy.format("LL")));
     		} else if (tipo == "m") {
     			hoy.add(moment.duration(1, "d"));
     			$$invalidate(3, fechaBusquedaCita = hoy.format("YYYY-MM-DD"));
-    			$$invalidate(8, citas = citasDB.filter(e => e.fecha == hoy.format("LL")));
+    			$$invalidate(8, filterCitas = citas.filter(e => e.fecha == hoy.format("LL")));
     		} else if (tipo == "s") {
     			$$invalidate(3, fechaBusquedaCita = "");
-    			$$invalidate(8, citas = citasDB.filter(e => moment(e.fecha).format("W") == hoy.format("W")));
+    			$$invalidate(8, filterCitas = citas.filter(e => moment(e.fecha).format("W") == hoy.format("W")));
     		} else {
     			if (fechaBusquedaCita == hoy.format("YYYY-MM-DD")) {
     				$$invalidate(10, btnFechaCita = "h");
@@ -29703,13 +30033,13 @@ var app = (function (moment) {
     				$$invalidate(10, btnFechaCita = "");
     			}
 
-    			$$invalidate(8, citas = citasDB.filter(e => e.fecha == moment(fechaBusquedaCita).format("LL")));
+    			$$invalidate(8, filterCitas = citas.filter(e => e.fecha == moment(fechaBusquedaCita).format("LL")));
     		}
     	}
 
-    	function editar() {
+    	function editarUsuario() {
     		$axios.get("/Users/" + id).then(res => {
-    			$$invalidate(1, obj = res.data);
+    			$$invalidate(1, usuario = res.data);
     			jQuery("#modalUsuario").modal("show");
     		}).catch(err => {
     			console.error(err);
@@ -29717,8 +30047,8 @@ var app = (function (moment) {
     		});
     	}
 
-    	function guardar() {
-    		$axios.put("/Users/" + id, obj).then(res => {
+    	function guardarUsuario() {
+    		$axios.put("/Users/" + id, usuario).then(res => {
     			if (res.data.success) {
     				$toast(5000).fire({
     					icon: "success",
@@ -29726,7 +30056,7 @@ var app = (function (moment) {
     				});
 
     				jQuery("#modalUsuario").modal("hide");
-    				cargarDetalle();
+    				cargarMedico();
     			}
     		}).catch(err => {
     			console.error(err);
@@ -29769,32 +30099,32 @@ var app = (function (moment) {
     	const click_handler_3 = () => buscarCitas("s");
 
     	function select1_change_handler() {
-    		obj.prefix = select_value(this);
-    		$$invalidate(1, obj);
+    		usuario.prefix = select_value(this);
+    		$$invalidate(1, usuario);
     		$$invalidate(15, prefijos);
     	}
 
     	function input3_input_handler() {
-    		obj.name = this.value;
-    		$$invalidate(1, obj);
+    		usuario.name = this.value;
+    		$$invalidate(1, usuario);
     		$$invalidate(15, prefijos);
     	}
 
     	function input5_input_handler() {
-    		obj.email = this.value;
-    		$$invalidate(1, obj);
+    		usuario.email = this.value;
+    		$$invalidate(1, usuario);
     		$$invalidate(15, prefijos);
     	}
 
     	function input6_input_handler() {
-    		obj.phoneNumber = this.value;
-    		$$invalidate(1, obj);
+    		usuario.phoneNumber = this.value;
+    		$$invalidate(1, usuario);
     		$$invalidate(15, prefijos);
     	}
 
     	function input7_input_handler() {
-    		obj.ubicacion = this.value;
-    		$$invalidate(1, obj);
+    		usuario.ubicacion = this.value;
+    		$$invalidate(1, usuario);
     		$$invalidate(15, prefijos);
     	}
 
@@ -29819,36 +30149,33 @@ var app = (function (moment) {
     		user,
     		params,
     		id,
-    		data,
-    		detail,
-    		obj,
+    		medico,
+    		usuario,
     		prefijos,
     		fecha,
     		fechaBusquedaCita,
     		tandaID,
-    		perfiles,
     		horarios,
     		tandas,
     		horasDisponibles,
     		citas,
-    		citasDB,
+    		filterCitas,
     		btnFechaDisponibilidad,
     		btnFechaCita,
     		cambioHorarioPermitido,
     		diasSemana,
     		cargarMedicosDelAsistente,
-    		cargarDetalle,
+    		cargarMedico,
     		cargarTandas,
     		cargarHorarios,
     		cargarCitas,
-    		cargarPerfiles,
     		buscarDisponibilidadHorario,
     		crearCita,
     		diaSiguiente,
     		diaDeHoy,
     		buscarCitas,
-    		editar,
-    		guardar,
+    		editarUsuario,
+    		guardarUsuario,
     		$session,
     		$axios,
     		$activePage,
@@ -29861,19 +30188,17 @@ var app = (function (moment) {
     		if ("user" in $$props) $$invalidate(13, user = $$props.user);
     		if ("params" in $$props) $$invalidate(24, params = $$props.params);
     		if ("id" in $$props) $$invalidate(14, id = $$props.id);
-    		if ("data" in $$props) data = $$props.data;
-    		if ("detail" in $$props) $$invalidate(0, detail = $$props.detail);
-    		if ("obj" in $$props) $$invalidate(1, obj = $$props.obj);
+    		if ("medico" in $$props) $$invalidate(0, medico = $$props.medico);
+    		if ("usuario" in $$props) $$invalidate(1, usuario = $$props.usuario);
     		if ("prefijos" in $$props) $$invalidate(15, prefijos = $$props.prefijos);
     		if ("fecha" in $$props) $$invalidate(2, fecha = $$props.fecha);
     		if ("fechaBusquedaCita" in $$props) $$invalidate(3, fechaBusquedaCita = $$props.fechaBusquedaCita);
     		if ("tandaID" in $$props) $$invalidate(4, tandaID = $$props.tandaID);
-    		if ("perfiles" in $$props) perfiles = $$props.perfiles;
     		if ("horarios" in $$props) $$invalidate(5, horarios = $$props.horarios);
     		if ("tandas" in $$props) $$invalidate(6, tandas = $$props.tandas);
     		if ("horasDisponibles" in $$props) $$invalidate(7, horasDisponibles = $$props.horasDisponibles);
-    		if ("citas" in $$props) $$invalidate(8, citas = $$props.citas);
-    		if ("citasDB" in $$props) citasDB = $$props.citasDB;
+    		if ("citas" in $$props) citas = $$props.citas;
+    		if ("filterCitas" in $$props) $$invalidate(8, filterCitas = $$props.filterCitas);
     		if ("btnFechaDisponibilidad" in $$props) $$invalidate(9, btnFechaDisponibilidad = $$props.btnFechaDisponibilidad);
     		if ("btnFechaCita" in $$props) $$invalidate(10, btnFechaCita = $$props.btnFechaCita);
     		if ("cambioHorarioPermitido" in $$props) $$invalidate(11, cambioHorarioPermitido = $$props.cambioHorarioPermitido);
@@ -29885,15 +30210,15 @@ var app = (function (moment) {
     	}
 
     	return [
-    		detail,
-    		obj,
+    		medico,
+    		usuario,
     		fecha,
     		fechaBusquedaCita,
     		tandaID,
     		horarios,
     		tandas,
     		horasDisponibles,
-    		citas,
+    		filterCitas,
     		btnFechaDisponibilidad,
     		btnFechaCita,
     		cambioHorarioPermitido,
@@ -29907,23 +30232,20 @@ var app = (function (moment) {
     		diaSiguiente,
     		diaDeHoy,
     		buscarCitas,
-    		editar,
-    		guardar,
+    		editarUsuario,
+    		guardarUsuario,
     		params,
-    		perfiles,
-    		citasDB,
+    		citas,
     		$session,
     		$axios,
     		$activePage,
     		$dataCita,
     		$errorConexion,
     		$toast,
-    		data,
     		cargarMedicosDelAsistente,
-    		cargarDetalle,
+    		cargarMedico,
     		cargarTandas,
     		cargarCitas,
-    		cargarPerfiles,
     		click_handler,
     		input0_input_handler,
     		select0_change_handler,
@@ -29964,7 +30286,7 @@ var app = (function (moment) {
 
     /* src\Pages\Medico\EspacioTrabajo.svelte generated by Svelte v3.23.0 */
 
-    const { Object: Object_1$3, console: console_1$c } = globals;
+    const { Object: Object_1$2, console: console_1$c } = globals;
     const file$g = "src\\Pages\\Medico\\EspacioTrabajo.svelte";
 
     function get_each_context$9(ctx, list, i) {
@@ -30832,7 +31154,7 @@ var app = (function (moment) {
 
     	const writable_props = [];
 
-    	Object_1$3.keys($$props).forEach(key => {
+    	Object_1$2.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1$c.warn(`<EspacioTrabajo> was created with unknown prop '${key}'`);
     	});
 
@@ -31014,7 +31336,7 @@ var app = (function (moment) {
 
     /* src\Pages\Solicitudes\SolicitudIndex.svelte generated by Svelte v3.23.0 */
 
-    const { Object: Object_1$4 } = globals;
+    const { Object: Object_1$3 } = globals;
     const file$i = "src\\Pages\\Solicitudes\\SolicitudIndex.svelte";
 
     function get_each_context$a(ctx, list, i) {
@@ -31896,7 +32218,7 @@ var app = (function (moment) {
 
     	const writable_props = [];
 
-    	Object_1$4.keys($$props).forEach(key => {
+    	Object_1$3.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console.warn(`<SolicitudIndex> was created with unknown prop '${key}'`);
     	});
 

@@ -18,9 +18,8 @@
   $activePage = "mantenimiento.peril";
   export let params = {};
   let id = params.id;
-  let data = $dataCita;
 
-  let detail = {
+  let medico = {
     medicoID: "",
     name: "",
     email: "",
@@ -28,7 +27,7 @@
     phoneNumber: "",
     ubicacion: ""
   };
-  let obj = {
+  let usuario = {
     medicoID: "",
     name: "",
     email: "",
@@ -49,12 +48,12 @@
   let fecha = "";
   let fechaBusquedaCita = "";
   let tandaID = 0;
-  let perfiles = [];
+  // let perfiles = [];
   let horarios = [];
   let tandas = [];
   let horasDisponibles = [];
   let citas = [];
-  let citasDB = [];
+  let filterCitas = [];
   let btnFechaDisponibilidad = 'h';
   let btnFechaCita = '';
   let cambioHorarioPermitido = false;
@@ -81,12 +80,12 @@
     }
 
     cargarMedicosDelAsistente();
-    cargarDetalle();
+    cargarMedico();
     buscarDisponibilidadHorario();
     cargarHorarios();
     cargarTandas();
     cargarCitas();
-    cargarPerfiles();
+    // cargarPerfiles();
   });
 
   function cargarMedicosDelAsistente() {
@@ -98,10 +97,10 @@
         $errorConexion()
       });
   }
-  function cargarDetalle() {
+  function cargarMedico() {
     $axios.get("/Medicos/" + id)
     .then(res => {
-        detail = res.data;
+        medico = res.data;
       }).catch(err => {
         console.error(err);
         $errorConexion()
@@ -124,8 +123,8 @@
         diasSemana = diasSemana.map(e => {
           return {
             check: horarios.some(i => i.dia == e.dia && !i.inactivo),
-            dia: e.dia,
-            nombre: e.nombre
+            dia: e.dia,  // Numero del dia
+            nombre: e.nombre // Si es Lunes, Martes, ETC.
           }
         });
       }).catch(err => {
@@ -136,7 +135,7 @@
   function cargarCitas() {
     $axios.get("/Medicos/Citas/" + id)
     .then(res => {
-        let datos = res.data.map(x => {
+        let datosCita = res.data.map(x => {
           return {
             fecha: moment(x.fecha).format('LL'),
             hora: moment(x.fecha).format('LT'),
@@ -144,11 +143,11 @@
             nombrePaciente: x.nombrePaciente
           }
         });
-        let diasUnicos = [...new Set( datos.map(e => { return e.fecha }) )];
+        let diasUnicos = [...new Set( datosCita.map(e => { return e.fecha }) )]; // Eliminando dias repetidos
         diasUnicos.sort()
 
-        citasDB = diasUnicos.map(e => {
-          let horas = datos.filter(i => i.fecha == e).map(e => {
+        citas = diasUnicos.map(e => {
+          let horas = datosCita.filter(i => i.fecha == e).map(e => {
             return {
               hora:  moment(e.hora, 'LT'),
               nombrePaciente: e.nombrePaciente,
@@ -167,22 +166,22 @@
             })
           }
         })
-        citas = citasDB;
+        filterCitas = citas;
         buscarCitas('s');
       }).catch(err => {
         console.error(err);
         $errorConexion()
       });
   }
-  function cargarPerfiles() {
-    $axios.get("/Perfiles/GetAll")
-    .then(res => {
-        perfiles = res.data;
-      }).catch(err => {
-        console.error(err);
-        $errorConexion()
-      });
-  }
+  // function cargarPerfiles() {
+  //   $axios.get("/Perfiles/GetAll")
+  //   .then(res => {
+  //       perfiles = res.data;
+  //     }).catch(err => {
+  //       console.error(err);
+  //       $errorConexion()
+  //     });
+  // }
 
   function buscarDisponibilidadHorario() {
     if (fecha == "" || tandaID <= 0) {
@@ -220,7 +219,7 @@
       tandaID: tandaID,
       hora: hora,
       medicoId: id,
-      ubicacion: detail.ubicacion
+      ubicacion: medico.ubicacion
     };
     push('/Cita/Crear/');
   }
@@ -243,14 +242,14 @@
 
     if (tipo == 'h') {
       fechaBusquedaCita = hoy.format('YYYY-MM-DD');
-      citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
+      filterCitas = citas.filter(e => e.fecha == hoy.format('LL'));
     } else if (tipo == 'm') {
       hoy.add(moment.duration(1, 'd'));
       fechaBusquedaCita = hoy.format('YYYY-MM-DD')
-      citas = citasDB.filter(e => e.fecha == hoy.format('LL'));
+      filterCitas = citas.filter(e => e.fecha == hoy.format('LL'));
     } else if (tipo == 's') {
       fechaBusquedaCita = ''
-      citas = citasDB.filter(e => moment(e.fecha).format('W') == hoy.format('W'));
+      filterCitas = citas.filter(e => moment(e.fecha).format('W') == hoy.format('W'));
     } else {
       if (fechaBusquedaCita == hoy.format('YYYY-MM-DD')) {
         btnFechaCita = 'h';
@@ -262,22 +261,22 @@
         btnFechaCita = ''
       }
 
-      citas = citasDB.filter(e => e.fecha == moment(fechaBusquedaCita).format('LL'));
+      filterCitas = citas.filter(e => e.fecha == moment(fechaBusquedaCita).format('LL'));
     }
   }
 
-  function editar() {
+  function editarUsuario() {
     $axios.get("/Users/" + id)
     .then(res => {
-      obj = res.data;
+      usuario = res.data;
       jQuery('#modalUsuario').modal('show');
     }).catch(err => {
       console.error(err);
       $errorConexion()
     });
   }
-  function guardar() {
-    $axios.put("/Users/" + id, obj)
+  function guardarUsuario() {
+    $axios.put("/Users/" + id, usuario)
     .then(res => {
         if (res.data.success) {
           $toast(5000).fire({
@@ -285,7 +284,7 @@
             title: 'Medico actualizado con exito'
           })
           jQuery('#modalUsuario').modal('hide');
-          cargarDetalle();
+          cargarMedico();
         }
       }).catch(err => {
         console.error(err);
@@ -341,18 +340,18 @@
                       alt="name" />
                   </div>
                 </div>
-                <h3 class="p-t-10 searchBy-name">{detail.prefix} {detail.name}</h3>
+                <h3 class="p-t-10 searchBy-name">{medico.prefix} {medico.name}</h3>
               </div>
               <div class="text-muted text-center">
-                {detail.perfil || ""}
+                {medico.perfil || ""}
               </div>
               <p class="text-muted text-center" style="margin-bottom: 0;">
-                {detail.email}
+                {medico.email}
               </p>
               <p class="text-muted text-center" style="margin-bottom: 0;">
-                {detail.ubicacion || ""}
+                {medico.ubicacion || ""}
               </p>
-              <p class="text-muted text-center">{detail.phoneNumber}</p>
+              <p class="text-muted text-center">{medico.phoneNumber}</p>
               <div class="row text-center p-b-10">
                 <div class="col">
                   <a
@@ -371,7 +370,7 @@
                   </a>
                 </div>
                 <div class="col">
-                  <a href="#/" on:click|preventDefault={editar}>
+                  <a href="#/" on:click|preventDefault={editarUsuario}>
                     <h3 class="mdi mdi-account-edit"> </h3>
                     <div class="text-overline">Editar Perfil</div>
                   </a>
@@ -418,6 +417,7 @@
                 <div class="col-lg-6">
                   <div class="form-group ">
                     <label class="font-secondary">Tanda</label>
+                    <!-- svelte-ignore a11y-no-onchange -->
                     <select class="form-control form-control-sm js-select2"
                       bind:value={tandaID} on:change={buscarDisponibilidadHorario}>
                       <option value="0" disabled selected>- Seleccionar -</option>
@@ -495,14 +495,14 @@
               </div>
             </div>
             <div class="card-body">
-              {#if citas.length == 0}
+              {#if filterCitas.length == 0}
               <div class="alert alert-success" role="alert">
                 No hay citas programadas para este dia
               </div>
               {/if}
 
               <div class="row">
-                {#each citas as i}
+                {#each filterCitas as i}
                 <div class="col-lg-6">
                   <div class="card m-b-20 card-vnc">
                     <div class="card-header">
@@ -559,7 +559,7 @@
   </section>
 </main>
 
-<form id="frmUsuario" on:submit|preventDefault={guardar}>
+<form id="frmUsuario" on:submit|preventDefault={guardarUsuario}>
   <div class="modal fade modal-slide-right"
     id="modalUsuario"
     tabindex="-1"
@@ -588,7 +588,7 @@
                 <select
                   class="form-control"
                   name="prefijo"
-                  bind:value={obj.prefix} required>
+                  bind:value={usuario.prefix} required>
                   <option value="">- Seleccionar -</option>
                   {#each prefijos as item}
                     <option value={item.value}>{item.name}</option>
@@ -603,7 +603,7 @@
                   type="name"
                   class="form-control"
                   placeholder="Ing. John Doe"
-                  bind:value={obj.name}
+                  bind:value={usuario.name}
                   name="Name"
                   maxlength="200"
                   required />
@@ -627,7 +627,7 @@
                   required
                   class="form-control"
                   placeholder="usuario@correo.com"
-                  bind:value={obj.email}
+                  bind:value={usuario.email}
                   autocomplete="off"
                   name="Email"
                   id="txtCorreo"
@@ -646,7 +646,7 @@
                   autocomplete="off"
                   maxlength="14"
                   placeholder="(809) 000-0000"
-                  bind:value={obj.phoneNumber}/>
+                  bind:value={usuario.phoneNumber}/>
               </div>
               <div class="form-group col-md-12">
                 <label for="">Ubicacion</label>
@@ -654,7 +654,7 @@
                   type="text"
                   class="form-control"
                   autocomplete="off"
-                  bind:value={obj.ubicacion}/>
+                  bind:value={usuario.ubicacion}/>
               </div>
 
               <div class="form-group col-md-12" style="display: none;">
