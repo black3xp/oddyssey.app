@@ -17,7 +17,7 @@
 
   $activePage = "mantenimiento.peril";
   export let params = {};
-  let id = params.id;
+  let idMedico = params.id;
 
   let medico = {
     medicoID: "",
@@ -45,7 +45,7 @@
     {value: 'Sra', name: 'Sra.'},
   ]
 
-  let fecha = "";
+  let fechaCita = "";
   let fechaBusquedaCita = "";
   let tandaID = 0;
   // let perfiles = [];
@@ -69,13 +69,13 @@
   ];
 
   onMount(() => {
-    btnFechaCita = 's';
+    btnFechaCita = 'semana';
 
     if ($dataCita.fechaCita == "" || $dataCita.fechaCita == undefined) {
-      fecha = moment().format('YYYY-MM-DD');
+      fechaCita = moment().format('YYYY-MM-DD');
       tandaID = 1;
     } else {
-      fecha = $dataCita.fechaCita;
+      fechaCita = $dataCita.fechaCita;
       tandaID = $dataCita.tandaID
     }
 
@@ -91,14 +91,14 @@
   function cargarMedicosDelAsistente() {
     $axios.get("/MedicosAsistentes/" + user.nameid + "/Medicos")
     .then(res => {
-        cambioHorarioPermitido = res.data.some(x => x.medicoID == id);
+        cambioHorarioPermitido = res.data.some(x => x.medicoID == idMedico);
       }).catch(err => {
         console.error(err);
         $errorConexion()
       });
   }
   function cargarMedico() {
-    $axios.get("/Medicos/" + id)
+    $axios.get("/Medicos/" + idMedico)
     .then(res => {
         medico = res.data;
       }).catch(err => {
@@ -116,7 +116,7 @@
       });
   }
   function cargarHorarios() {
-    $axios.get("/Medicos/Horarios/" + id)
+    $axios.get("/Medicos/Horarios/" + idMedico)
     .then(res => {
         horarios = res.data;
 
@@ -133,7 +133,7 @@
       });
   }
   function cargarCitas() {
-    $axios.get("/Medicos/Citas/" + id)
+    $axios.get("/Medicos/Citas/" + idMedico)
     .then(res => {
         let datosCita = res.data.map(x => {
           return {
@@ -167,7 +167,7 @@
           }
         })
         filterCitas = citas;
-        buscarCitas('s');
+        buscarCitas('semana');
       }).catch(err => {
         console.error(err);
         $errorConexion()
@@ -184,21 +184,21 @@
   // }
 
   function buscarDisponibilidadHorario() {
-    if (fecha == "" || tandaID <= 0) {
+    if (fechaCita == "" || tandaID <= 0) {
       horasDisponibles = [];
       return;
     }
 
-    if (fecha == moment().format('YYYY-MM-DD')) {
+    if (fechaCita == moment().format('YYYY-MM-DD')) {
       btnFechaDisponibilidad = 'h';
-    } else if (fecha == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
+    } else if (fechaCita == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
       btnFechaDisponibilidad = 'm';
     } else {
       btnFechaDisponibilidad = ''
     }
 
-    let params = "date=" + fecha + "&" + "tandiId=" + tandaID;
-    $axios.get("/Medicos/HorasDisponibles/" + id + "?" + params)
+    let params = "date=" + fechaCita + "&" + "tandiId=" + tandaID;
+    $axios.get("/Medicos/HorasDisponibles/" + idMedico + "?" + params)
     .then(res => {
       horasDisponibles = res.data.map(e => {
         return {
@@ -215,48 +215,48 @@
 
   function crearCita(hora) {
     $dataCita = {
-      fechaCita: fecha,
+      fechaCita: fechaCita,
       tandaID: tandaID,
       hora: hora,
-      medicoId: id,
+      medicoId: idMedico,
       ubicacion: medico.ubicacion
     };
     push('/Cita/Crear/');
   }
 
   function diaSiguiente(params) {
-    fecha = moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD');
+    fechaCita = moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD');
     btnFechaDisponibilidad = 'm';
 
     buscarDisponibilidadHorario();
   }
   function diaDeHoy(params) {
-    fecha = moment().format('YYYY-MM-DD');
+    fechaCita = moment().format('YYYY-MM-DD');
     btnFechaDisponibilidad = 'h';
 
     buscarDisponibilidadHorario();
   }
-  function buscarCitas(tipo) {
+  function buscarCitas(tipoFecha) {
     let hoy = moment();
-    btnFechaCita = tipo;
+    btnFechaCita = tipoFecha;
 
-    if (tipo == 'h') {
+    if (tipoFecha == 'hoy') {
       fechaBusquedaCita = hoy.format('YYYY-MM-DD');
       filterCitas = citas.filter(e => e.fecha == hoy.format('LL'));
-    } else if (tipo == 'm') {
+    } else if (tipoFecha == 'manana') {
       hoy.add(moment.duration(1, 'd'));
       fechaBusquedaCita = hoy.format('YYYY-MM-DD')
       filterCitas = citas.filter(e => e.fecha == hoy.format('LL'));
-    } else if (tipo == 's') {
+    } else if (tipoFecha == 'semana') {
       fechaBusquedaCita = ''
       filterCitas = citas.filter(e => moment(e.fecha).format('W') == hoy.format('W'));
     } else {
       if (fechaBusquedaCita == hoy.format('YYYY-MM-DD')) {
-        btnFechaCita = 'h';
+        btnFechaCita = 'hoy';
       } else if (fechaBusquedaCita == hoy.add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
-        btnFechaCita = 'm';
+        btnFechaCita = 'manana';
       } else if (moment(fechaBusquedaCita).format('W') == hoy.format('W')) {
-        btnFechaCita = 's'
+        btnFechaCita = 'semana'
       } else {
         btnFechaCita = ''
       }
@@ -266,7 +266,7 @@
   }
 
   function editarUsuario() {
-    $axios.get("/Users/" + id)
+    $axios.get("/Users/" + idMedico)
     .then(res => {
       usuario = res.data;
       jQuery('#modalUsuario').modal('show');
@@ -276,7 +276,7 @@
     });
   }
   function guardarUsuario() {
-    $axios.put("/Users/" + id, usuario)
+    $axios.put("/Users/" + idMedico, usuario)
     .then(res => {
         if (res.data.success) {
           $toast(5000).fire({
@@ -411,7 +411,7 @@
                   <div class="form-group">
                     <label for="inputAddress">Fecha</label>
                     <input type="date" class="form-control form-control-sm"
-                      bind:value={fecha} on:input={buscarDisponibilidadHorario}/>
+                      bind:value={fechaCita} on:input={buscarDisponibilidadHorario}/>
                   </div>
                 </div>
                 <div class="col-lg-6">
@@ -471,23 +471,23 @@
                     bind:value={fechaBusquedaCita} on:change={() => buscarCitas('f')}/>
                   <button
                     type="button"
-                    class:btn-primary={btnFechaCita == 'h'} class:btn-write={btnFechaCita != 'h'}
+                    class:btn-primary={btnFechaCita == 'h'} class:btn-write={btnFechaCita != 'hoy'}
                     class="btn shadow-none btn-sm"
-                    on:click={() => buscarCitas('h')}>
+                    on:click={() => buscarCitas('hoy')}>
                     Hoy
                   </button>
                   <button
                     type="button"
                     class:btn-primary={btnFechaCita == 'm'} class:btn-write={btnFechaCita != 'm'}
                     class="btn shadow-none btn-sm"
-                    on:click={() => buscarCitas('m')}>
+                    on:click={() => buscarCitas('manana')}>
                     Mañana
                   </button>
                   <button
                     type="button"
                     class:btn-primary={btnFechaCita == 's'} class:btn-write={btnFechaCita != 's'}
                     class="btn shadow-none btn-sm"
-                    on:click={() => buscarCitas('s')}>
+                    on:click={() => buscarCitas('semana')}>
                     Semana
                   </button>
                 </div>
@@ -547,7 +547,7 @@
             <div class="card-body">
               {#each diasSemana as item}
               <DiaSemana on:cambioHorario={cargarHorarios} on:cambioHorario={buscarDisponibilidadHorario}
-                {item} {tandas} {horarios} medicoID={id} />
+                {item} {tandas} {horarios} medicoID={idMedico} />
               {/each}
             </div>
           </article>
