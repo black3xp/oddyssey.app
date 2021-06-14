@@ -46,7 +46,7 @@
     perfilID: null
   };
   let userID = "";
-  let busqueda = "";
+  let busquedaUsuario = "";
   let busquedaRoles = "";
   let asistenteID = "";
 
@@ -58,11 +58,10 @@
   });
 
   function cargarUsuarios() {
-    $axios.get("/Users?keyword=" + busqueda)
+    $axios.get("/Users?keyword=" + busquedaUsuario)
     .then(res => {
         usuarios = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -76,7 +75,6 @@
           cargarAsistentesAsignado();
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -84,7 +82,6 @@
     $axios.get("/Perfiles/GetAll").then(res => {
         perfiles = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -93,7 +90,6 @@
     .then(res => {
         asistentesAsignado = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -102,7 +98,6 @@
     .then(res => {
         asistentes = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -111,7 +106,6 @@
     .then(res => {
         roles = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -121,12 +115,11 @@
     .then(res => {
         rolesUser = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
 
-  function guardar() {
+  function guardarUsuario() {
     if (userID == "") {
       $axios.post("/Users", usuario)
       .then(res => {
@@ -139,7 +132,6 @@
           cargarUsuarios();
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
     } else {
@@ -154,7 +146,6 @@
           cargarUsuarios();
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
     }
@@ -166,7 +157,6 @@
       .then(res => {
         cargarRolesUser(userID)
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       })
     } else {
@@ -174,7 +164,6 @@
       .then(res => {
         cargarRolesUser(userID)
       }).catch(err => {
-        console.error(err); 
         $errorConexion()
       })
     }
@@ -195,7 +184,6 @@
         cargarAsistentesAsignado();
       }
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     })
   }
@@ -212,12 +200,11 @@
         cargarAsistentesAsignado();
       }
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     })
   }
 
-  function agregarNuevo() {
+  function agregarNuevoUsuario() {
     userID = "";
     usuario = {
       prefix: "",
@@ -255,7 +242,7 @@
                   type="search"
                   class="form-control form-control-appended"
                   placeholder="Buscar"
-                  bind:value={busqueda}
+                  bind:value={busquedaUsuario}
                   on:input={cargarUsuarios} />
                 <div class="input-group-append">
                   <div class="input-group-text">
@@ -265,7 +252,7 @@
               </div>
             </div>
             <button class="btn m-b-30 ml-2 mr-2 ml-3 btn-primary"
-              on:click={agregarNuevo}
+              on:click={agregarNuevoUsuario}
               data-toggle="modal"
               data-target="#modalUsuario">
               <i class="mdi mdi-account-plus" />
@@ -351,7 +338,7 @@
   </section>
 </main>
 
-<form id="frmUsuario" on:submit|preventDefault={guardar}>
+<form id="frmUsuario" on:submit|preventDefault={guardarUsuario}>
   <div class="modal fade modal-slide-right"
     id="modalUsuario"
     tabindex="-1"

@@ -17,7 +17,7 @@
     jQuery("#sltMedicos").select2();
     jQuery("#sltMedicos").on("select2:select", e => {
       let data = e.params.data;
-      obj.MedicoID = data.id;
+      citaConPaciente.MedicoID = data.id;
       cargarHoras();
     });
 
@@ -28,7 +28,7 @@
   });
 
   let data = $dataCita;
-  let obj = {
+  let citaConPaciente = {
     Observaciones: "",
     Fecha: data.fechaCita || "",
     MedicoID: data.medicoId,
@@ -48,16 +48,15 @@
   let horas = [];
   let pacientes = [];
   let medicos = [];
-  $: faltaLaTanda = obj.tandaID == 0 || obj.tandaID == undefined;
+  $: faltaLaTanda = citaConPaciente.tandaID == 0 || citaConPaciente.tandaID == undefined;
   let busquedaPacientes = "";
 
   function cargarMedicos() {
     $axios.get("/Medicos/Query")
     .then(res => {
         medicos = res.data;
-        setTimeout(x => jQuery("#sltMedicos").val(obj.MedicoID).trigger('change'), 10);
+        setTimeout(x => jQuery("#sltMedicos").val(citaConPaciente.MedicoID).trigger('change'), 10);
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -67,12 +66,11 @@
     .then(res => {
         pacientes = res.data;
 
-        if (obj.PacienteID != "") {
-          let select = pacientes.find(x => x.id == obj.PacienteID)
+        if (citaConPaciente.PacienteID != "") {
+          let select = pacientes.find(x => x.id == citaConPaciente.PacienteID)
           seleccionarPaciente(select)
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -80,21 +78,20 @@
     $axios.get("/Tandas/GetAll")
     .then(res => {
         tandas = res.data;
-        obj.tandaID = $dataCita.tandaID || 0;
+        citaConPaciente.tandaID = $dataCita.tandaID || 0;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
   function cargarHoras() {
-    let params = "?date=" + obj.Fecha + "&" + "tandiID=" + obj.tandaID;
+    let params = "?date=" + citaConPaciente.Fecha + "&" + "tandiID=" + citaConPaciente.tandaID;
 
-    if (obj.Fecha == "" || obj.tandaID <= 0 || obj.MedicoID == "" || obj.MedicoID == 0) {
+    if (citaConPaciente.Fecha == "" || citaConPaciente.tandaID <= 0 || citaConPaciente.MedicoID == "" || citaConPaciente.MedicoID == 0) {
       horas = [];
       return;  
     }
 
-    $axios.get("/Medicos/HorasDisponibles/" + obj.MedicoID + params)
+    $axios.get("/Medicos/HorasDisponibles/" + citaConPaciente.MedicoID + params)
     .then(res => {
       horas = res.data.map(x => {
         return {
@@ -102,57 +99,50 @@
           hora: moment(x, 'LT').format('LT')
         }
       });
-      obj.hora = $dataCita.hora || "";
+      citaConPaciente.hora = $dataCita.hora || "";
     }).catch(err => {
       horas = [];
-      console.error(err);
       $errorConexion()
     })
   }
 
   function seleccionarPaciente(item) {
-    obj.PacienteID = item.id;
-    obj.Nombre = item.nombre;
-    obj.Apellidos = item.apellidos;
-    obj.Telefono = item.telefono;
-    obj.Direccion = item.direccion;
+    citaConPaciente.PacienteID = item.id;
+    citaConPaciente.Nombre = item.nombre;
+    citaConPaciente.Apellidos = item.apellidos;
+    citaConPaciente.Telefono = item.telefono;
+    citaConPaciente.Direccion = item.direccion;
     
     jQuery('#modalPacientes').modal('hide');
   }
 
   function guardarPaciente() {
-    let method = ''
-
-    if (obj.PacienteID == "") {
-      $axios.post("/Pacientes", obj)
+    if (citaConPaciente.PacienteID == "") {
+      $axios.post("/Pacientes", citaConPaciente)
       .then(res => {
-        obj.PacienteID = res.data.data;
+        citaConPaciente.PacienteID = res.data.data;
         crearCita();
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       })
     } else {
-      $axios.put("/Pacientes/" + obj.PacienteID, obj)
+      $axios.put("/Pacientes/" + citaConPaciente.PacienteID, citaConPaciente)
       .then(res => {
         if (res.data.success) {
-          obj.PacienteID = res.data.data;
+          citaConPaciente.PacienteID = res.data.data;
           crearCita();
-        } else {
-          console.log(res);
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       })
     }
   }
 
   function crearCita() {
-    obj.Fecha = obj.Fecha + "T" + obj.hora;
+    citaConPaciente.Fecha = citaConPaciente.Fecha + "T" + citaConPaciente.hora;
 
-    $axios.post("/Citas", obj)
+    $axios.post("/Citas", citaConPaciente)
     .then(res => {
       if (res.data.success) {
         $dataCita = {};
@@ -162,7 +152,6 @@
           })
         push('/Cita/Gestionar');
       } else {
-        console.log(res);
         Swal.fire({
           title: 'Error',
           text: 'Ocurrio un error al crear la cita, intente de nuevo',
@@ -170,7 +159,6 @@
         });
       }
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     })
   }
@@ -243,7 +231,7 @@
                       type="text"
                       class="form-control"
                       id="inpNombre"
-                      bind:value={obj.Nombre} required />
+                      bind:value={citaConPaciente.Nombre} required />
                   </div>
                   <div class="form-group">
                     <label for="inpApellido">Apellidos paciente <span class="text-danger">*</span></label>
@@ -251,7 +239,7 @@
                       type="text"
                       class="form-control"
                       id="inpApellido"
-                      bind:value={obj.Apellidos} required />
+                      bind:value={citaConPaciente.Apellidos} required />
                   </div>
                   <div class="form-group">
                     <label for="inpTelefono">Telefono / Celular <span class="text-danger">*</span></label>
@@ -259,7 +247,7 @@
                       type="tel"
                       class="form-control"
                       id="inpTelefono"
-                      bind:value={obj.Telefono} required />
+                      bind:value={citaConPaciente.Telefono} required />
                   </div>
                   <div class="form-group">
                     <label for="inpCorreo">Correo electronico</label>
@@ -267,20 +255,20 @@
                       type="email"
                       class="form-control"
                       id="inpCorreo"
-                      bind:value={obj.Correo} />
+                      bind:value={citaConPaciente.Correo} />
                   </div>
                   <!-- <div class="form-group">
                     <label for="">Sexo</label>
                       <div class="m-b-10">
                         <label class="cstm-switch ">
                           <input type="radio" name="radioSexo" class="cstm-switch-input" 
-                            value={'M'} bind:group={obj.Sexo} required>
+                            value={'M'} bind:group={citaConPaciente.Sexo} required>
                             <span class="cstm-switch-indicator"></span>
                             <span class="cstm-switch-description">Masculino</span>
                         </label>
                         <label class="cstm-switch m-l-10 ">
                             <input type="radio" name="radioSexo" class="cstm-switch-input"
-                            value={'F'} bind:group={obj.Sexo} required>
+                            value={'F'} bind:group={citaConPaciente.Sexo} required>
                             <span class="cstm-switch-indicator"></span>
                             <span class="cstm-switch-description">Femenino</span>
                         </label>
@@ -292,7 +280,7 @@
                     <textarea
                       class="form-control"
                       rows="3"
-                      bind:value={obj.Direccion} />
+                      bind:value={citaConPaciente.Direccion} />
                   </div>
                   <p>Los campos con un ( <span class="text-danger">*</span> ) son obligatorios</p>
 
@@ -306,7 +294,7 @@
                           type="date"
                           class="form-control mb-2"
                           id="Fecha"
-                          bind:value={obj.Fecha} on:change={() => {
+                          bind:value={citaConPaciente.Fecha} on:change={() => {
                             cargarHoras();
                           }} required/>
                       </div>
@@ -315,7 +303,7 @@
                       <div class="form-group ">
                         <label class="font-secondary">Tanda</label>
                         <select class="form-control"
-                          bind:value={obj.tandaID} on:change={cargarHoras} required>
+                          bind:value={citaConPaciente.tandaID} on:change={cargarHoras} required>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each tandas as item}
                           <option value={item.id}>{item.nombre}</option>
@@ -328,7 +316,7 @@
                       <div class="form-group ">
                         <label class="font-secondary">Médico</label>
                         <select class="form-control js-select2" id="sltMedicos" 
-                            disabled={faltaLaTanda} bind:value={obj.MedicoID} required>
+                            disabled={faltaLaTanda} bind:value={citaConPaciente.MedicoID} required>
                           <option value={0} disabled selected>- Seleccionar -</option>
                           {#each medicos as item}
                           <option value={item.id}>{item.name}</option>
@@ -339,7 +327,7 @@
                     <div class="col-lg-6">
                       <div class="form-group">
                         <label class="font-secondary">Hora</label>
-                        <select class="form-control" bind:value={obj.hora}
+                        <select class="form-control" bind:value={citaConPaciente.hora}
                           disabled={faltaLaTanda} required>
                           <option value={""} disabled selected>- Seleccionar -</option>
                           {#each horas as item}
@@ -357,7 +345,7 @@
                     <div class="col-lg-12">
                       <div class="form-group ">
                         <label class="font-secondary">Observaciones</label>
-                        <textarea class="form-control" rows="5" bind:value={obj.Observaciones}/>
+                        <textarea class="form-control" rows="5" bind:value={citaConPaciente.Observaciones}/>
                       </div>
                     </div>
                     <div class="col-lg-12 p-t-80" style="text-align: right;">

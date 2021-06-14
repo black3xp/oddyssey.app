@@ -1,7 +1,7 @@
 <script>
   import Aside from "../../Layout/Aside.svelte";
   import Header from "../../Layout/Header.svelte";
-  import { connection, activePage, session, axios, dataCita, errorConexion, toast }
+  import { activePage, session, axios, dataCita, errorConexion, toast }
     from "../../store.js";
   import { onMount } from "svelte";
   import { push } from "svelte-spa-router";
@@ -100,7 +100,6 @@
       .then(res => {
         medicos = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -109,7 +108,6 @@
       .then(res => {
         estados = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -123,7 +121,6 @@
         citasPendientes = res.data;
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -133,7 +130,6 @@
         paciente = res.data;
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -149,13 +145,12 @@
         horasDisponibles = res.data.map(x => {
           return {
             time: x,
-            hora: moment(x, "LT").format("LT")
+            hora: moment(x, "LT").format("LT") // asignando fecha con formato hora
           };
         });
       })
       .catch(err => {
         horasDisponibles = [];
-        console.error(err);
         $errorConexion()
       });
   }
@@ -183,11 +178,8 @@
           })
           
           jQuery("#modalPaciente").modal("hide");
-        } else {
-          console.log(res);
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -205,12 +197,9 @@
           })
           cargarCitas()
           jQuery("#modalCrearCita").modal("hide");
-        } else {
-          console.log(res);
         }
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }

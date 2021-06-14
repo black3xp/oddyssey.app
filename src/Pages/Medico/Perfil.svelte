@@ -7,7 +7,6 @@
   import { UserManager } from "../../util.js";
   import { onMount } from "svelte";
   import moment from 'moment';
-  // import Swal from 'sweetalert2';
 
   let user = new UserManager($session.authorizationHeader.Authorization)
 
@@ -93,7 +92,6 @@
     .then(res => {
         cambioHorarioPermitido = res.data.some(x => x.medicoID == idMedico);
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -102,7 +100,6 @@
     .then(res => {
         medico = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -111,7 +108,6 @@
     .then(res => {
         tandas = res.data;
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -128,7 +124,6 @@
           }
         });
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -169,7 +164,6 @@
         filterCitas = citas;
         buscarCitas('semana');
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -178,7 +172,6 @@
   //   .then(res => {
   //       perfiles = res.data;
   //     }).catch(err => {
-  //       console.error(err);
   //       $errorConexion()
   //     });
   // }
@@ -208,7 +201,6 @@
       });
     }).catch(err => {
       horasDisponibles = [];
-      console.error(err); 
       $errorConexion()
     })
   }
@@ -271,7 +263,6 @@
       usuario = res.data;
       jQuery('#modalUsuario').modal('show');
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     });
   }
@@ -287,7 +278,6 @@
           cargarMedico();
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }

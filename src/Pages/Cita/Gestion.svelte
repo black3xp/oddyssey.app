@@ -12,13 +12,13 @@
   };
 
   let ubicacion = "";
-  let dia = -1;
+  let diaSeleccion = -1;
   let especialidades = [];
-  let listado = [];
+  let medicos = [];
   let tandas = [];
   let horasDisponibles = [];
 
-  let filter = {
+  let filterCitaMedico = {
     Nombre: "",
     PerfilID: 0,
     FechaCita: "",
@@ -37,14 +37,14 @@
 
   onMount(() => {
     if ($dataCita.fechaCita != undefined) {
-      filter.FechaCita = $dataCita.fechaCita;
-      filter.TandaID = $dataCita.tandaID
+      filterCitaMedico.FechaCita = $dataCita.fechaCita;
+      filterCitaMedico.TandaID = $dataCita.tandaID
     }
 
     jQuery("#sltEspecialidad").select2();
     jQuery("#sltEspecialidad").on("select2:select", e => {
       let data = e.params.data;
-      filter.PerfilID = parseInt(data.id);
+      filterCitaMedico.PerfilID = parseInt(data.id);
       filtrar('general');
     });
 
@@ -55,12 +55,11 @@
   });
 
   function cargarMedicos() {
-    var qs = new URLSearchParams(filter).toString()
+    var qs = new URLSearchParams(filterCitaMedico).toString()
     $axios.get("/Medicos/Query?" + qs)
     .then(res => {
-      listado = res.data;
+      medicos = res.data;
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     });
   }
@@ -69,7 +68,6 @@
     .then(res => {
       especialidades = res.data;
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     });
   }
@@ -78,7 +76,6 @@
     .then(res => {
       tandas = res.data;
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     });
   }
@@ -103,7 +100,6 @@
       });
     }).catch(err => {
       horasDisponibles = [];
-      console.error(err);
       $errorConexion()
     })
   }
@@ -113,13 +109,13 @@
     let date = moment();
     date.add(moment.duration(countDia, 'd'));
 
-    filter.FechaCita = date.format('YYYY-MM-DD');
+    filterCitaMedico.FechaCita = date.format('YYYY-MM-DD');
     cargarMedicos();
   }
   function crearCita(item) {
     ubicacion = item.ubicacion;
-    filterCita.TandaID = filter.TandaID;
-    filterCita.FechaCita = filter.FechaCita || moment().format('YYYY-MM-DD');
+    filterCita.TandaID = filterCitaMedico.TandaID;
+    filterCita.FechaCita = filterCitaMedico.FechaCita || moment().format('YYYY-MM-DD');
     buscarDisponibilidadHorario(item.id)
 
     jQuery('#modalCrearCita').modal('show')
@@ -137,8 +133,8 @@
   }
   function irAlPerfil(id) {
     $dataCita = {
-      fechaCita: filter.FechaCita,
-      tandaID: filter.TandaID,
+      fechaCita: filterCitaMedico.FechaCita,
+      tandaID: filterCitaMedico.TandaID,
       hora: "",
       medicoId: id,
       pacienteId: ""
@@ -147,7 +143,7 @@
   }
   function filtrar(tipo) {
     if (tipo == 'limpiar') {
-      dia = -1;
+      diaSeleccion = -1;
     }
     if (tipo == 'fecha') {
       marcarFecha()
@@ -156,21 +152,21 @@
     cargarMedicos();
   }
   function marcarFecha() {
-    if (filter.FechaCita == moment().format('YYYY-MM-DD')) {
-      dia = 0;
-    } else if (filter.FechaCita == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
-      dia = 1;
-    } else if (filter.FechaCita == moment().add(moment.duration(2, 'd')).format('YYYY-MM-DD')) {
-      dia = 2;
+    if (filterCitaMedico.FechaCita == moment().format('YYYY-MM-DD')) {
+      diaSeleccion = 0;
+    } else if (filterCitaMedico.FechaCita == moment().add(moment.duration(1, 'd')).format('YYYY-MM-DD')) {
+      diaSeleccion = 1;
+    } else if (filterCitaMedico.FechaCita == moment().add(moment.duration(2, 'd')).format('YYYY-MM-DD')) {
+      diaSeleccion = 2;
     } else {
-      dia = -1;
+      diaSeleccion = -1;
     }
   }
   function limpiarFiltro() {
-    filter.Nombre = "";
-    filter.PerfilID = 0;
-    filter.FechaCita = "";
-    filter.TandaID = 0;
+    filterCitaMedico.Nombre = "";
+    filterCitaMedico.PerfilID = 0;
+    filterCitaMedico.FechaCita = "";
+    filterCitaMedico.TandaID = 0;
     $dataCita = {}
 
     jQuery("#sltEspecialidad").val(0).trigger('change');
@@ -198,12 +194,13 @@
             <div class="card-body">
               <div class="form-group ">
                 <label class="font-secondary">Médico</label>
-                <input type="text" class="form-control" bind:value={filter.Nombre} on:input={() => filtrar('medico')} />
+                <input type="text" class="form-control" bind:value={filterCitaMedico.Nombre} on:input={() => filtrar('medico')} />
               </div>
               <div class="form-group ">
                 <label class="font-secondary">Especialidad</label>
+                <!-- svelte-ignore a11y-no-onchange -->
                 <select class="form-control select2" style="width: 100%;" id="sltEspecialidad"
-                  bind:value={filter.PerfilID} on:change={() => filtrar('especialidad')}>
+                  bind:value={filterCitaMedico.PerfilID} on:change={() => filtrar('especialidad')}>
                   <option value={0}>Todas</option>
                   {#each especialidades as item}
                   <option value={item.id}>{item.nombre}</option>
@@ -216,12 +213,12 @@
                   type="date"
                   class="form-control mb-2"
                   id="inputAddress2" 
-                  bind:value={filter.FechaCita} on:input={() => filtrar('fecha')}/>
+                  bind:value={filterCitaMedico.FechaCita} on:input={() => filtrar('fecha')}/>
 
                 <div class="contenedor-dias">
                   <div class="option-box">
                     <input id="radio-new1" name="tiempo" type="radio" 
-                      value={0} on:change={elegirTiempo} bind:group={dia} />
+                      value={0} on:change={elegirTiempo} bind:group={diaSeleccion} />
                     <label
                       for="radio-new1"
                       style="height: 40px; padding: 3px 10px;">
@@ -232,7 +229,7 @@
                   </div>
                   <div class="option-box">
                     <input id="radio-new2" name="tiempo" type="radio" 
-                      value={1} on:change={elegirTiempo} bind:group={dia} />
+                      value={1} on:change={elegirTiempo} bind:group={diaSeleccion} />
                     <label
                       for="radio-new2"
                       style="height: 40px; padding: 3px 10px;">
@@ -243,7 +240,7 @@
                   </div>
                   <div class="option-box">
                     <input id="radio-new3" name="tiempo" type="radio" 
-                      value={2} on:change={elegirTiempo} bind:group={dia} />
+                      value={2} on:change={elegirTiempo} bind:group={diaSeleccion} />
                     <label
                       for="radio-new3"
                       style="height: 40px; padding: 3px 10px;">
@@ -258,7 +255,8 @@
 
               <div class="form-group ">
                 <label class="font-secondary">Tanda</label>
-                <select class="form-control" bind:value={filter.TandaID} 
+                <!-- svelte-ignore a11y-no-onchange -->
+                <select class="form-control" bind:value={filterCitaMedico.TandaID} 
                   on:change={() => filtrar('tanda')}>
                   <option value={0} selected>Todas</option>
                   {#each tandas as item}
@@ -283,7 +281,7 @@
                 </tr>
               </thead>
               <tbody>
-                {#each listado as item}
+                {#each medicos as item}
                   <!-- content here -->
                   <tr>
                     <td>
@@ -321,9 +319,6 @@
   </section>
 </main>
 
-
-
-
 <div
   class="modal fade modal-slide-right"
   id="modalCrearCita"
@@ -360,6 +355,7 @@
           <div class="col-lg-6">
             <div class="form-group ">
               <label class="font-secondary">Tanda</label>
+              <!-- svelte-ignore a11y-no-onchange -->
               <select class="form-control form-control-sm"
                 bind:value={filterCita.TandaID} on:change={buscarDisponibilidadHorario}>
                 <option value={0} disabled>- Seleccionar -</option>

@@ -109,7 +109,6 @@
         medicos = res.data;
       })
       .catch(err => {
-        console.error(err);
         $errorConexion();
       });
   }
@@ -125,7 +124,6 @@
         citasEnTurno = array.filter(e => e.estadoID == 2);
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -138,7 +136,6 @@
         );
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -160,7 +157,6 @@
       })
       .catch(err => {
         horasDisponibles = [];
-        console.error(err);
         $errorConexion()
       });
   }
@@ -171,7 +167,6 @@
         paciente = res.data;
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -199,11 +194,8 @@
           });
 
           jQuery("#modalPaciente").modal("hide");
-        } else {
-          console.log(res);
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -221,11 +213,8 @@
             title: 'Se ha enviado correctamente'
           })
           jQuery("#modalPaciente").modal("hide");
-        } else {
-          console.log(res);
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -242,12 +231,9 @@
           })
           jQuery("#modalCrearCita").modal("hide");
           cargarCitas()
-        } else {
-          console.log(res);
         }
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -257,12 +243,10 @@
       .then(res => {
         if (res.data.success) {
           cargarCitas();
-          $connection.invoke("EnviarPaciente", item.medicoID, item.pacienteID, "encolar")
-          .catch(err => console.error(err));
+          $connection.invoke("EnviarPaciente", item.medicoID, item.pacienteID, "encolar");
         }
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -292,7 +276,6 @@
             }
           })
           .catch(err => {
-            console.error(err);
             $errorConexion()
           });
       }
@@ -317,7 +300,6 @@
       .then(res => {
         pacienteEnviado = res.data.data || "";
       }).catch(err => {
-        console.error(err);
         $errorConexion();
       });
   }
@@ -326,8 +308,7 @@
     $axios.post("/Medicos/" + cita.medicoID + "/AsignarPaciente?pacienteId=" + cita.pacienteID)
     .then(res => {
       if (!res.data.errors) {
-        $connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID, "asignar")
-          .catch(err => console.error(err));
+        $connection.invoke("EnviarPaciente", cita.medicoID, cita.pacienteID, "asignar");
         guardarYEnviarPaciente()
       } else {
         $toast(5000).fire({
@@ -337,7 +318,6 @@
       }
 
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     });
   }

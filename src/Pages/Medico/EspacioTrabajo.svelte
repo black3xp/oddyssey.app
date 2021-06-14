@@ -42,7 +42,6 @@
         moment(e.fecha).format("YYYY-MM-DD") == moment().format("YYYY-MM-DD")
       );
     }).catch(err => {
-      console.error(err);
       $errorConexion()
     })
   }
@@ -65,7 +64,6 @@
           pacienteSeleccionado = paciente.id
         }
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
@@ -81,12 +79,10 @@
           envioPacienteActual = "";
           cargarPacientesActivos();
 
-          $connection.invoke("EnviarAvisoDelPaciente", user.nameid, "")
-            .catch(err => console.error(err));
+          $connection.invoke("EnviarAvisoDelPaciente", user.nameid, "");
         }
       })
       .catch(err => {
-        console.error(err);
         $errorConexion()
       });
     }
@@ -108,8 +104,7 @@
           if (!res.data.errors) {
             envioPacienteActual = id;
             citaPacienteActual = citas.find(x => x.pacienteID == id)
-            $connection.invoke("EnviarAvisoDelPaciente", user.nameid, id)
-            .catch(err => console.error(err));
+            $connection.invoke("EnviarAvisoDelPaciente", user.nameid, id);
 
             $toast(5000).fire({
               icon: 'success',
@@ -122,9 +117,7 @@
               icon: 'error'
             });
           }
-
         }).catch(err => {
-          console.error(err);
           $errorConexion()
         });
       }
@@ -137,7 +130,6 @@
         envioPacienteActual = res.data.data;
         getPaciente(envioPacienteActual, 'carga')
       }).catch(err => {
-        console.error(err);
         $errorConexion()
       });
   }
